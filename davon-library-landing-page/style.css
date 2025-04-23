@@ -1,11 +1,16 @@
+.header-container {
+    display: flex;
+    align-items: center;
+}
+
 .library-logo {
     width: 100px; 
     height: auto;
+    margin-right: 20px;
 }
 
 h1 {
-    width: 80%; /* Or a specific pixel value like 600px */
-    max-width: 800px; /* Optional: prevents it from getting too wide on large screens */
-    margin: 20px auto; /* 20px top/bottom margin, auto left/right margin */
-    text-align: center; /* Optional: centers the text *inside* the h1 as well */
+    margin: 0;
+    font-size: 24px; 
+    color: #5c0f0f;
 }
