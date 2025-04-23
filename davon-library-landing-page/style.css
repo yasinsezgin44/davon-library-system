@@ -1,31 +1,49 @@
+/* Basic reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif; /* Force basic font */
+}
+
+/* Header */
 .header-container {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background: linear-gradient(to right, #ffffff, #f8f8f8);
-    box-shadow: 0 2px 4px rgba(92, 15, 15, 0.1);
+    background: #f8f8f8;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative; /* Needed for absolute positioned mobile menu */
+}
+
+.logo-title-container {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .library-logo {
-    width: 100px; 
+    width: 80px;
     height: auto;
-    margin-right: 20px;
-    transition: transform 0.3s ease;
-}
-
-.library-logo:hover {
-    transform: scale(1.05);
+    margin-right: 15px;
+    display: block;
 }
 
 h1 {
     margin: 0;
-    font-size: 28px; 
+    font-size: 28px;
     color: #5c0f0f;
     font-weight: 600;
+    font-family: Arial, Helvetica, sans-serif;
     letter-spacing: 0.5px;
     text-transform: uppercase;
     position: relative;
     padding-bottom: 4px;
+    white-space: nowrap;
 }
 
 h1::after {
@@ -43,71 +61,6 @@ h1::after {
 h1:hover::after {
     transform: scaleX(1);
 }
-
-
-
-.hero-section {
-    background: linear-gradient(rgba(92, 15, 15, 0.8), rgba(92, 15, 15, 0.9)),
-                url('library-bg.jpg');
-    background-size: cover;
-    background-position: center;
-    min-height: 60vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4rem 2rem;
-    color: #ffffff;
-    text-align: center;  /* Ensure all text is centered */
-}
-
-.hero-content {
-    max-width: 800px;
-    text-align: center;
-    margin: 0 auto;  /* Center the content container */
-    display: flex;
-    flex-direction: column;
-    align-items: center;  /* Center all flex items */
-}
-
-.hero-title {
-    font-size: 3rem;
-    margin-bottom: 1.5rem;
-    font-weight: 700;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    width: 100%;  /* Ensure full width */
-    text-align: center;
-}
-
-.hero-description {
-    font-size: 1.25rem;
-    line-height: 1.6;
-    margin-bottom: 2rem;
-    opacity: 0.9;
-    max-width: 600px;  /* Limit width for better readability */
-    text-align: center;
-}
-
-.cta-button {
-    display: inline-block;
-    padding: 1rem 2rem;
-    background-color: #ffffff;
-    color: #5c0f0f;
-    text-decoration: none;
-    border-radius: 30px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin: 0 auto;  /* Center the button */
-}
-
-.cta-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-    background-color: #f8f8f8;
-}
-
 
 /* Features Section */
 .features-section {
@@ -318,23 +271,25 @@ h1:hover::after {
     list-style: none;
     margin: 0;
     padding: 0;
-    gap: 1.5rem;
 }
 
 .nav-item {
-    position: relative;
+    margin-left: 18px;
 }
 
 .nav-link {
+    display: block; /* Use block for consistency */
     color: #333;
     text-decoration: none;
-    font-weight: 500;
-    padding: 0.5rem;
-    transition: color 0.3s ease;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    white-space: nowrap; /* Keep this */
+    padding: 5px 0; /* Minimal vertical padding */
 }
 
 .nav-link:hover {
     color: #5c0f0f;
+    text-decoration: underline;
 }
 
 .nav-link.active {
@@ -371,34 +326,35 @@ h1:hover::after {
 }
 
 /* Mobile Navigation */
-@media (max-width: 768px) {
+@media (max-width: 850px) {
     .nav-toggle-label {
         display: block;
         z-index: 101;
     }
     
-    .nav-menu {
-        position: fixed;
-        top: 0;
-        right: -100%;
-        width: 70%;
-        height: 100vh;
-        background-color: #ffffff;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-        transition: right 0.3s ease;
+    nav {
+        order: 3;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        box-shadow: 0 3px 3px rgba(0,0,0,0.1);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
         z-index: 100;
         padding-top: 60px;
     }
     
     #nav-toggle:checked ~ nav .nav-menu {
-        right: 0;
+        max-height: 300px;
     }
     
     .nav-item {
-        margin: 1.5rem 0;
+        margin: 0;
+        width: 100%;
+        text-align: center;
     }
     
     /* Change hamburger to X when menu is open */
@@ -409,4 +365,137 @@ h1:hover::after {
     #nav-toggle:checked ~ .nav-toggle-label:before {
         content: '✕';
     }
+}
+
+/* Optional: Adjust font size on slightly smaller screens before mobile */
+@media (max-width: 1100px) and (min-width: 901px) {
+    h1 {
+        font-size: 22px;
+    }
+    .nav-link {
+        font-size: 15px;
+    }
+    .nav-item {
+        margin-left: 10px;
+    }
+}
+
+/* --- Minimal Navigation Styles --- */
+nav {
+    overflow: hidden;
+}
+
+.menu-toggle {
+    display: none;
+}
+
+.menu-icon {
+    display: none; /* Hidden by default */
+    cursor: pointer;
+    font-size: 24px; /* Use explicit font size */
+    color: #5c0f0f;
+    font-family: Arial, Helvetica, sans-serif; /* Ensure icon uses basic font too */
+    padding: 5px;
+}
+
+/* --- Media Query for Mobile --- */
+@media (max-width: 850px) {
+    .menu-icon {
+        display: block; /* Show hamburger */
+    }
+
+    nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        box-shadow: 0 3px 3px rgba(0,0,0,0.1);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        z-index: 100;
+    }
+
+    .nav-menu {
+        flex-direction: column;
+        width: 100%;
+        padding: 5px 0;
+    }
+
+    .nav-item {
+        margin: 0;
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-link {
+        padding: 10px 15px; /* Restore padding for mobile */
+        white-space: normal; /* Allow wrapping */
+        width: 100%;
+    }
+
+    .menu-toggle:checked ~ nav {
+        max-height: 300px;
+    }
+}
+
+/* --- Hero Section Styles --- */
+.hero-section {
+    background: linear-gradient(rgba(92, 15, 15, 0.8), rgba(92, 15, 15, 0.9)),
+                url('library-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    color: #ffffff;
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 800px;
+}
+
+.hero-title {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    font-family: 'Georgia', serif;
+    color: #ffffff;
+}
+
+.hero-description {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background-color: #ffffff;
+    color: #5c0f0f;
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    background-color: #f8f8f8;
 }
