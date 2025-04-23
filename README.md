@@ -62,4 +62,4 @@ This project utilizes the **Git Flow** branching model for managing development 
 
 This workflow helps maintain a clear separation between ongoing development, upcoming releases, and production fixes.
 
-_(Optional: If you are using the git-flow command-line tool, you can add a note like: "The git-flow command-line extension is used to manage this workflow.")_
+_(Optional: If you are using the git-flow command-line tool, you can add a note like: "The git-flow command-line extension is used to manage this workflow.")
