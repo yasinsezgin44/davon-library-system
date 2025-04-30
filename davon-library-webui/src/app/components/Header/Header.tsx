@@ -6,11 +6,11 @@ export default function Header() {
         <header className="header-container">
             <div className="logo-title-container">
                 <img src="images/logo.png" alt="Davon Library Logo" className="library-logo">
-                <h1>Davon Library</h1>
+                <h1 className={styles.siteTitle}>Davon Library</h1>
             </div>
 
-            <input type="checkbox" id="menu-toggle" className="menu-toggle">
-            <label for="menu-toggle" className="menu-icon">☰</label>
+            <input type="checkbox" id="menu-toggle" className="menu-toggle" />
+            <label htmlFor="menu-toggle" className="menu-icon">☰</label>
 
             <nav>
                 <ul className="nav-menu">
