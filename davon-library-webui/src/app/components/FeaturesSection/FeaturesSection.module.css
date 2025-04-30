@@ -1,10 +1,10 @@
 /* Features Section */
-.features-section {
+.featuresSection {
     padding: 5rem 2rem;
     background-color: var(--davon-white); /* White background */
 }
 
-.section-title {
+.sectionTitle {
     text-align: center;
     font-size: 2.5rem;
     color: var(--davon-black); /* BLACK title */
@@ -13,7 +13,7 @@
     font-weight: bold;
 }
 
-.section-title::after {
+.sectionTitle::after {
     content: '';
     position: absolute;
     bottom: -10px;
@@ -24,7 +24,7 @@
     background-color: var(--davon-red); /* RED underline */
 }
 
-.features-container {
+.featuresContainer {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -33,7 +33,7 @@
     margin: 0 auto;
 }
 
-.feature-card {
+.featureCard {
     flex: 1 1 300px;
     max-width: 350px;
     background-color: var(--davon-white); /* White card */
@@ -44,12 +44,12 @@
     border: 1px solid var(--davon-light-gray); /* Subtle border */
 }
 
-.feature-card:hover {
+.featureCard:hover {
     transform: translateY(-10px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.feature-icon {
+.featureIcon {
     height: 150px;
     background-color: var(--davon-red); /* RED background */
     display: flex;
@@ -59,28 +59,28 @@
     font-size: 3rem;
 }
 
-.feature-icon i {
+.featureIcon i {
     line-height: 1; /* Helps with vertical alignment sometimes */
 }
 
-.feature-content {
+.featureContent {
     padding: 1.5rem;
 }
 
-.feature-title {
+.featureTitle {
     font-size: 1.5rem;
     color: var(--davon-black); /* BLACK title */
     margin-bottom: 1rem;
     font-weight: 600;
 }
 
-.feature-description {
+.featureDescription {
     color: var(--davon-text-dark); /* Dark text */
     line-height: 1.6;
     margin-bottom: 1rem;
 }
 
-.feature-link {
+.featureLink {
     display: inline-block;
     color: var(--davon-red); /* RED link */
     font-weight: 600;
@@ -88,7 +88,7 @@
     position: relative;
 }
 
-.feature-link::after {
+.featureLink::after {
     content: '';
     position: absolute;
     bottom: -2px;
@@ -101,24 +101,24 @@
     transition: transform 0.3s ease;
 }
 
-.feature-link:hover::after {
+.featureLink:hover::after {
     transform: scaleX(1);
     transform-origin: left;
 }
 
 /* Add relevant mobile responsive rules */
 @media (max-width: 850px) {
-    .features-section {
+    .featuresSection {
         padding: 3rem 1rem;
     }
-    .section-title { /* Target the class */
+    .sectionTitle { /* Target the class */
         font-size: 1.8rem;
         margin-bottom: 2rem;
     }
-    .features-container {
+    .featuresContainer {
         gap: 1.5rem;
     }
-    .feature-card {
+    .featureCard {
         flex-basis: 90%;
         max-width: none;
         margin: 0 auto;
@@ -126,13 +126,13 @@
 }
 
 @media (max-width: 480px) {
-    .section-title { /* Target the class */
+    .sectionTitle { /* Target the class */
         font-size: 1.6rem;
     }
-    .feature-title { /* Target the class */
+    .featureTitle { /* Target the class */
         font-size: 1.3rem;
     }
-    .feature-description { /* Target the class */
+    .featureDescription { /* Target the class */
         font-size: 0.9rem;
     }
 }

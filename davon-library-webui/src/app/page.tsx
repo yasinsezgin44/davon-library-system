@@ -1,15 +1,13 @@
 import Image from "next/image";
-import HeroSection from "./components/HeroSection/HeroSection";
-import FeatureSection from "./components/FeatureSection/FeatureSection";
+import HeroSection from "./components/HeroSection/HeroSection"; // Use relative path
+import FeaturesSection from "./components/FeaturesSection/FeaturesSection"; // Use relative path
 
 export default function Home() {
   return (
     <>
       {" "}
-      {/* Use a fragment to return multiple top-level elements */}
       <HeroSection />
-      {/* We will add Features section below this */}
-      <FeatureSection />
+      <FeaturesSection />
     </>
   );
 }
