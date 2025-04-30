@@ -1,0 +1,138 @@
+/* Features Section */
+.features-section {
+    padding: 5rem 2rem;
+    background-color: var(--davon-white); /* White background */
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--davon-black); /* BLACK title */
+    margin-bottom: 3rem;
+    position: relative;
+    font-weight: bold;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background-color: var(--davon-red); /* RED underline */
+}
+
+.features-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    flex: 1 1 300px;
+    max-width: 350px;
+    background-color: var(--davon-white); /* White card */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--davon-light-gray); /* Subtle border */
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+    height: 150px;
+    background-color: var(--davon-red); /* RED background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--davon-white); /* WHITE icon */
+    font-size: 3rem;
+}
+
+.feature-icon i {
+    line-height: 1; /* Helps with vertical alignment sometimes */
+}
+
+.feature-content {
+    padding: 1.5rem;
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    color: var(--davon-black); /* BLACK title */
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.feature-description {
+    color: var(--davon-text-dark); /* Dark text */
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.feature-link {
+    display: inline-block;
+    color: var(--davon-red); /* RED link */
+    font-weight: 600;
+    text-decoration: none;
+    position: relative;
+}
+
+.feature-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--davon-red); /* RED underline */
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+}
+
+.feature-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+/* Add relevant mobile responsive rules */
+@media (max-width: 850px) {
+    .features-section {
+        padding: 3rem 1rem;
+    }
+    .section-title { /* Target the class */
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+    }
+    .features-container {
+        gap: 1.5rem;
+    }
+    .feature-card {
+        flex-basis: 90%;
+        max-width: none;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-title { /* Target the class */
+        font-size: 1.6rem;
+    }
+    .feature-title { /* Target the class */
+        font-size: 1.3rem;
+    }
+    .feature-description { /* Target the class */
+        font-size: 0.9rem;
+    }
+}
