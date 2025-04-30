@@ -1,5 +1,5 @@
 /* Header */
-.header-container {
+.headerContainer {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -9,13 +9,13 @@
     position: relative; /* Needed for absolute positioned mobile menu */
 }
 
-.logo-title-container {
+.logoTitleContainer {
     display: flex;
     align-items: center;
     flex-shrink: 0;
 }
 
-.library-logo {
+.libraryLogo {
     width: 80px;
     height: auto;
     margin-right: 15px;
@@ -51,33 +51,19 @@
     transform: scaleX(1);
 }
 
-/* Navigation Styles */
-.nav-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background: linear-gradient(to right, #ffffff, #f8f8f8);
-    box-shadow: 0 2px 4px rgba(92, 15, 15, 0.1);
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-}
-
-.nav-menu {
+/* Navigation Menu */
+.navMenu {
     display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.nav-item {
+.navItem {
     margin-left: 18px;
 }
 
-.nav-link {
+.navLink {
     display: block;
     color: var(--davon-text-dark); /* Dark text on white bg */
     text-decoration: none;
@@ -88,88 +74,79 @@
     font-weight: 500; /* Added weight back */
 }
 
-.nav-link:hover {
+.navLink:hover {
     color: var(--davon-red); /* RED hover */
 }
 
-.nav-link.active {
-    color: #5c0f0f;
+/* Mobile Menu Toggle used with React state (checkbox is hidden/not needed) */
+.menuToggle {
+    display: none; /* Style the hidden input if needed */
 }
 
-.nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: -3px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: #5c0f0f;
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-}
-
-.nav-link:hover::after,
-.nav-link.active::after {
-    transform: scaleX(1);
-}
-
-/* CSS-only Mobile Navigation */
-.nav-toggle-label {
-    display: none;
+.menuIcon {
+    display: none; /* Hidden by default, shown via media query */
     cursor: pointer;
-    color: #5c0f0f;
-    font-size: 1.5rem;
+    font-size: 24px; /* Use explicit font size */
+    color: var(--davon-black); /* Black icon */
+    font-family: Arial, Helvetica, sans-serif; /* Ensure icon uses basic font too */
+    padding: 5px;
 }
 
-#nav-toggle {
-    display: none; /* Hide the checkbox */
-}
-
-/* Mobile Navigation */
+/* Media Query for Mobile */
 @media (max-width: 850px) {
-    .nav-toggle-label {
+    .menuIcon {
         display: block;
-        z-index: 101;
+        z-index: 101; /* Ensure it's clickable */
     }
     
-    nav {
-        order: 3;
+    /* Select the nav element directly if needed for positioning */
+    /* Assuming the 'nav' tag is the direct sibling targeted by checkbox */
+    /* Or adjust TSX to add className={styles.mainNav} to nav tag */
+    .mainNav {
+        order: 3; /* Example if using flex order */
         position: absolute;
         top: 100%;
         left: 0;
         width: 100%;
-        background: #fff;
+        background: var(--davon-white);
         box-shadow: 0 3px 3px rgba(0,0,0,0.1);
-        max-height: 0;
+        max-height: 0; /* Controlled by state/class in React */
         overflow: hidden;
         transition: max-height 0.3s ease-out;
         z-index: 100;
-        padding-top: 60px;
+    }
+
+    /* Add a class like .navOpen to .mainNav via React state to show */
+    .navOpen {
+        max-height: 300px; /* Or appropriate height */
     }
     
-    #nav-toggle:checked ~ nav .nav-menu {
-        max-height: 300px;
+    .navMenu {
+        flex-direction: column;
+        width: 100%;
+        padding: 5px 0; /* Adjust padding */
+        align-items: center; /* Center items */
     }
-    
-    .nav-item {
+
+    .navItem {
         margin: 0;
         width: 100%;
         text-align: center;
     }
-    
-    /* Change hamburger to X when menu is open */
-    .nav-toggle-label:before {
-        content: '☰';
+
+    .navLink {
+        padding: 10px 15px;
+        white-space: normal;
+        width: 100%;
+        border-bottom: 1px solid var(--davon-light-gray); /* Example separator */
     }
-    
-    #nav-toggle:checked ~ .nav-toggle-label:before {
-        content: '✕';
+    .navItem:last-child .navLink {
+        border-bottom: none;
     }
 
-    /* Ensure mobile menu icon color is correct if needed */
-    .menu-icon {
-        color: var(--davon-black);
-    }
+    /* Responsive logo/title size */
+    .libraryLogo { width: 60px; margin-right: 10px; }
+    .siteTitle { font-size: 20px; }
 }
 
 /* Optional: Adjust font size on slightly smaller screens before mobile */
@@ -177,10 +154,10 @@
     .siteTitle {
         font-size: 22px;
     }
-    .nav-link {
+    .navLink {
         font-size: 15px;
     }
-    .nav-item {
+    .navItem {
         margin-left: 10px;
     }
 }
