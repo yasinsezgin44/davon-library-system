@@ -1,0 +1,181 @@
+/* Header */
+.headerContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: var(--davon-white); /* White background */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle black shadow */
+    position: relative; /* Needed for absolute positioned mobile menu */
+}
+
+.logoTitleContainer {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.libraryLogo {
+    width: 80px;
+    height: auto;
+    margin-right: 15px;
+    display: block;
+}
+
+.siteTitle {
+    margin: 0;
+    font-size: 28px;
+    color: var(--davon-red); /* RED title */
+    font-weight: 600;
+    font-family: Arial, Helvetica, sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    position: relative;
+    padding-bottom: 4px;
+    white-space: nowrap;
+}
+
+.siteTitle::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60%;
+    height: 2px;
+    background-color: var(--davon-red); /* RED underline */
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.siteTitle:hover::after {
+    transform: scaleX(1);
+}
+
+/* Navigation Menu */
+.navMenu {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navItem {
+    margin-left: 18px;
+}
+
+.navLink {
+    display: block;
+    color: var(--davon-text-dark); /* Dark text on white bg */
+    text-decoration: none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    white-space: nowrap;
+    padding: 5px 0;
+    font-weight: 500; /* Added weight back */
+}
+
+.navLink:hover {
+    color: var(--davon-red); /* RED hover */
+}
+
+/* Mobile Menu Toggle used with React state (checkbox is hidden/not needed) */
+.menuToggle {
+    display: none; /* Style the hidden input if needed */
+}
+
+.menuIcon {
+    display: none; /* Hidden by default, shown via media query */
+    cursor: pointer;
+    font-size: 24px; /* Use explicit font size */
+    color: var(--davon-black); /* Black icon */
+    font-family: Arial, Helvetica, sans-serif; /* Ensure icon uses basic font too */
+    padding: 5px;
+}
+
+/* Media Query for Mobile */
+@media (max-width: 850px) {
+    .menuIcon {
+        display: block;
+        z-index: 101; /* Ensure it's clickable */
+    }
+    
+    /* Select the nav element directly if needed for positioning */
+    /* Assuming the 'nav' tag is the direct sibling targeted by checkbox */
+    /* Or adjust TSX to add className={styles.mainNav} to nav tag */
+    .mainNav {
+        order: 3; /* Example if using flex order */
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: var(--davon-white);
+        box-shadow: 0 3px 3px rgba(0,0,0,0.1);
+        max-height: 0; /* Controlled by state/class in React */
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        z-index: 100;
+    }
+
+    /* Add a class like .navOpen to .mainNav via React state to show */
+    .navOpen {
+        max-height: 300px; /* Or appropriate height */
+    }
+    
+    .navMenu {
+        flex-direction: column;
+        width: 100%;
+        padding: 5px 0; /* Adjust padding */
+        align-items: center; /* Center items */
+    }
+
+    .navItem {
+        margin: 0;
+        width: 100%;
+        text-align: center;
+    }
+
+    .navLink {
+        padding: 10px 15px;
+        white-space: normal;
+        width: 100%;
+        border-bottom: 1px solid var(--davon-light-gray); /* Example separator */
+    }
+    .navItem:last-child .navLink {
+        border-bottom: none;
+    }
+
+    /* Responsive logo/title size */
+    .libraryLogo { width: 60px; margin-right: 10px; }
+    .siteTitle { font-size: 20px; }
+}
+
+/* Optional: Adjust font size on slightly smaller screens before mobile */
+@media (max-width: 1100px) and (min-width: 901px) {
+    .siteTitle {
+        font-size: 22px;
+    }
+    .navLink {
+        font-size: 15px;
+    }
+    .navItem {
+        margin-left: 10px;
+    }
+}
+
+/* --- Minimal Navigation Styles --- */
+.mainNav {
+    overflow: hidden;
+}
+
+.menu-toggle {
+    display: none;
+}
+
+.menu-icon {
+    display: none; /* Hidden by default */
+    cursor: pointer;
+    font-size: 24px; /* Use explicit font size */
+    color: var(--davon-black); /* Black icon */
+    font-family: Arial, Helvetica, sans-serif; /* Ensure icon uses basic font too */
+    padding: 5px;
+}

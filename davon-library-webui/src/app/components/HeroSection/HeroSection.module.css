@@ -1,0 +1,124 @@
+/* Header */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: var(--davon-white); /* White background */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle black shadow */
+    position: relative; /* Needed for absolute positioned mobile menu */
+}
+
+.logo-title-container {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.library-logo {
+    width: 80px;
+    height: auto;
+    margin-right: 15px;
+    display: block;
+}
+
+
+/* --- Hero Section Styles --- */
+.heroSection {
+    /* Use variables from globals.css */
+    /* Commented out background image */
+    /* background: linear-gradient(rgba(26, 26, 26, 0.7), rgba(26, 26, 26, 0.8)),
+                url('/library-bg.jpg'); */
+    
+    /* Added fallback background color */
+    background: linear-gradient(rgba(26, 26, 26, 0.7), rgba(26, 26, 26, 0.8)), /* Keep overlay */
+                var(--davon-black); /* Use solid black as base */
+
+    background-size: cover; /* Keep these */
+    background-position: center; /* Keep these */
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    color: var(--davon-white);
+    text-align: center;
+}
+
+.heroContent {
+    max-width: 800px;
+}
+
+.heroTitle {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+    font-family: 'Georgia', serif; /* Or your preferred hero font */
+    color: var(--davon-white);
+}
+
+.heroDescription {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--davon-text-light);
+}
+
+.ctaButton {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background-color: var(--davon-red);
+    color: var(--davon-white);
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    font-family: Arial, Helvetica, sans-serif;
+    border: 2px solid var(--davon-red);
+}
+
+.ctaButton:hover {
+    background-color: #a10000;
+    border-color: #a10000;
+    color: var(--davon-white);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Add relevant mobile responsive rules from your original file */
+@media (max-width: 850px) {
+    .heroSection {
+        padding: 3rem 1rem;
+        min-height: 50vh;
+    }
+    .heroTitle {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    .heroDescription {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .ctaButton {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+     .heroTitle {
+        font-size: 1.8rem;
+    }
+    .heroDescription {
+        font-size: 0.9rem;
+    }
+}
