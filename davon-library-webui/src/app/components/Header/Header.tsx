@@ -7,7 +7,7 @@ export default function Header() {
     <header className={styles.headerContainer}>
       <div className={styles.logoTitleContainer}>
         <Image
-          src="/images/logo.png"
+          src="/logo.png"
           alt="Davon Library Logo"
           width={80}
           height={50}
