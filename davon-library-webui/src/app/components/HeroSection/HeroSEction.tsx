@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import styles from "./HeroSection.module.css";
 import { useState } from "react";
