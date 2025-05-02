@@ -61,3 +61,5 @@ This project utilizes the **Git Flow** branching model for managing development 
 8.  `hotfix` branches are merged into both `main` and `develop` and tagged.
 
 This workflow helps maintain a clear separation between ongoing development, upcoming releases, and production fixes.
+
+
