@@ -26,13 +26,10 @@
 /* --- Hero Section Styles --- */
 .heroSection {
     /* Use variables from globals.css */
-    /* Commented out background image */
-    /* background: linear-gradient(rgba(26, 26, 26, 0.7), rgba(26, 26, 26, 0.8)),
-                url('/library-bg.jpg'); */
-    
-    /* Added fallback background color */
-    background: linear-gradient(rgba(26, 26, 26, 0.7), rgba(26, 26, 26, 0.8)), /* Keep overlay */
-                var(--davon-black); /* Use solid black as base */
+
+    /* Set background image with overlay */
+    background: linear-gradient(rgba(26, 26, 26, 0.7), rgba(26, 26, 26, 0.8)),
+                url('/background.webp');
 
     background-size: cover; /* Keep these */
     background-position: center; /* Keep these */
