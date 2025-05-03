@@ -9,6 +9,7 @@ import Modal from "../Modal/Modal";
 import LoginForm from "../AuthForm/LoginForm";
 import RegistrationForm from "../AuthForm/RegistrationForm";
 import { useAuth } from "./../contexts/AuthContext";
+import ProfileMenu from "./../Profile/ProfileMenu";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -142,7 +143,7 @@ export default function Header() {
             </li>
             <li className={`${styles.navItem} ${styles.navItemButton}`}>
               {user ? (
-                <ProfileMenu user={user} onLogout={logout} />
+                <ProfileMenu />
               ) : (
                 <button
                   type="button"
