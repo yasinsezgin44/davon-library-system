@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import Modal from "../Modal/Modal";
 import LoginForm from "../LoginForm/LoginForm";
 import RegistrationForm from "../RegistrationForm/RegistrationForm";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "./../contexts/AuthContext";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
