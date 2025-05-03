@@ -8,11 +8,14 @@ import { usePathname } from "next/navigation";
 import Modal from "../Modal/Modal";
 import LoginForm from "../LoginForm/LoginForm";
 import RegistrationForm from "../RegistrationForm/RegistrationForm";
+import { useAuth } from "../../contexts/AuthContext";
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -138,22 +141,36 @@ export default function Header() {
               </Link>
             </li>
             <li className={`${styles.navItem} ${styles.navItemButton}`}>
-              <button
-                type="button"
-                className={styles.registrationButton}
-                onClick={openRegistrationModal}
-              >
-                Register
-              </button>
+              {user ? (
+                <ProfileMenu user={user} onLogout={logout} />
+              ) : (
+                <button
+                  type="button"
+                  className={styles.registrationButton}
+                  onClick={openRegistrationModal}
+                >
+                  Register
+                </button>
+              )}
             </li>
             <li className={`${styles.navItem} ${styles.navItemButton}`}>
-              <button
-                type="button"
-                className={styles.loginButton}
-                onClick={openLoginModal}
-              >
-                Login
-              </button>
+              {user ? (
+                <button
+                  type="button"
+                  className={styles.loginButton}
+                  onClick={openLoginModal}
+                >
+                  Login
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.loginButton}
+                  onClick={openLoginModal}
+                >
+                  Login
+                </button>
+              )}
             </li>
           </ul>
         </nav>
