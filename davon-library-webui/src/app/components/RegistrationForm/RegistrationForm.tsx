@@ -1,54 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "./../contexts/AuthContext";
 import styles from "./RegistrationForm.module.css";
 
 export default function RegistrationForm() {
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { register } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
     setIsLoading(true);
-
-    // --- Placeholder for actual registration logic ---
-    console.log("Registration attempt with:", { username, email, password });
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    // Example: Replace with your actual API call
-    // try {
-    //   const response = await fetch('/api/register', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ username, email, password }),
-    //   });
-    //   if (!response.ok) {
-    //     const errorData = await response.json();
-    //     throw new Error(errorData.message || 'Registration failed');
-    //   }
-    //   // Handle successful registration (e.g., redirect, update auth state)
-    //   console.log('Registration successful');
-    // } catch (err: any) {
-    //   setError(err.message);
-    // } finally {
-    //   setIsLoading(false);
-    // }
-    // --- End Placeholder ---
-
-    // Reset loading state after placeholder simulation
-    setIsLoading(false);
-    // Example failure
-    if (password !== "password") {
-      // Dummy check
-      setError("Invalid email or password.");
-    } else {
-      alert("Registration Successful! (Placeholder)");
-      // Here you would typically close the modal and update global state
-      // Example: props.onRegistrationSuccess(); // Call a function passed from Header to close modal
+    try {
+      await register(name, email, password);
+      router.push("/"); // redirect on success
+    } catch (err: any) {
+      setError(err.message || "Registration failed");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -56,53 +32,37 @@ export default function RegistrationForm() {
     <form onSubmit={handleSubmit} className={styles.form}>
       {error && <p className={styles.errorMessage}>{error}</p>}
       <div className={styles.formGroup}>
-        <label htmlFor="registration-username" className={styles.label}>
-          Username
-        </label>
+        <label htmlFor="reg-name">Name</label>
         <input
-          type="username"
-          id="registration-username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          id="reg-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           required
-          className={styles.input}
-          autoComplete="username"
         />
       </div>
       <div className={styles.formGroup}>
-        <label htmlFor="registration-email" className={styles.label}>
-          Email Address
-        </label>
+        <label htmlFor="reg-email">Email</label>
         <input
+          id="reg-email"
           type="email"
-          id="registration-email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className={styles.input}
-          autoComplete="email"
         />
       </div>
       <div className={styles.formGroup}>
-        <label htmlFor="registration-password" className={styles.label}>
-          Password
-        </label>
+        <label htmlFor="reg-password">Password</label>
         <input
+          id="reg-password"
           type="password"
-          id="registration-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className={styles.input}
-          autoComplete="current-password"
         />
       </div>
-      <button
-        type="submit"
-        className={styles.submitButton}
-        disabled={isLoading}
-      >
-        {isLoading ? "Registering..." : "Register"}
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? "Registering…" : "Register"}
       </button>
     </form>
   );
