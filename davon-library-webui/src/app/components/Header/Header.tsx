@@ -7,10 +7,11 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Modal from "../Modal/Modal";
 import LoginForm from "../LoginForm/LoginForm";
-
+import RegistrationForm from "../RegistrationForm/RegistrationForm";
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
   const pathname = usePathname();
 
   const toggleMenu = () => {
@@ -31,11 +32,8 @@ export default function Header() {
     return pathname === href || (href !== "/" && pathname.startsWith(href));
   };
 
-  const openLoginModal = () => {
-    console.log("Login button clicked");
-    setIsLoginModalOpen(true);
-  };
   const closeLoginModal = () => setIsLoginModalOpen(false);
+  const closeRegistrationModal = () => setIsRegistrationModalOpen(false);
 
   return (
     <>
@@ -132,11 +130,12 @@ export default function Header() {
               </Link>
             </li>
             <li className={`${styles.navItem} ${styles.navItemButton}`}>
-              <button
-                type="button"
-                onClick={openLoginModal}
-                className={styles.loginButton}
-              >
+              <button type="button" className={styles.registrationButton}>
+                Register
+              </button>
+            </li>
+            <li className={`${styles.navItem} ${styles.navItemButton}`}>
+              <button type="button" className={styles.loginButton}>
                 Login
               </button>
             </li>
@@ -150,6 +149,14 @@ export default function Header() {
         title="Member Login"
       >
         <LoginForm />
+      </Modal>
+
+      <Modal
+        isOpen={isRegistrationModalOpen}
+        onClose={closeRegistrationModal}
+        title="Member Registration"
+      >
+        <RegistrationForm />
       </Modal>
     </>
   );
