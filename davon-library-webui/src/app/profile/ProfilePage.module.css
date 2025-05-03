@@ -1,0 +1,40 @@
+.profileContainer {
+    max-width: 800px;
+    margin: 4rem auto; /* Center the content with top/bottom margin */
+    padding: 2rem;
+    background-color: var(--davon-white);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .profileTitle {
+    text-align: center;
+    color: var(--davon-red);
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    font-weight: 600;
+  }
+  
+  .profileDetails {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--davon-text-dark);
+  }
+  
+  .profileDetails p {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--davon-light-gray); /* Separator line */
+    padding-bottom: 1rem;
+  }
+  
+  .profileDetails p:last-child {
+    border-bottom: none; /* Remove border from last item */
+    margin-bottom: 0;
+  }
+  
+  .profileDetails strong {
+    color: var(--davon-text-medium);
+    margin-right: 0.5rem;
+    display: inline-block;
+    min-width: 80px; /* Align labels slightly */
+  }
