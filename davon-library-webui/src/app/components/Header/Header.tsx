@@ -32,6 +32,14 @@ export default function Header() {
     return pathname === href || (href !== "/" && pathname.startsWith(href));
   };
 
+  const openLoginModal = () => {
+    setIsLoginModalOpen(true);
+  };
+
+  const openRegistrationModal = () => {
+    setIsRegistrationModalOpen(true);
+  };
+
   const closeLoginModal = () => setIsLoginModalOpen(false);
   const closeRegistrationModal = () => setIsRegistrationModalOpen(false);
 
@@ -130,12 +138,20 @@ export default function Header() {
               </Link>
             </li>
             <li className={`${styles.navItem} ${styles.navItemButton}`}>
-              <button type="button" className={styles.registrationButton}>
+              <button
+                type="button"
+                className={styles.registrationButton}
+                onClick={openRegistrationModal}
+              >
                 Register
               </button>
             </li>
             <li className={`${styles.navItem} ${styles.navItemButton}`}>
-              <button type="button" className={styles.loginButton}>
+              <button
+                type="button"
+                className={styles.loginButton}
+                onClick={openLoginModal}
+              >
                 Login
               </button>
             </li>
