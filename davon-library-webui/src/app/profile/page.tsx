@@ -1,6 +1,6 @@
 "use client"; // Needed for hooks like useAuth
 
-import PrivateRoute from "././components/PrivateRoute"; // Adjust path if needed
+import PrivateRoute from "./../components/PrivateRoute"; // Adjust path if needed
 import { useAuth } from "./../components/contexts/AuthContext"; // Adjust path if needed
 import styles from "./ProfilePage.module.css"; // Create this CSS Module
 
