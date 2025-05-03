@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   ReactNode,
+  useMemo,
 } from "react";
 import axios from "axios";
 
@@ -35,15 +36,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await axios.post("/api/login", { email, password });
-    setUser(res.data.user);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
+    try {
+      const res = await axios.post("/api/login", { email, password });
+      setUser(res.data.user);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+    } catch (error: any) {
+      const apiMessage = error.response?.data?.message;
+      if (axios.isAxiosError(error) && apiMessage) {
+        throw new Error(apiMessage);
+      } else {
+        console.error("Login error:", error);
+        throw new Error("An unexpected error occurred during login.");
+      }
+    }
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const res = await axios.post("/api/register", { name, email, password });
-    setUser(res.data.user);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
+    try {
+      const res = await axios.post("/api/register", { name, email, password });
+      setUser(res.data.user);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+    } catch (error: any) {
+      const apiRegisterMessage = error.response?.data?.message;
+      if (axios.isAxiosError(error) && apiRegisterMessage) {
+        throw new Error(apiRegisterMessage);
+      } else {
+        console.error("Registration error:", error);
+        throw new Error("An unexpected error occurred during registration.");
+      }
+    }
   };
 
   const logout = () => {
@@ -51,10 +72,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("user");
   };
 
+  // Memoize the context value
+  const contextValue = useMemo(
+    () => ({
+      user,
+      login,
+      register,
+      logout,
+    }),
+    [user]
+  ); // Only recreate value when user state changes
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }
 
