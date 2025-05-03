@@ -84,6 +84,7 @@
     margin: 0;
     padding: 0;
     gap: 2rem; /* Spacing between nav items */
+    align-items: center; /* Vertically center nav items */
 }
 
 .navItem {
@@ -123,6 +124,29 @@
 .navLink.active::after { /* Underline appears on hover/active */
     transform: scaleX(1);
     transform-origin: left; /* Animate from left */
+}
+
+/* Style for button-like nav items */
+.navItemButton {
+    margin-left: 1rem; /* Add some space before the button */
+}
+
+.loginButton {
+    padding: 0.5rem 1.2rem;
+    background-color: var(--davon-red);
+    color: var(--davon-white);
+    border: none;
+    border-radius: 20px; /* Pill shape */
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    white-space: nowrap;
+}
+
+.loginButton:hover {
+    background-color: #a10000; /* Darker red */
+    transform: translateY(-1px);
 }
 
 /* Hamburger Menu Button */
@@ -238,6 +262,29 @@
 
     .navLink::after {
         display: none; /* No underline on mobile */
+    }
+
+    /* Adjust login button display in mobile nav */
+    .navItemButton {
+        margin-left: 0;
+        width: 100%; 
+    }
+
+    .loginButton {
+        display: block;
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.2rem;
+        text-align: center;
+        border-radius: 8px; /* Match other mobile links */
+        margin-top: 1rem; /* Add space above */
+        background-color: var(--davon-red); /* Ensure red background */
+        color: var(--davon-white); /* Ensure white text */
+    }
+
+    .loginButton:hover {
+        background-color: #a10000;
+        transform: none; /* No lift effect needed */
     }
 }
 
