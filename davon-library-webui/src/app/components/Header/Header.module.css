@@ -83,7 +83,7 @@
     list-style: none;
     margin: 0;
     padding: 0;
-    gap: 2rem; /* Spacing between nav items */
+    gap: 1rem; /* Reduced spacing between nav items */
     align-items: center; /* Vertically center nav items */
 }
 
@@ -128,11 +128,12 @@
 
 /* Style for button-like nav items */
 .navItemButton {
-    margin-left: 1rem; /* Add some space before the button */
+    margin-left: 0;
 }
 
-.loginButton {
-    padding: 0.5rem 1.2rem;
+.loginButton,
+.registrationButton {
+    padding: 0.5rem 1.5rem;
     background-color: var(--davon-red);
     color: var(--davon-white);
     border: none;
@@ -144,7 +145,8 @@
     white-space: nowrap;
 }
 
-.loginButton:hover {
+.loginButton:hover,
+.registrationButton:hover {
     background-color: #a10000; /* Darker red */
     transform: translateY(-1px);
 }
@@ -270,7 +272,8 @@
         width: 100%; 
     }
 
-    .loginButton {
+    .loginButton
+    .registrationButton {
         display: block;
         width: 100%;
         padding: 1rem;
@@ -281,8 +284,9 @@
         background-color: var(--davon-red); /* Ensure red background */
         color: var(--davon-white); /* Ensure white text */
     }
-
-    .loginButton:hover {
+    
+    .loginButton:hover
+    .registrationButton:hover {
         background-color: #a10000;
         transform: none; /* No lift effect needed */
     }
