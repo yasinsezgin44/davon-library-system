@@ -155,15 +155,7 @@ export default function Header() {
               )}
             </li>
             <li className={`${styles.navItem} ${styles.navItemButton}`}>
-              {user ? (
-                <button
-                  type="button"
-                  className={styles.loginButton}
-                  onClick={openLoginModal}
-                >
-                  Login
-                </button>
-              ) : (
+              {!user && (
                 <button
                   type="button"
                   className={styles.loginButton}
