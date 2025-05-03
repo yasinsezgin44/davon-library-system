@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Modal from "../Modal/Modal";
-import LoginForm from "../LoginForm/LoginForm";
-import RegistrationForm from "../RegistrationForm/RegistrationForm";
+import LoginForm from "../AuthForm/LoginForm";
+import RegistrationForm from "../AuthForm/RegistrationForm";
 import { useAuth } from "./../contexts/AuthContext";
 
 export default function Header() {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./../contexts/AuthContext";
-import styles from "./RegistrationForm.module.css";
+import styles from "./AuthForm.module.css";
 
 export default function RegistrationForm() {
   const [name, setName] = useState("");

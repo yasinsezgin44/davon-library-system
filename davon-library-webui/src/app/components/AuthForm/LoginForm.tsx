@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "./LoginForm.module.css";
-import { useAuth } from "./../contexts/AuthContext";
+import styles from "./AuthForm.module.css";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
