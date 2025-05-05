@@ -21,6 +21,7 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
     form?: string;
   }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const formId = "registration-form";
   const router = useRouter();
   const { register } = useAuth();
 
@@ -119,8 +120,18 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
-      {errors.form && <p className={styles.errorMessage}>{errors.form}</p>}
+    <form
+      id={formId}
+      onSubmit={handleSubmit}
+      className={styles.form}
+      aria-label="Registration Form"
+      noValidate
+    >
+      {errors.form && (
+        <div className={styles.errorMessage} role="alert" aria-live="assertive">
+          {errors.form}
+        </div>
+      )}
       <div className={styles.formGroup}>
         <label htmlFor="reg-name" className={styles.label}>
           Name
@@ -132,8 +143,16 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           onChange={handleNameChange}
           required
           className={`${styles.input} ${errors.name ? styles.inputError : ""}`}
+          autoComplete="name"
+          aria-required="true"
+          aria-invalid={!!errors.name}
+          aria-describedby={errors.name ? "reg-name-error" : undefined}
         />
-        {errors.name && <p className={styles.fieldError}>{errors.name}</p>}
+        {errors.name && (
+          <p id="reg-name-error" className={styles.fieldError} role="alert">
+            {errors.name}
+          </p>
+        )}
       </div>
       <div className={styles.formGroup}>
         <label htmlFor="reg-email" className={styles.label}>
@@ -146,8 +165,16 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           onChange={handleEmailChange}
           required
           className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
+          autoComplete="email"
+          aria-required="true"
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? "reg-email-error" : undefined}
         />
-        {errors.email && <p className={styles.fieldError}>{errors.email}</p>}
+        {errors.email && (
+          <p id="reg-email-error" className={styles.fieldError} role="alert">
+            {errors.email}
+          </p>
+        )}
       </div>
       <div className={styles.formGroup}>
         <label htmlFor="reg-password" className={styles.label}>
@@ -162,15 +189,26 @@ export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
           className={`${styles.input} ${
             errors.password ? styles.inputError : ""
           }`}
+          autoComplete="new-password"
+          aria-required="true"
+          aria-invalid={!!errors.password}
+          aria-describedby={errors.password ? "reg-password-error" : undefined}
+          minLength={6}
         />
         {errors.password && (
-          <p className={styles.fieldError}>{errors.password}</p>
+          <p id="reg-password-error" className={styles.fieldError} role="alert">
+            {errors.password}
+          </p>
         )}
+        <p className={styles.passwordHint}>
+          Password must be at least 6 characters
+        </p>
       </div>
       <button
         type="submit"
         disabled={isLoading}
         className={styles.submitButton}
+        aria-busy={isLoading}
       >
         {isLoading ? "Registering…" : "Register"}
       </button>
