@@ -2,27 +2,38 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "./../contexts/AuthContext";
+// AuthContext is no longer used here
 import styles from "./AuthForm.module.css";
+import { useAuth } from "../contexts/AuthContext";
 
-export default function RegistrationForm() {
+interface RegistrationFormProps {
+  onSuccess?: () => void;
+}
+
+export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
   const router = useRouter();
+  const { register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
     try {
+      // Register via AuthContext, which sets user and localStorage
       await register(name, email, password);
-      router.push("/"); // redirect on success
+
+      // Call onSuccess to close modal BEFORE redirecting
+      onSuccess?.();
+
+      router.push("/"); // Redirect to home
     } catch (err: any) {
       setError(err.message || "Registration failed");
+      console.error("Registration error:", err);
     } finally {
       setIsLoading(false);
     }

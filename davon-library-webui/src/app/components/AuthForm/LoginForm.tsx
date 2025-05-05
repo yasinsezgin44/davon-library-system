@@ -1,14 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./AuthForm.module.css";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function LoginForm() {
+interface LoginFormProps {
+  onSuccess?: () => void;
+}
+
+export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const { login } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -17,9 +23,21 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      // Use AuthContext login for proper state update
+      const user = await login(email, password);
+
+      // Call onSuccess to close modal BEFORE redirecting
+      onSuccess?.();
+
+      // Redirect based on role
+      if (user.role === "Admin") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     } catch (err: any) {
       setError(err.message || "Login failed");
+      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +73,6 @@ export default function LoginForm() {
           className={styles.input}
           autoComplete="current-password"
         />
-        {/* Optional: Add a "Forgot Password?" link here */}
       </div>
       <button
         type="submit"
