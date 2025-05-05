@@ -12,15 +12,69 @@ interface LoginFormProps {
 export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    form?: string;
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
 
+  // Validate form fields
+  const validateForm = (): boolean => {
+    const newErrors: {
+      email?: string;
+      password?: string;
+    } = {};
+
+    // Email validation
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle field change with real-time validation
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+
+    // Clear error when user starts typing
+    if (errors.email) {
+      setErrors((prev) => ({ ...prev, email: undefined }));
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+
+    // Clear error when user starts typing
+    if (errors.password) {
+      setErrors((prev) => ({ ...prev, password: undefined }));
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError(null);
+    setErrors({});
     setIsLoading(true);
+
+    // Validate form before submission
+    if (!validateForm()) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       // Use AuthContext login for proper state update
@@ -36,7 +90,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         router.push("/");
       }
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setErrors({ form: err.message || "Login failed" });
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
@@ -45,7 +99,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      {error && <p className={styles.errorMessage}>{error}</p>}
+      {errors.form && <p className={styles.errorMessage}>{errors.form}</p>}
       <div className={styles.formGroup}>
         <label htmlFor="login-email" className={styles.label}>
           Email Address
@@ -54,11 +108,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           type="email"
           id="login-email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={handleEmailChange}
           required
-          className={styles.input}
+          className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
           autoComplete="email"
         />
+        {errors.email && <p className={styles.fieldError}>{errors.email}</p>}
       </div>
       <div className={styles.formGroup}>
         <label htmlFor="login-password" className={styles.label}>
@@ -68,11 +123,16 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           type="password"
           id="login-password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={handlePasswordChange}
           required
-          className={styles.input}
+          className={`${styles.input} ${
+            errors.password ? styles.inputError : ""
+          }`}
           autoComplete="current-password"
         />
+        {errors.password && (
+          <p className={styles.fieldError}>{errors.password}</p>
+        )}
       </div>
       <button
         type="submit"
