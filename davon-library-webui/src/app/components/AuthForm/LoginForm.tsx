@@ -18,6 +18,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     form?: string;
   }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const formId = "login-form";
   const router = useRouter();
   const { login } = useAuth();
 
@@ -98,8 +99,18 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
-      {errors.form && <p className={styles.errorMessage}>{errors.form}</p>}
+    <form
+      id={formId}
+      onSubmit={handleSubmit}
+      className={styles.form}
+      aria-label="Login Form"
+      noValidate
+    >
+      {errors.form && (
+        <div className={styles.errorMessage} role="alert" aria-live="assertive">
+          {errors.form}
+        </div>
+      )}
       <div className={styles.formGroup}>
         <label htmlFor="login-email" className={styles.label}>
           Email Address
@@ -112,8 +123,15 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
           required
           className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
           autoComplete="email"
+          aria-required="true"
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? "login-email-error" : undefined}
         />
-        {errors.email && <p className={styles.fieldError}>{errors.email}</p>}
+        {errors.email && (
+          <p id="login-email-error" className={styles.fieldError} role="alert">
+            {errors.email}
+          </p>
+        )}
       </div>
       <div className={styles.formGroup}>
         <label htmlFor="login-password" className={styles.label}>
@@ -129,15 +147,27 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             errors.password ? styles.inputError : ""
           }`}
           autoComplete="current-password"
+          aria-required="true"
+          aria-invalid={!!errors.password}
+          aria-describedby={
+            errors.password ? "login-password-error" : undefined
+          }
         />
         {errors.password && (
-          <p className={styles.fieldError}>{errors.password}</p>
+          <p
+            id="login-password-error"
+            className={styles.fieldError}
+            role="alert"
+          >
+            {errors.password}
+          </p>
         )}
       </div>
       <button
         type="submit"
         className={styles.submitButton}
         disabled={isLoading}
+        aria-busy={isLoading}
       >
         {isLoading ? "Logging in..." : "Log In"}
       </button>

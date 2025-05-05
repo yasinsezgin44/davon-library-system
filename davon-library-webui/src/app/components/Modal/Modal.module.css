@@ -9,6 +9,24 @@
   align-items: center;
   justify-content: center;
   z-index: 1050; /* Ensure it's above other content like sticky header */
+  padding: 1rem; /* Give some space on very small screens */
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modalContent {
@@ -22,6 +40,9 @@
   max-height: 90vh;
   overflow-y: auto; /* Scroll if content overflows */
   z-index: 1051;
+  /* Improve scrolling experience on touch devices */
+  -webkit-overflow-scrolling: touch;
+  animation: slideIn 0.3s ease-out;
 }
 
 .closeButton {
@@ -34,13 +55,24 @@
   font-weight: bold;
   color: var(--davon-text-medium);
   cursor: pointer;
-  padding: 0.2rem;
+  padding: 0.5rem; /* Bigger touch target */
+  min-width: 44px; /* Minimum touch target size */
+  min-height: 44px; /* Minimum touch target size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   transition: color 0.2s ease;
 }
 
 .closeButton:hover {
   color: var(--davon-text-dark);
+}
+
+/* Add focus styles for accessibility */
+.closeButton:focus {
+  outline: 2px solid var(--davon-red);
+  outline-offset: 2px;
 }
 
 .modalTitle {
@@ -55,20 +87,34 @@
 /* Ensure focus outline is visible */
 .modalContent:focus {
     outline: none;
+    box-shadow: 0 0 0 2px var(--davon-red), 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* Style adjustments for smaller screens */
 @media (max-width: 600px) {
     .modalContent {
-        padding: 1.5rem;
+        padding: 1.5rem 1rem;
         width: 95%;
     }
     .modalTitle {
         font-size: 1.3rem;
+        margin-bottom: 1.2rem;
     }
     .closeButton {
         font-size: 1.6rem;
-        top: 0.8rem;
-        right: 0.8rem;
+        top: 0.5rem;
+        right: 0.5rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 350px) {
+    .modalContent {
+        padding: 1rem 0.75rem;
+        width: 100%;
+    }
+    .modalTitle {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
     }
 } 
