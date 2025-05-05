@@ -41,8 +41,27 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const newUser = await req.json() as Partial<UserRecord>
   const all = read()
+
+  // Check for duplicate email before creating
+  if (all.some(u => u.email === newUser.email)) {
+    return NextResponse.json({ message: 'Email already registered.' }, { status: 409 }) // Conflict
+  }
+
   const nextId = all.length ? Math.max(...all.map(u => u.id)) + 1 : 1
-  const record: UserRecord = { id: nextId, ...newUser as any, createdAt: new Date().toISOString() }
+
+  // --- HASH PASSWORD HERE in a real app --- //
+  // const hashedPassword = await hashPassword(newUser.password);
+  // --------------------------------------- //
+
+  const record: UserRecord = { 
+    id: nextId, 
+    name: newUser.name || '', // Add defaults or validation
+    email: newUser.email || '',
+    role: newUser.role || 'Member',
+    password: newUser.password, // Storing plain text - BAD PRACTICE!
+    createdAt: new Date().toISOString(),
+  }
+
   all.push(record)
   write(all)
   return NextResponse.json(record, { status: 201 })
