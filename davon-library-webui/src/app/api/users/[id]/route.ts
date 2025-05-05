@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-const DB = path.join(process.cwd(), 'data/users.json')
+const DB = path.join(process.cwd(), 'users.json')
 const read = () => JSON.parse(fs.readFileSync(DB,'utf8'))
 const write = (d: any) => fs.writeFileSync(DB, JSON.stringify(d,null,2))
 

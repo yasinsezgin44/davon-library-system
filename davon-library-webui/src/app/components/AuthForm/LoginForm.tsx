@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./AuthForm.module.css";
-import { dataProvider, AdminUser } from "@/app/components/admin/AdminApp";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -18,33 +17,21 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      const { data: users } = await dataProvider.getList<AdminUser>("users", {
-        filter: { email: email },
-        pagination: { page: 1, perPage: 1 },
-        sort: { field: "id", order: "ASC" },
-      });
-
-      if (users.length === 0) {
-        throw new Error("Invalid email or password.");
-      }
-
-      const user = users[0];
-
-      if (user.password !== password) {
-        throw new Error("Invalid email or password.");
-      }
-
-      console.log("Simulated login successful:", user);
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        })
+      // Authenticate against real API
+      const res = await fetch("/api/users");
+      if (!res.ok) throw new Error("Network error during login.");
+      const users = await res.json();
+      const user = (users as any[]).find(
+        (u) => u.email === email && u.password === password
       );
+      if (!user) {
+        throw new Error("Invalid email or password.");
+      }
+
+      console.log("Login successful:", user);
+
+      // Store the authenticated user
+      localStorage.setItem("user", JSON.stringify(user));
 
       if (user.role === "Admin") {
         router.push("/admin");
@@ -53,7 +40,7 @@ export default function LoginForm() {
       }
     } catch (err: any) {
       setError(err.message || "Login failed");
-      console.error("Simulated login error:", err);
+      console.error("Login error:", err);
       localStorage.removeItem("user");
     } finally {
       setIsLoading(false);
