@@ -18,6 +18,15 @@ export default function Modal({
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusElement = useRef<HTMLElement | null>(null);
+  const isMounted = useRef(true);
+
+  // Keep track of component mounted state
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Close modal on Escape key press and manage focus
   useEffect(() => {
@@ -62,8 +71,8 @@ export default function Modal({
 
       document.addEventListener("keydown", handleKeyDown);
       // Optional: Focus management - focus first focusable element inside modal
-      setTimeout(() => {
-        if (modalRef.current) {
+      const focusTimer = setTimeout(() => {
+        if (modalRef.current && isMounted.current) {
           // Focus the modal or the first focusable element
           const firstFocusable = modalRef.current.querySelector(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -76,19 +85,35 @@ export default function Modal({
           }
         }
       }, 50);
+
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        // Restore page scrolling when modal is closed
+        document.body.style.overflow = "";
+        clearTimeout(focusTimer);
+
+        // Return focus to previous element when modal closes
+        if (isOpen && previousFocusElement.current && isMounted.current) {
+          const focusTarget = previousFocusElement.current;
+          const returnFocusTimer = setTimeout(() => {
+            try {
+              // Check if element is still in the document
+              if (focusTarget && document.body.contains(focusTarget)) {
+                focusTarget.focus();
+              }
+            } catch (error) {
+              console.warn("Could not restore focus:", error);
+            }
+          }, 0);
+
+          return () => clearTimeout(returnFocusTimer);
+        }
+      };
     }
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      // Restore page scrolling when modal is closed
       document.body.style.overflow = "";
-
-      // Return focus to previous element when modal closes
-      if (isOpen && previousFocusElement.current) {
-        setTimeout(() => {
-          previousFocusElement.current?.focus();
-        }, 0);
-      }
     };
   }, [isOpen, onClose]);
 

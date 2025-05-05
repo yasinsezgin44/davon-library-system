@@ -10,6 +10,23 @@
   justify-content: center;
   z-index: 1050; /* Ensure it's above other content like sticky header */
   padding: 1rem; /* Give some space on very small screens */
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modalContent {
@@ -25,6 +42,7 @@
   z-index: 1051;
   /* Improve scrolling experience on touch devices */
   -webkit-overflow-scrolling: touch;
+  animation: slideIn 0.3s ease-out;
 }
 
 .closeButton {
