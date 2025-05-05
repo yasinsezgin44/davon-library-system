@@ -1,0 +1,4 @@
+[
+  { "id": 1, "name": "Admin User",  "email":"admin@library.com","role":"Admin","password":"adminpassword","createdAt":"2023-10-01" },
+  { "id": 2, "name": "Jane Doe",     "email":"jane@doe.com",        "role":"Member","password":"password123","createdAt":"2023-10-15" }
+]
