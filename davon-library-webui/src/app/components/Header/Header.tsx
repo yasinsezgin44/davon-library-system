@@ -17,6 +17,7 @@ export default function Header() {
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const [mounted, setMounted] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -25,6 +26,10 @@ export default function Header() {
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -142,9 +147,7 @@ export default function Header() {
               </Link>
             </li>
             <li className={`${styles.navItem} ${styles.navItemButton}`}>
-              {user ? (
-                <ProfileMenu />
-              ) : (
+              {mounted && !user && (
                 <button
                   type="button"
                   className={styles.registrationButton}
@@ -155,7 +158,7 @@ export default function Header() {
               )}
             </li>
             <li className={`${styles.navItem} ${styles.navItemButton}`}>
-              {!user && (
+              {mounted && !user && (
                 <button
                   type="button"
                   className={styles.loginButton}
@@ -164,6 +167,9 @@ export default function Header() {
                   Login
                 </button>
               )}
+            </li>
+            <li className={`${styles.navItem} ${styles.navItemButton}`}>
+              {mounted && user && <ProfileMenu />}
             </li>
           </ul>
         </nav>

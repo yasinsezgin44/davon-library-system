@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./AuthForm.module.css";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -17,22 +19,10 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      // Authenticate against real API
-      const res = await fetch("/api/users");
-      if (!res.ok) throw new Error("Network error during login.");
-      const users = await res.json();
-      const user = (users as any[]).find(
-        (u) => u.email === email && u.password === password
-      );
-      if (!user) {
-        throw new Error("Invalid email or password.");
-      }
+      // Use AuthContext login for proper state update
+      const user = await login(email, password);
 
-      console.log("Login successful:", user);
-
-      // Store the authenticated user
-      localStorage.setItem("user", JSON.stringify(user));
-
+      // Redirect based on role
       if (user.role === "Admin") {
         router.push("/admin");
       } else {
@@ -41,7 +31,6 @@ export default function LoginForm() {
     } catch (err: any) {
       setError(err.message || "Login failed");
       console.error("Login error:", err);
-      localStorage.removeItem("user");
     } finally {
       setIsLoading(false);
     }
