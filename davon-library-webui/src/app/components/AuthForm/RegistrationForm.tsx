@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import styles from "./AuthForm.module.css";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function RegistrationForm() {
+interface RegistrationFormProps {
+  onSuccess?: () => void;
+}
+
+export default function RegistrationForm({ onSuccess }: RegistrationFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +27,10 @@ export default function RegistrationForm() {
       // Register via AuthContext, which sets user and localStorage
       await register(name, email, password);
 
-      router.push("/"); // Redirect to home after registration
+      // Call onSuccess to close modal BEFORE redirecting
+      onSuccess?.();
+
+      router.push("/"); // Redirect to home
     } catch (err: any) {
       setError(err.message || "Registration failed");
       console.error("Registration error:", err);

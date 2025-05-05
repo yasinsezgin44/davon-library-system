@@ -180,7 +180,7 @@ export default function Header() {
         onClose={closeLoginModal}
         title="Member Login"
       >
-        <LoginForm />
+        <LoginForm onSuccess={closeLoginModal} />
       </Modal>
 
       <Modal
@@ -188,7 +188,7 @@ export default function Header() {
         onClose={closeRegistrationModal}
         title="Member Registration"
       >
-        <RegistrationForm />
+        <RegistrationForm onSuccess={closeRegistrationModal} />
       </Modal>
     </>
   );
