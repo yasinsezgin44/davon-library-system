@@ -1,0 +1,144 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+
+.label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--davon-text-medium);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.input {
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--davon-light-gray);
+  border-radius: 6px;
+  font-size: 1rem;
+  color: var(--davon-text-dark);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  min-height: 44px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--davon-red);
+  box-shadow: 0 0 0 2px rgba(var(--davon-red-rgb), 0.2);
+}
+
+.submitButton {
+  padding: 0.9rem 1.5rem;
+  background-color: var(--davon-red);
+  color: var(--davon-white);
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.submitButton:hover {
+  background-color: #a10000;
+}
+
+.submitButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--davon-red-rgb), 0.4);
+}
+
+.submitButton:disabled {
+  background-color: var(--davon-light-gray);
+  color: var(--davon-text-medium);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.errorMessage {
+  color: var(--davon-red);
+  background-color: rgba(var(--davon-red-rgb), 0.1);
+  border: 1px solid rgba(var(--davon-red-rgb), 0.3);
+  padding: 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.fieldError {
+  color: var(--davon-red);
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.fieldError::before {
+  content: "⚠️";
+  font-size: 0.8rem;
+}
+
+.inputError {
+  border-color: var(--davon-red);
+  background-color: rgba(var(--davon-red-rgb), 0.03);
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 2px rgba(var(--davon-red-rgb), 0.25);
+}
+
+/* Add styling for password hint */
+.passwordHint {
+  font-size: 0.8rem;
+  color: var(--davon-text-medium);
+  margin-top: 0.3rem;
+  margin-bottom: 0.2rem;
+}
+
+@media (max-width: 480px) {
+  .form {
+    gap: 1rem;
+    padding: 0 0.5rem;
+  }
+  
+  .input, .submitButton {
+    min-height: 48px;
+  }
+  
+  .label {
+    font-size: 0.95rem;
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+} 
