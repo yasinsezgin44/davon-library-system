@@ -8,12 +8,12 @@ import {
   ReactNode,
   useMemo,
 } from "react";
-import axios from "axios";
 
 interface User {
   id: string;
   name: string;
   email: string;
+  role: string;
   // …any other fields
 }
 
