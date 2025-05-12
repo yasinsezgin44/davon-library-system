@@ -25,9 +25,15 @@ public class InventoryService {
     }
 
     public List<Book> searchBooks(String query) {
+        String q = query.toLowerCase();
         return books.stream()
-                .filter(book -> book.getTitle().toLowerCase().contains(query.toLowerCase())
-                        || book.getISBN().toLowerCase().contains(query.toLowerCase()))
+                .filter(book ->
+                        book.getTitle().toLowerCase().contains(q)
+                        || book.getISBN().toLowerCase().contains(q)
+                        || (book.getAuthors() != null && book.getAuthors().stream().anyMatch(a -> a.getName().toLowerCase().contains(q)))
+                        || (book.getCategory() != null && book.getCategory().getName().toLowerCase().contains(q))
+                        || (book.getPublisher() != null && book.getPublisher().getName().toLowerCase().contains(q))
+                )
                 .collect(Collectors.toList());
     }
 
