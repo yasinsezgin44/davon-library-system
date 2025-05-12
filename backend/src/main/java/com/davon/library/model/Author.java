@@ -13,6 +13,8 @@ import java.util.Set;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true, exclude = {"books"})
+@ToString(callSuper = true, exclude = {"books"})
 public class Author extends BaseEntity {
     private String name;
     private String biography;
