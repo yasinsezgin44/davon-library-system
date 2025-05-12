@@ -31,34 +31,48 @@ public class InventoryService {
                 .collect(Collectors.toList());
     }
 
-    public void addBook(Book book) {
-        books.add(book);
+    public boolean addBook(Book book) {
+        return books.add(book);
     }
 
-    public void removeBook(long bookId) {
-        books.removeIf(book -> Objects.equals(book.getId(), bookId));
-        bookCopies.removeIf(copy -> copy.getBook().getId() == bookId);
+    public boolean removeBook(long bookId) {
+        boolean removed = books.removeIf(book -> Objects.equals(book.getId(), bookId));
+        if (removed) {
+            bookCopies.removeIf(copy -> copy.getBook().getId() == bookId);
+        }
+        return removed;
     }
 
-    public void updateBookStatus(long bookCopyId, CopyStatus status) {
-        bookCopies.stream()
+    public boolean addBookCopy(BookCopy copy) {
+        // Only add if the referenced book exists
+        boolean bookExists = books.stream().anyMatch(b -> Objects.equals(b.getId(), copy.getBook().getId()));
+        if (!bookExists) return false;
+        return bookCopies.add(copy);
+    }
+
+    public boolean removeBookCopy(long bookCopyId) {
+        return bookCopies.removeIf(copy -> Objects.equals(copy.getId(), bookCopyId));
+    }
+
+    public boolean updateBookStatus(long bookCopyId, CopyStatus status) {
+        Optional<BookCopy> copyOpt = bookCopies.stream()
                 .filter(copy -> Objects.equals(copy.getId(), bookCopyId))
-                .findFirst()
-                .ifPresent(copy -> copy.setStatus(status));
+                .findFirst();
+        copyOpt.ifPresent(copy -> copy.setStatus(status));
+        return copyOpt.isPresent();
+    }
+
+    public boolean updateBookCopyLocation(long bookCopyId, String newLocation) {
+        Optional<BookCopy> copyOpt = bookCopies.stream()
+                .filter(copy -> Objects.equals(copy.getId(), bookCopyId))
+                .findFirst();
+        copyOpt.ifPresent(copy -> copy.setLocation(newLocation));
+        return copyOpt.isPresent();
     }
 
     private boolean isBookAvailable(Book book) {
         return bookCopies.stream()
                 .anyMatch(copy -> copy.getBook().equals(book) && copy.getStatus() == CopyStatus.AVAILABLE);
-    }
-
-    // For managing book copies
-    public void addBookCopy(BookCopy copy) {
-        bookCopies.add(copy);
-    }
-
-    public void removeBookCopy(long bookCopyId) {
-        bookCopies.removeIf(copy -> Objects.equals(copy.getId(), bookCopyId));
     }
 
     public List<BookCopy> getCopiesForBook(long bookId) {
