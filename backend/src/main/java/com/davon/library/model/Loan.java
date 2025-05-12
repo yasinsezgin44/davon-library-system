@@ -13,9 +13,43 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class Loan extends BaseEntity {
     private Member member;
-    private Book book;
-    private LocalDate borrowDate;
+    private BookCopy bookCopy;
+    private LocalDate checkoutDate;
     private LocalDate dueDate;
     private LocalDate returnDate;
-    private boolean returned;
+    private LoanStatus status;
+    private int renewalCount;
+
+    public double calculateLateFees() {
+        // Placeholder: implement fee calculation logic
+        return 0.0;
+    }
+
+    public boolean renew() {
+        // Placeholder: implement renewal logic
+        return false;
+    }
+
+    public void returnBook() {
+        // Placeholder: implement return logic
+        this.status = LoanStatus.RETURNED;
+        this.returnDate = LocalDate.now();
+    }
+
+    public int getOverdueDays() {
+        if (returnDate != null && dueDate != null && returnDate.isAfter(dueDate)) {
+            return (int) (returnDate.toEpochDay() - dueDate.toEpochDay());
+        }
+        if (dueDate != null && LocalDate.now().isAfter(dueDate)) {
+            return (int) (LocalDate.now().toEpochDay() - dueDate.toEpochDay());
+        }
+        return 0;
+    }
+
+    public enum LoanStatus {
+        ACTIVE,
+        OVERDUE,
+        RETURNED,
+        LOST
+    }
 }
