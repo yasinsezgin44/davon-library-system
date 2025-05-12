@@ -1,0 +1,73 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'checkstyle'
+    id 'pmd'
+    id 'com.github.spotbugs' version '5.2.5'
+}
+
+dependencies {
+    // JUnit Jupiter for testing
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+    
+    // Lombok for reducing boilerplate code
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+    
+    // Slf4j for logging
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.11'
+}
+
+application {
+    mainClass = 'com.davon.library.LibraryManagementApp'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// Configure Checkstyle
+checkstyle {
+    toolVersion = '10.12.5'
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    configProperties = [
+        'checkstyle.cache.file': "${buildDir}/checkstyle.cache",
+    ]
+    showViolations = true
+}
+
+// Configure PMD
+pmd {
+    toolVersion = '6.55.0'
+    consoleOutput = true
+    ruleSetFiles = files("${rootDir}/config/pmd/ruleset.xml")
+    ruleSets = []
+}
+
+// Configure SpotBugs
+spotbugs {
+    toolVersion = '4.8.2'
+    effort = 'max'
+    reportLevel = 'medium'
+    excludeFilter = file("${rootDir}/config/spotbugs/exclude.xml")
+}
+
+spotbugsMain {
+    reports {
+        create("html") {
+            required = true
+            outputLocation = file("${buildDir}/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
+    }
+}
+
+// Task to run all linting and analysis
+task lint(dependsOn: ['checkstyleMain', 'pmdMain', 'spotbugsMain']) {
+    group = 'verification'
+    description = 'Run all linting tools'
+} 
