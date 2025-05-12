@@ -12,6 +12,8 @@ import java.util.Set;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true, exclude = {"publishedBooks"})
+@ToString(callSuper = true, exclude = {"publishedBooks"})
 public class Publisher extends BaseEntity {
     private String name;
     private String address;
