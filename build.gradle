@@ -20,6 +20,3 @@ subprojects {
         options.encoding = 'UTF-8'
     }
 }
-
-// Include subprojects
-include 'backend' 
