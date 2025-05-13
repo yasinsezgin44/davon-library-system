@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.BorrowingServiceTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:28:58.381Z" hostname="Yasins-MacBook-Air.local" time="0.012">
+<testsuite name="com.davon.library.service.BorrowingServiceTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:32:39.509Z" hostname="Yasins-MacBook-Air.local" time="0.004">
   <properties/>
-  <testcase name="testCheckoutBook()" classname="com.davon.library.service.BorrowingServiceTest" time="0.008"/>
+  <testcase name="testCheckoutBook()" classname="com.davon.library.service.BorrowingServiceTest" time="0.001"/>
   <testcase name="testRenewLoan()" classname="com.davon.library.service.BorrowingServiceTest" time="0.0"/>
   <testcase name="testGetLoanHistory()" classname="com.davon.library.service.BorrowingServiceTest" time="0.0"/>
   <testcase name="testPayFine()" classname="com.davon.library.service.BorrowingServiceTest" time="0.0"/>

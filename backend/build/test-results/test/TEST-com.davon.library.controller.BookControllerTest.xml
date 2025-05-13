@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.controller.BookControllerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:28:58.403Z" hostname="Yasins-MacBook-Air.local" time="0.677">
+<testsuite name="com.davon.library.controller.BookControllerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:32:38.239Z" hostname="Yasins-MacBook-Air.local" time="0.883">
   <properties/>
-  <testcase name="testSearchBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.641"/>
-  <testcase name="testGetAllBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.009"/>
+  <testcase name="testSearchBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.831"/>
+  <testcase name="testGetAllBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.018"/>
   <testcase name="testUpdateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.01"/>
   <testcase name="testGetBookById()" classname="com.davon.library.controller.BookControllerTest" time="0.004"/>
-  <testcase name="testCreateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.003"/>
+  <testcase name="testCreateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.004"/>
   <testcase name="testDeleteBook()" classname="com.davon.library.controller.BookControllerTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/yasinsezgin/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.4/3bf5ac1104554908cc623e40e58a00be37c35f36/byte-buddy-agent-1.14.4.jar)
