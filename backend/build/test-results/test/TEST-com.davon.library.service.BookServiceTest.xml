@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.BookServiceTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:32:39.501Z" hostname="Yasins-MacBook-Air.local" time="0.007">
+<testsuite name="com.davon.library.service.BookServiceTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:44:08.828Z" hostname="Yasins-MacBook-Air.local" time="0.005">
   <properties/>
   <testcase name="testSearchBooks()" classname="com.davon.library.service.BookServiceTest" time="0.001"/>
-  <testcase name="testGetAllBooks()" classname="com.davon.library.service.BookServiceTest" time="0.001"/>
-  <testcase name="testUpdateBook()" classname="com.davon.library.service.BookServiceTest" time="0.001"/>
-  <testcase name="testGetBookById()" classname="com.davon.library.service.BookServiceTest" time="0.001"/>
+  <testcase name="testGetAllBooks()" classname="com.davon.library.service.BookServiceTest" time="0.0"/>
+  <testcase name="testUpdateBook()" classname="com.davon.library.service.BookServiceTest" time="0.0"/>
+  <testcase name="testGetBookById()" classname="com.davon.library.service.BookServiceTest" time="0.0"/>
   <testcase name="testCreateBook()" classname="com.davon.library.service.BookServiceTest" time="0.001"/>
   <testcase name="testDeleteBook()" classname="com.davon.library.service.BookServiceTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>

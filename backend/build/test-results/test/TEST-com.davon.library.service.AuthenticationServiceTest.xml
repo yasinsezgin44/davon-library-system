@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.AuthenticationServiceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:32:39.145Z" hostname="Yasins-MacBook-Air.local" time="0.353">
+<testsuite name="com.davon.library.service.AuthenticationServiceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:44:08.651Z" hostname="Yasins-MacBook-Air.local" time="0.167">
   <properties/>
-  <testcase name="testLoginWithLockedAccount()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.273"/>
-  <testcase name="testRegisterAccount()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.047"/>
-  <testcase name="testFailedLogin()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.003"/>
-  <testcase name="testSessionValidation()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.008"/>
-  <testcase name="testSuccessfulLogin()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.004"/>
-  <testcase name="testVerifyEmailWithInvalidToken()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.002"/>
-  <testcase name="testLogout()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.003"/>
-  <testcase name="testVerifyEmail()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.003"/>
+  <testcase name="testLoginWithLockedAccount()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.086"/>
+  <testcase name="testRegisterAccount()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.038"/>
+  <testcase name="testFailedLogin()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.002"/>
+  <testcase name="testSessionValidation()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.005"/>
+  <testcase name="testSuccessfulLogin()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.001"/>
+  <testcase name="testVerifyEmailWithInvalidToken()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.001"/>
+  <testcase name="testLogout()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.027"/>
+  <testcase name="testVerifyEmail()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

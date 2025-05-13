@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.InventoryServiceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:32:39.555Z" hostname="Yasins-MacBook-Air.local" time="0.018">
+<testsuite name="com.davon.library.service.InventoryServiceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:44:08.854Z" hostname="Yasins-MacBook-Air.local" time="0.011">
   <properties/>
-  <testcase name="testAddBook()" classname="com.davon.library.service.InventoryServiceTest" time="0.003"/>
-  <testcase name="testSearchBooks()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
-  <testcase name="testGetCopiesForBook()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
+  <testcase name="testAddBook()" classname="com.davon.library.service.InventoryServiceTest" time="0.002"/>
+  <testcase name="testSearchBooks()" classname="com.davon.library.service.InventoryServiceTest" time="0.0"/>
+  <testcase name="testGetCopiesForBook()" classname="com.davon.library.service.InventoryServiceTest" time="0.0"/>
   <testcase name="testRemoveBookCopy()" classname="com.davon.library.service.InventoryServiceTest" time="0.0"/>
-  <testcase name="testProcessBookDisposal()" classname="com.davon.library.service.InventoryServiceTest" time="0.003"/>
+  <testcase name="testProcessBookDisposal()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
   <testcase name="testGetAvailableBooks()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
-  <testcase name="testUpdateBookStatus()" classname="com.davon.library.service.InventoryServiceTest" time="0.0"/>
-  <testcase name="testUpdateBookCopyLocation()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
-  <testcase name="testAddBookCopy()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
+  <testcase name="testUpdateBookStatus()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
+  <testcase name="testUpdateBookCopyLocation()" classname="com.davon.library.service.InventoryServiceTest" time="0.0"/>
+  <testcase name="testAddBookCopy()" classname="com.davon.library.service.InventoryServiceTest" time="0.0"/>
   <testcase name="testRemoveBook()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
-  <testcase name="testGetTotalBooks()" classname="com.davon.library.service.InventoryServiceTest" time="0.0"/>
+  <testcase name="testGetTotalBooks()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

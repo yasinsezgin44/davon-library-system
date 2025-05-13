@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.TransactionManagerTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:32:39.712Z" hostname="Yasins-MacBook-Air.local" time="0.026">
+<testsuite name="com.davon.library.service.TransactionManagerTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:44:09.200Z" hostname="Yasins-MacBook-Air.local" time="0.019">
   <properties/>
-  <testcase name="testProcessPayment()" classname="com.davon.library.service.TransactionManagerTest" time="0.016"/>
+  <testcase name="testProcessPayment()" classname="com.davon.library.service.TransactionManagerTest" time="0.013"/>
   <testcase name="testRecordFine_DamagedItem()" classname="com.davon.library.service.TransactionManagerTest" time="0.001"/>
   <testcase name="testHandleFailedPayment()" classname="com.davon.library.service.TransactionManagerTest" time="0.001"/>
   <testcase name="testRecordFine_UnknownReason()" classname="com.davon.library.service.TransactionManagerTest" time="0.001"/>
   <testcase name="testGenerateReport()" classname="com.davon.library.service.TransactionManagerTest" time="0.001"/>
-  <testcase name="testRecordFine_Overdue()" classname="com.davon.library.service.TransactionManagerTest" time="0.001"/>
-  <testcase name="testRecordFine_LostItem()" classname="com.davon.library.service.TransactionManagerTest" time="0.001"/>
+  <testcase name="testRecordFine_Overdue()" classname="com.davon.library.service.TransactionManagerTest" time="0.0"/>
+  <testcase name="testRecordFine_LostItem()" classname="com.davon.library.service.TransactionManagerTest" time="0.0"/>
   <testcase name="testGetOutstandingFines()" classname="com.davon.library.service.TransactionManagerTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>

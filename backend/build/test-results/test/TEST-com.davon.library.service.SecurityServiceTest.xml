@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.davon.library.service.SecurityServiceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:44:09.170Z" hostname="Yasins-MacBook-Air.local" time="0.029">
+  <properties/>
+  <testcase name="testSendSecurityAlert()" classname="com.davon.library.service.SecurityServiceTest" time="0.019"/>
+  <testcase name="testLogSecurityEvent()" classname="com.davon.library.service.SecurityServiceTest" time="0.002"/>
+  <testcase name="testProcessSecurityAlert()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
+  <testcase name="testAccountLocking()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
+  <testcase name="testHashPassword()" classname="com.davon.library.service.SecurityServiceTest" time="0.002"/>
+  <testcase name="testVerifyPassword()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
+  <testcase name="testGenerateAndValidateVerificationToken()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
+  <testcase name="testGenerateAndValidatePasswordResetToken()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
