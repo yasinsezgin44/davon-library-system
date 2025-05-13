@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.controller.BookControllerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-13T08:28:21.158Z" hostname="Yasins-MacBook-Air.local" time="1.282">
+<testsuite name="com.davon.library.controller.BookControllerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:13:59.456Z" hostname="Yasins-MacBook-Air.local" time="0.638">
   <properties/>
-  <testcase name="testSearchBooks()" classname="com.davon.library.controller.BookControllerTest" time="1.216"/>
-  <testcase name="testGetAllBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.004"/>
-  <testcase name="testUpdateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.019"/>
-  <testcase name="testGetBookById()" classname="com.davon.library.controller.BookControllerTest" time="0.007"/>
-  <testcase name="testCreateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.005"/>
-  <testcase name="testDeleteBook()" classname="com.davon.library.controller.BookControllerTest" time="0.004"/>
+  <testcase name="testSearchBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.609"/>
+  <testcase name="testGetAllBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.003"/>
+  <testcase name="testUpdateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.006"/>
+  <testcase name="testGetBookById()" classname="com.davon.library.controller.BookControllerTest" time="0.003"/>
+  <testcase name="testCreateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.002"/>
+  <testcase name="testDeleteBook()" classname="com.davon.library.controller.BookControllerTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/yasinsezgin/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.4/3bf5ac1104554908cc623e40e58a00be37c35f36/byte-buddy-agent-1.14.4.jar)
 WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning

@@ -4,6 +4,7 @@ import com.davon.library.model.*;
 import com.davon.library.service.LoanRepository;
 import java.util.*;
 import java.time.LocalDate;
+import java.util.stream.Collectors;
 
 public class InMemoryLoanRepository implements LoanRepository {
     private final Map<Long, Loan> loans = new HashMap<>();
@@ -25,6 +26,18 @@ public class InMemoryLoanRepository implements LoanRepository {
                         && loan.getBookCopy().equals(copy)
                         && loan.getStatus() == Loan.LoanStatus.ACTIVE)
                 .findFirst();
+    }
+
+    @Override
+    public Optional<Loan> findById(Long id) {
+        return Optional.ofNullable(loans.get(id));
+    }
+
+    @Override
+    public List<Loan> findAllByMember(Member member) {
+        return loans.values().stream()
+                .filter(loan -> loan.getMember().equals(member))
+                .collect(Collectors.toList());
     }
 
     public List<Loan> findOverdueLoans(LocalDate date) {

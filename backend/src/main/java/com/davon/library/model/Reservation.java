@@ -11,6 +11,8 @@ import java.time.LocalDate;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, exclude = { "member", "book" })
 public class Reservation extends BaseEntity {
     private Member member;
     private Book book;

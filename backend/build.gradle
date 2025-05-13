@@ -26,6 +26,12 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.4.11'
 }
 
+// Add Java version
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
 application {
     mainClass = 'com.davon.library.LibraryManagementApp'
 }

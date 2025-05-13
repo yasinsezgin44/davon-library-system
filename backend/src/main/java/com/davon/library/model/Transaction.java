@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Transaction extends BaseEntity {
     private LocalDate date;
     private double amount;

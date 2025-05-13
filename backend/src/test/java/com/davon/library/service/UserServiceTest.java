@@ -104,7 +104,7 @@ class UserServiceTest {
     }
 
     // Repository implementation
-    class TestUserRepository implements UserRepository {
+    static class TestUserRepository implements UserRepository {
         private List<User> users = new ArrayList<>();
 
         @Override

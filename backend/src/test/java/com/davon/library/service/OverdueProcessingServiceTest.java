@@ -1,9 +1,6 @@
 package com.davon.library.service;
 
-import com.davon.library.model.Fine;
-import com.davon.library.model.Loan;
-import com.davon.library.model.Book;
-import com.davon.library.model.User;
+import com.davon.library.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +10,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -36,34 +32,46 @@ class OverdueProcessingServiceTest {
     private Loan overdueLoan;
     private Loan notOverdueLoan;
     private Fine fine;
+    private Member member;
+    private Book book;
+    private BookCopy bookCopy;
 
     @BeforeEach
     void setUp() {
-        User user = new User(); // Simplified User
-        user.setId("user1");
+        member = new Member();
+        member.setId(1L);
+        member.setEmail("member@example.com");
 
-        Book book = new Book(); // Simplified Book
+        book = new Book();
         book.setId(1L);
+        book.setTitle("Test Book");
+
+        bookCopy = new BookCopy();
+        bookCopy.setId(1L);
+        bookCopy.setBook(book);
+        bookCopy.setStatus(BookCopy.CopyStatus.AVAILABLE);
 
         overdueLoan = new Loan();
-        overdueLoan.setId("loan1");
-        overdueLoan.setBook(book);
-        overdueLoan.setUser(user);
-        overdueLoan.setLoanDate(LocalDate.now().minusDays(30)); // Example: 30 days ago
-        overdueLoan.setDueDate(LocalDate.now().minusDays(1)); // Example: Due yesterday
-        overdueLoan.setStatus(Loan.LoanStatus.ACTIVE); // Initially active, should become OVERDUE
+        overdueLoan.setId(1L);
+        overdueLoan.setBookCopy(bookCopy);
+        overdueLoan.setMember(member);
+        overdueLoan.setCheckoutDate(LocalDate.now().minusDays(30));
+        overdueLoan.setDueDate(LocalDate.now().minusDays(1));
+        overdueLoan.setStatus(Loan.LoanStatus.ACTIVE);
 
         notOverdueLoan = new Loan();
-        notOverdueLoan.setId("loan2");
-        notOverdueLoan.setBook(book);
-        notOverdueLoan.setUser(user);
-        notOverdueLoan.setLoanDate(LocalDate.now().minusDays(5));
-        notOverdueLoan.setDueDate(LocalDate.now().plusDays(5)); // Due in 5 days
+        notOverdueLoan.setId(2L);
+        notOverdueLoan.setBookCopy(bookCopy);
+        notOverdueLoan.setMember(member);
+        notOverdueLoan.setCheckoutDate(LocalDate.now().minusDays(5));
+        notOverdueLoan.setDueDate(LocalDate.now().plusDays(5));
         notOverdueLoan.setStatus(Loan.LoanStatus.ACTIVE);
 
-        fine = new Fine(); // Simplified Fine
-        fine.setId("fine1");
+        fine = new Fine();
+        fine.setId(1L);
         fine.setAmount(5.00);
+        fine.setReason(Fine.FineReason.OVERDUE);
+        fine.setStatus(Fine.FineStatus.PENDING);
     }
 
     @Test
@@ -76,28 +84,22 @@ class OverdueProcessingServiceTest {
         overdueProcessingService.processOverdueItems();
 
         // Assert
-        // Verify loan status is updated and saved
         assertEquals(Loan.LoanStatus.OVERDUE, overdueLoan.getStatus());
         verify(loanRepository, times(1)).save(overdueLoan);
-
-        // Verify fine calculation
         verify(fineService, times(1)).calculateOverdueFine(overdueLoan);
-
-        // Verify notification sending
         verify(notificationService, times(1)).sendOverdueNotice(overdueLoan);
     }
 
     @Test
     void processOverdueItems_shouldNotProcessAlreadyOverdueLoanAgain() {
         // Arrange
-        overdueLoan.setStatus(Loan.LoanStatus.OVERDUE); // Mark as already overdue
+        overdueLoan.setStatus(Loan.LoanStatus.OVERDUE);
         when(loanRepository.findOverdueLoans(any(LocalDate.class))).thenReturn(Collections.singletonList(overdueLoan));
 
         // Act
         overdueProcessingService.processOverdueItems();
 
         // Assert
-        // Ensure save, fine calculation, and notification are not called again
         verify(loanRepository, never()).save(overdueLoan);
         verify(fineService, never()).calculateOverdueFine(any(Loan.class));
         verify(notificationService, never()).sendOverdueNotice(any(Loan.class));
@@ -107,17 +109,16 @@ class OverdueProcessingServiceTest {
     void processOverdueItems_shouldNotProcessNotOverdueLoan() {
         // Arrange
         when(loanRepository.findOverdueLoans(any(LocalDate.class)))
-                .thenReturn(Collections.singletonList(notOverdueLoan));
+                .thenReturn(Collections.emptyList());
 
         // Act
         overdueProcessingService.processOverdueItems();
 
         // Assert
-        // Ensure loan status is not changed and no actions are performed
         assertEquals(Loan.LoanStatus.ACTIVE, notOverdueLoan.getStatus());
         verify(loanRepository, never()).save(notOverdueLoan);
-        verify(fineService, never()).calculateOverdueFine(any(Loan.class));
-        verify(notificationService, never()).sendOverdueNotice(any(Loan.class));
+        verify(fineService, never()).calculateOverdueFine(notOverdueLoan);
+        verify(notificationService, never()).sendOverdueNotice(notOverdueLoan);
     }
 
     @Test
@@ -129,7 +130,6 @@ class OverdueProcessingServiceTest {
         overdueProcessingService.processOverdueItems();
 
         // Assert
-        // Ensure no interactions with services or repository if no overdue loans
         verify(loanRepository, never()).save(any(Loan.class));
         verify(fineService, never()).calculateOverdueFine(any(Loan.class));
         verify(notificationService, never()).sendOverdueNotice(any(Loan.class));

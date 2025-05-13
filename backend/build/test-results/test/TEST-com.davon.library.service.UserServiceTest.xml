@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.UserServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2025-05-13T08:28:22.716Z" hostname="Yasins-MacBook-Air.local" time="0.011">
+<testsuite name="com.davon.library.service.UserServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:14:00.375Z" hostname="Yasins-MacBook-Air.local" time="0.01">
   <properties/>
-  <testcase name="testSearchUsers()" classname="com.davon.library.service.UserServiceTest" time="0.002"/>
-  <testcase name="testAuthenticateUser()" classname="com.davon.library.service.UserServiceTest" time="0.002"/>
-  <testcase name="testAssignRole()" classname="com.davon.library.service.UserServiceTest" time="0.002"/>
+  <testcase name="testSearchUsers()" classname="com.davon.library.service.UserServiceTest" time="0.005"/>
+  <testcase name="testAuthenticateUser()" classname="com.davon.library.service.UserServiceTest" time="0.001"/>
+  <testcase name="testAssignRole()" classname="com.davon.library.service.UserServiceTest" time="0.001"/>
   <testcase name="testCreateAndUpdateUser()" classname="com.davon.library.service.UserServiceTest" time="0.001"/>
   <testcase name="testDeactivateAndActivateUser()" classname="com.davon.library.service.UserServiceTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>

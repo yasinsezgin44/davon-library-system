@@ -1,22 +1,21 @@
 package com.davon.library.service;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class EmailServiceTest {
@@ -24,80 +23,68 @@ class EmailServiceTest {
     @InjectMocks
     private EmailService emailService;
 
-    @Mock
-    private Logger logger; // Mock the SLF4J Logger
-
-    @Captor
-    private ArgumentCaptor<String> stringArgumentCaptor;
+    private ListAppender<ILoggingEvent> listAppender;
 
     @BeforeEach
-    void setUp() throws NoSuchFieldException, IllegalAccessException {
-        // Replace the actual logger in EmailService with the mock logger
-        Field logField = EmailService.class.getDeclaredField("log");
-        logField.setAccessible(true);
-        logField.set(emailService, logger);
+    void setUp() {
+        // Get Logback logger
+        Logger emailServiceLogger = (Logger) LoggerFactory.getLogger(EmailService.class);
+
+        // Create and start a ListAppender
+        listAppender = new ListAppender<>();
+        listAppender.start();
+
+        // Add appender to the logger
+        emailServiceLogger.addAppender(listAppender);
+        emailServiceLogger.setLevel(Level.INFO); // Ensure INFO messages are captured
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Detach appender
+        Logger emailServiceLogger = (Logger) LoggerFactory.getLogger(EmailService.class);
+        emailServiceLogger.detachAppender(listAppender);
+        listAppender.stop();
     }
 
     @Test
     void sendVerificationEmail() {
         String testEmail = "test@example.com";
-        String testToken = "verificationToken123";
-        String expectedSubject = "Verify Your Library Account";
-        String expectedContentPrefix = "Please click the link below to verify your account:";
-        String expectedLink = "http://library.example.com/verify?token=" + testToken;
-
+        String testToken = "testToken123";
         emailService.sendVerificationEmail(testEmail, testToken);
 
-        verify(logger, times(3)).info(stringArgumentCaptor.capture(), stringArgumentCaptor.capture());
-        List<String> capturedValues = stringArgumentCaptor.getAllValues();
-
-        assertEquals("Sending email to: {}", capturedValues.get(0));
-        assertEquals(testEmail, capturedValues.get(1));
-        assertEquals("Subject: {}", capturedValues.get(2));
-        assertEquals(expectedSubject, capturedValues.get(3));
-        assertEquals("Content: {}", capturedValues.get(4));
-        assertTrue(capturedValues.get(5).contains(expectedContentPrefix));
-        assertTrue(capturedValues.get(5).contains(expectedLink));
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(3, logsList.size());
+        assertTrue(logsList.get(0).getFormattedMessage().contains("Sending email to: " + testEmail));
+        assertTrue(logsList.get(1).getFormattedMessage().contains("Subject: Verify Your Library Account"));
+        assertTrue(
+                logsList.get(2).getFormattedMessage().contains("http://library.example.com/verify?token=" + testToken));
     }
 
     @Test
     void sendPasswordResetEmail() {
         String testEmail = "reset@example.com";
         String testToken = "resetToken456";
-        String expectedSubject = "Reset Your Library Account Password";
-        String expectedContentPrefix = "Please click the link below to reset your password:";
-        String expectedLink = "http://library.example.com/reset-password?token=" + testToken;
-
         emailService.sendPasswordResetEmail(testEmail, testToken);
 
-        verify(logger, times(3)).info(stringArgumentCaptor.capture(), stringArgumentCaptor.capture());
-        List<String> capturedValues = stringArgumentCaptor.getAllValues();
-
-        assertEquals("Sending email to: {}", capturedValues.get(0));
-        assertEquals(testEmail, capturedValues.get(1));
-        assertEquals("Subject: {}", capturedValues.get(2));
-        assertEquals(expectedSubject, capturedValues.get(3));
-        assertEquals("Content: {}", capturedValues.get(4));
-        assertTrue(capturedValues.get(5).contains(expectedContentPrefix));
-        assertTrue(capturedValues.get(5).contains(expectedLink));
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(3, logsList.size());
+        assertTrue(logsList.get(0).getFormattedMessage().contains("Sending email to: " + testEmail));
+        assertTrue(logsList.get(1).getFormattedMessage().contains("Subject: Reset Your Library Account Password"));
+        assertTrue(logsList.get(2).getFormattedMessage()
+                .contains("http://library.example.com/reset-password?token=" + testToken));
     }
 
     @Test
     void sendSecurityNotification() {
         String testEmail = "security@example.com";
-        String testMessage = "This is a security alert.";
-        String expectedSubject = "Security Notification - Library Account";
+        String message = "Test security alert.";
+        emailService.sendSecurityNotification(testEmail, message);
 
-        emailService.sendSecurityNotification(testEmail, testMessage);
-
-        verify(logger, times(3)).info(stringArgumentCaptor.capture(), stringArgumentCaptor.capture());
-        List<String> capturedValues = stringArgumentCaptor.getAllValues();
-
-        assertEquals("Sending email to: {}", capturedValues.get(0));
-        assertEquals(testEmail, capturedValues.get(1));
-        assertEquals("Subject: {}", capturedValues.get(2));
-        assertEquals(expectedSubject, capturedValues.get(3));
-        assertEquals("Content: {}", capturedValues.get(4));
-        assertEquals(testMessage, capturedValues.get(5));
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(3, logsList.size());
+        assertTrue(logsList.get(0).getFormattedMessage().contains("Sending email to: " + testEmail));
+        assertTrue(logsList.get(1).getFormattedMessage().contains("Subject: Security Notification - Library Account"));
+        assertTrue(logsList.get(2).getFormattedMessage().contains(message));
     }
 }

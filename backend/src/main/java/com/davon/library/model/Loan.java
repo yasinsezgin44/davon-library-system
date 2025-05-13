@@ -11,8 +11,9 @@ import java.time.LocalDate;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, exclude = { "member", "bookCopy" })
 public class Loan extends BaseEntity {
-    private Long id;
     private Member member;
     private BookCopy bookCopy;
     private LocalDate checkoutDate;

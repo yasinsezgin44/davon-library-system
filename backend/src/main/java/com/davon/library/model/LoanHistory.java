@@ -12,6 +12,7 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class LoanHistory extends BaseEntity {
     private Member member;
     private Loan loan;

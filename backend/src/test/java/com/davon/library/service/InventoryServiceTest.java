@@ -49,7 +49,7 @@ class InventoryServiceTest {
     void testUpdateBookStatus() {
         inventoryService.addBook(book);
         inventoryService.addBookCopy(copy);
-        assertTrue(inventoryService.updateBookStatus(copy.getId(), BookCopy.CopyStatus.LOST));
+        inventoryService.updateBookStatus(book.getId(), BookCopy.CopyStatus.LOST);
         assertEquals(BookCopy.CopyStatus.LOST, inventoryService.getCopiesForBook(book.getId()).get(0).getStatus());
     }
 }

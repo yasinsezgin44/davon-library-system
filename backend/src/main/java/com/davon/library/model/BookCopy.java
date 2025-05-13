@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class BookCopy extends BaseEntity {
     private Book book;
     private LocalDate acquisitionDate;
