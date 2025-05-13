@@ -7,6 +7,9 @@ import com.davon.library.service.EmailService;
 import com.davon.library.service.SecurityService;
 import com.davon.library.service.AuthenticationService;
 import com.davon.library.controller.UserController;
+import com.davon.library.repository.InMemoryUserRepository;
+import com.davon.library.service.UserRepository;
+import com.davon.library.service.UserService;
 
 /**
  * Application configuration class.
@@ -35,5 +38,13 @@ public class AppConfig {
 
     public UserController userController() {
         return new UserController(userService());
+    }
+
+    public UserRepository userRepository() {
+        return new InMemoryUserRepository();
+    }
+
+    public UserService userService() {
+        return new UserService(userRepository());
     }
 }

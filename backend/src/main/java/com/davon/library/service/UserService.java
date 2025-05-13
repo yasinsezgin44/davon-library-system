@@ -1,6 +1,7 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
+import com.davon.library.event.UserStatusListener;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import lombok.Data;
 public class UserService {
     private final Set<User> users = new HashSet<>();
     private final UserRepository userRepository;
+    private final List<UserStatusListener> statusListeners = new ArrayList<>();
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -100,6 +102,34 @@ public class UserService {
         }
 
         return true;
+    }
+
+    public void addStatusListener(UserStatusListener listener) {
+        statusListeners.add(listener);
+    }
+
+    public void removeStatusListener(UserStatusListener listener) {
+        statusListeners.remove(listener);
+    }
+
+    public boolean updateUserStatus(Long userId, String newStatus) {
+        User user = findById(userId);
+        if (user == null) {
+            return false;
+        }
+
+        String oldStatus = user.getStatus();
+        user.setStatus(newStatus);
+
+        // Notify listeners
+        notifyStatusChange(user, oldStatus, newStatus);
+        return true;
+    }
+
+    private void notifyStatusChange(User user, String oldStatus, String newStatus) {
+        for (UserStatusListener listener : statusListeners) {
+            listener.onUserStatusChange(user, oldStatus, newStatus);
+        }
     }
 
     @Data
