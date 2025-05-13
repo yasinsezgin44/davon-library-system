@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.controller.BookControllerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:13:59.456Z" hostname="Yasins-MacBook-Air.local" time="0.638">
+<testsuite name="com.davon.library.controller.BookControllerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:19:22.569Z" hostname="Yasins-MacBook-Air.local" time="0.658">
   <properties/>
-  <testcase name="testSearchBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.609"/>
+  <testcase name="testSearchBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.629"/>
   <testcase name="testGetAllBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.003"/>
-  <testcase name="testUpdateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.006"/>
-  <testcase name="testGetBookById()" classname="com.davon.library.controller.BookControllerTest" time="0.003"/>
+  <testcase name="testUpdateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.013"/>
+  <testcase name="testGetBookById()" classname="com.davon.library.controller.BookControllerTest" time="0.002"/>
   <testcase name="testCreateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.002"/>
   <testcase name="testDeleteBook()" classname="com.davon.library.controller.BookControllerTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>

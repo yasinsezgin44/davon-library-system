@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.EmailServiceTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:14:00.214Z" hostname="Yasins-MacBook-Air.local" time="0.07">
+<testsuite name="com.davon.library.service.EmailServiceTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-05-13T14:19:23.243Z" hostname="Yasins-MacBook-Air.local" time="0.061">
   <properties/>
-  <testcase name="sendVerificationEmail()" classname="com.davon.library.service.EmailServiceTest" time="0.066"/>
+  <testcase name="sendVerificationEmail()" classname="com.davon.library.service.EmailServiceTest" time="0.055"/>
   <testcase name="sendSecurityNotification()" classname="com.davon.library.service.EmailServiceTest" time="0.002"/>
-  <testcase name="sendPasswordResetEmail()" classname="com.davon.library.service.EmailServiceTest" time="0.001"/>
-  <system-out><![CDATA[17:14:00.274 [Test worker] INFO com.davon.library.service.EmailService -- Sending email to: test@example.com
-17:14:00.276 [Test worker] INFO com.davon.library.service.EmailService -- Subject: Verify Your Library Account
-17:14:00.277 [Test worker] INFO com.davon.library.service.EmailService -- Content: Please click the link below to verify your account:
+  <testcase name="sendPasswordResetEmail()" classname="com.davon.library.service.EmailServiceTest" time="0.002"/>
+  <system-out><![CDATA[17:19:23.293 [Test worker] INFO com.davon.library.service.EmailService -- Sending email to: test@example.com
+17:19:23.295 [Test worker] INFO com.davon.library.service.EmailService -- Subject: Verify Your Library Account
+17:19:23.295 [Test worker] INFO com.davon.library.service.EmailService -- Content: Please click the link below to verify your account:
 http://library.example.com/verify?token=testToken123
-17:14:00.283 [Test worker] INFO com.davon.library.service.EmailService -- Sending email to: security@example.com
-17:14:00.283 [Test worker] INFO com.davon.library.service.EmailService -- Subject: Security Notification - Library Account
-17:14:00.283 [Test worker] INFO com.davon.library.service.EmailService -- Content: Test security alert.
-17:14:00.285 [Test worker] INFO com.davon.library.service.EmailService -- Sending email to: reset@example.com
-17:14:00.285 [Test worker] INFO com.davon.library.service.EmailService -- Subject: Reset Your Library Account Password
-17:14:00.285 [Test worker] INFO com.davon.library.service.EmailService -- Content: Please click the link below to reset your password:
+17:19:23.301 [Test worker] INFO com.davon.library.service.EmailService -- Sending email to: security@example.com
+17:19:23.301 [Test worker] INFO com.davon.library.service.EmailService -- Subject: Security Notification - Library Account
+17:19:23.301 [Test worker] INFO com.davon.library.service.EmailService -- Content: Test security alert.
+17:19:23.303 [Test worker] INFO com.davon.library.service.EmailService -- Sending email to: reset@example.com
+17:19:23.304 [Test worker] INFO com.davon.library.service.EmailService -- Subject: Reset Your Library Account Password
+17:19:23.304 [Test worker] INFO com.davon.library.service.EmailService -- Content: Please click the link below to reset your password:
 http://library.example.com/reset-password?token=resetToken456
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
