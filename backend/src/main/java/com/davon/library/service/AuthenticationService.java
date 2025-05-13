@@ -147,6 +147,19 @@ public class AuthenticationService {
         private boolean success;
         private String sessionId;
         private String message;
+
+        // Add explicit getter methods to resolve the linter errors
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getSessionId() {
+            return sessionId;
+        }
+
+        public String getMessage() {
+            return message;
+        }
     }
 
     @Data

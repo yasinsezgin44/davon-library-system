@@ -10,6 +10,8 @@ import com.davon.library.controller.UserController;
 import com.davon.library.repository.InMemoryUserRepository;
 import com.davon.library.service.UserRepository;
 import com.davon.library.service.UserService;
+import com.davon.library.repository.InMemoryBookCopyRepository;
+import com.davon.library.service.BookCopyRepository;
 
 /**
  * Application configuration class.
@@ -46,5 +48,9 @@ public class AppConfig {
 
     public UserService userService() {
         return new UserService(userRepository());
+    }
+
+    public BookCopyRepository bookCopyRepository() {
+        return new InMemoryBookCopyRepository();
     }
 }
