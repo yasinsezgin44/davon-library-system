@@ -30,8 +30,8 @@ class BookServiceTest {
         // Arrange
         Book book = new Book();
         book.setTitle("Test Book");
-        book.setAuthor("Test Author");
-        book.setIsbn("1234567890");
+        book.setISBN("1234567890");
+        book.setPublicationYear(2023);
 
         when(bookRepository.save(any(Book.class))).thenReturn(book);
 
@@ -101,13 +101,13 @@ class BookServiceTest {
         // Arrange
         Book book1 = new Book();
         book1.setTitle("Java Programming");
-        book1.setAuthor("John Doe");
-        book1.setIsbn("1234567890");
+        book1.setISBN("1234567890");
+        book1.setDescription("Java programming guide");
 
         Book book2 = new Book();
         book2.setTitle("Python Basics");
-        book2.setAuthor("Jane Smith");
-        book2.setIsbn("0987654321");
+        book2.setISBN("0987654321");
+        book2.setDescription("Python for beginners");
 
         // Act
         bookService.createBook(book1);

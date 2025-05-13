@@ -46,8 +46,9 @@ public class BookService {
     public List<Book> searchBooks(String query) {
         return books.stream()
                 .filter(book -> book.getTitle().toLowerCase().contains(query.toLowerCase())
-                        || book.getAuthor().toLowerCase().contains(query.toLowerCase())
-                        || book.getIsbn().toLowerCase().contains(query.toLowerCase()))
+                        || (book.getISBN() != null && book.getISBN().toLowerCase().contains(query.toLowerCase()))
+                        || (book.getDescription() != null
+                                && book.getDescription().toLowerCase().contains(query.toLowerCase())))
                 .collect(Collectors.toList());
     }
 }

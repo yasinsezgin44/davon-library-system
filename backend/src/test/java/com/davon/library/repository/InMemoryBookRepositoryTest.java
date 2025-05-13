@@ -20,6 +20,7 @@ class InMemoryBookRepositoryTest {
         // Arrange
         Book book = new Book();
         book.setTitle("Test Book");
+        book.setISBN("1234567890");
 
         // Act
         Book savedBook = repository.save(book);

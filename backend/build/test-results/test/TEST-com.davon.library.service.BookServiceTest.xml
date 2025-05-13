@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.davon.library.service.BookServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2025-05-13T08:28:22.466Z" hostname="Yasins-MacBook-Air.local" time="0.199">
+  <properties/>
+  <testcase name="testSearchBooks()" classname="com.davon.library.service.BookServiceTest" time="0.186"/>
+  <testcase name="testUpdateBook()" classname="com.davon.library.service.BookServiceTest" time="0.001"/>
+  <testcase name="testGetBookById()" classname="com.davon.library.service.BookServiceTest" time="0.002"/>
+  <testcase name="testCreateBook()" classname="com.davon.library.service.BookServiceTest" time="0.002"/>
+  <testcase name="testDeleteBook()" classname="com.davon.library.service.BookServiceTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -15,28 +15,25 @@ public class LibraryManagementApp {
 
     public static void main(String[] args) {
         logger.info("Starting Library Management System");
-        
+
         // Initialize configuration
         AppConfig appConfig = new AppConfig();
-        
+
         // Initialize services
         BookService bookService = appConfig.bookService();
-        
+
         // Initialize controllers
         BookController bookController = new BookController(bookService);
-        
+
         // Add some sample data
         Book book = new Book();
         book.setTitle("Clean Code");
-        book.setAuthor("Robert C. Martin");
-        book.setIsbn("9780132350884");
+        book.setISBN("9780132350884");
         book.setPublicationYear(2008);
-        book.setPublisher("Prentice Hall");
-        book.setGenre("Programming");
-        book.setAvailable(true);
-        
+        book.setDescription("A handbook of agile software craftsmanship");
+
         bookController.createBook(book);
-        
+
         logger.info("Added sample book: {}", book.getTitle());
         logger.info("Library Management System started successfully");
     }
