@@ -4,6 +4,8 @@ import com.davon.library.model.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 /**
  * Service for managing users (Member, Librarian, Admin).
@@ -66,5 +68,46 @@ public class UserService {
 
     public Set<User> getUsers() {
         return users;
+    }
+
+    public User findUserByEmail(String email) {
+        return users.stream()
+                .filter(u -> u.getEmail().equalsIgnoreCase(email))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public User findById(Long id) {
+        return users.stream()
+                .filter(u -> Objects.equals(u.getId(), id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public boolean updateProfile(Long userId, UserProfile profile) {
+        User user = findById(userId);
+        if (user == null) {
+            return false;
+        }
+
+        user.setFullName(profile.getFullName());
+        user.setEmail(profile.getEmail());
+        user.setPhoneNumber(profile.getPhoneNumber());
+
+        if (user instanceof Member) {
+            Member member = (Member) user;
+            member.setAddress(profile.getAddress());
+        }
+
+        return true;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class UserProfile {
+        private String fullName;
+        private String email;
+        private String phoneNumber;
+        private String address;
     }
 }
