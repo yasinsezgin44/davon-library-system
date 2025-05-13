@@ -10,6 +10,11 @@ import java.util.stream.Collectors;
  */
 public class UserService {
     private final Set<User> users = new HashSet<>();
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public User createUser(User user) {
         users.add(user);
@@ -54,13 +59,9 @@ public class UserService {
                 .orElse(null);
     }
 
-    public boolean assignRole(Long userId, String role) {
-        Optional<User> userOpt = users.stream().filter(u -> Objects.equals(u.getId(), userId)).findFirst();
-        if (userOpt.isPresent() && userOpt.get() instanceof Admin admin) {
-            admin.getPermissions().add(role);
-            return true;
-        }
-        return false;
+    public User assignRole(User user, Role role) {
+        // Simply save the user
+        return userRepository.save(user);
     }
 
     public Set<User> getUsers() {

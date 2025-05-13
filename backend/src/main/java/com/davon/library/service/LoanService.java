@@ -9,7 +9,13 @@ import java.util.*;
  * Service for handling book loans (checkout and return).
  */
 public class LoanService {
-    private final Set<Loan> loans = new HashSet<>();
+    private final LoanRepository loanRepository;
+    private final BookCopyRepository bookCopyRepository;
+
+    public LoanService(LoanRepository loanRepository, BookCopyRepository bookCopyRepository) {
+        this.loanRepository = loanRepository;
+        this.bookCopyRepository = bookCopyRepository;
+    }
 
     /**
      * Checks out a book copy to a member.
@@ -28,10 +34,14 @@ public class LoanService {
                 .status(Loan.LoanStatus.ACTIVE)
                 .renewalCount(0)
                 .build();
-        loans.add(loan);
-        member.getLoans().add(loan);
+
+        if (member.getLoans() != null) {
+            member.getLoans().add(loan);
+        }
+
         bookCopy.setStatus(BookCopy.CopyStatus.CHECKED_OUT);
-        return loan;
+        bookCopyRepository.save(bookCopy);
+        return loanRepository.save(loan);
     }
 
     /**
@@ -40,22 +50,16 @@ public class LoanService {
      * @return the updated Loan, or null if not found
      */
     public Loan returnBook(Member member, BookCopy bookCopy) {
-        Optional<Loan> loanOpt = loans.stream()
-                .filter(l -> l.getMember().equals(member)
-                        && l.getBookCopy().equals(bookCopy)
-                        && l.getStatus() == Loan.LoanStatus.ACTIVE)
-                .findFirst();
+        Optional<Loan> loanOpt = loanRepository.findActiveLoanByMemberAndBookCopy(member, bookCopy);
+
         if (loanOpt.isEmpty()) {
             return null;
         }
+
         Loan loan = loanOpt.get();
         loan.returnBook();
         bookCopy.setStatus(BookCopy.CopyStatus.AVAILABLE);
-        return loan;
-    }
-
-    // Additional helper methods can be added as needed
-    public Set<Loan> getLoans() {
-        return loans;
+        bookCopyRepository.save(bookCopy);
+        return loanRepository.save(loan);
     }
 }

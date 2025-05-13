@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,10 +16,15 @@ class LoanServiceTest {
     private Member member;
     private Book book;
     private BookCopy copy;
+    private TestLoanRepository loanRepository;
+    private TestBookCopyRepository bookCopyRepository;
 
     @BeforeEach
     void setUp() {
-        loanService = new LoanService();
+        loanRepository = new TestLoanRepository();
+        bookCopyRepository = new TestBookCopyRepository();
+        loanService = new LoanService(loanRepository, bookCopyRepository);
+
         member = Member.builder().id(1L).fullName("Test Member").build();
         book = Book.builder().id(1L).title("Test Book").ISBN("1234567890").build();
         copy = BookCopy.builder().id(1L).book(book).status(BookCopy.CopyStatus.AVAILABLE).build();
@@ -54,5 +62,32 @@ class LoanServiceTest {
     void testReturnBookNotFound() {
         Loan returned = loanService.returnBook(member, copy);
         assertNull(returned);
+    }
+
+    // Simple test implementations of repositories
+    class TestLoanRepository implements LoanRepository {
+        private List<Loan> loans = new ArrayList<>();
+
+        @Override
+        public Loan save(Loan loan) {
+            loans.add(loan);
+            return loan;
+        }
+
+        @Override
+        public Optional<Loan> findActiveLoanByMemberAndBookCopy(Member member, BookCopy copy) {
+            return loans.stream()
+                    .filter(l -> l.getMember().equals(member) &&
+                            l.getBookCopy().equals(copy) &&
+                            l.getStatus() == Loan.LoanStatus.ACTIVE)
+                    .findFirst();
+        }
+    }
+
+    class TestBookCopyRepository implements BookCopyRepository {
+        @Override
+        public BookCopy save(BookCopy copy) {
+            return copy;
+        }
     }
 }

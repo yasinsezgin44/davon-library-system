@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Loan extends BaseEntity {
+    private Long id;
     private Member member;
     private BookCopy bookCopy;
     private LocalDate checkoutDate;
@@ -31,7 +32,6 @@ public class Loan extends BaseEntity {
     }
 
     public void returnBook() {
-        // Placeholder: implement return logic
         this.status = LoanStatus.RETURNED;
         this.returnDate = LocalDate.now();
     }
