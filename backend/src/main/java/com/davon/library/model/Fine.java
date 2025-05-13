@@ -18,15 +18,32 @@ public class Fine extends BaseEntity {
     private LocalDate dueDate;
     private FineStatus status;
 
-    public void pay() {
+    public Transaction pay() {
+        this.status = FineStatus.PAID;
+
+        Transaction transaction = Transaction.builder()
+                .amount(this.amount)
+                .date(LocalDate.now())
+                .type(Transaction.TransactionType.FINE_PAYMENT)
+                .description("Payment for fine ID " + this.getId())
+                .paymentMethod("Cash") // Default
+                .build();
+
+        return transaction;
+    }
+
+    public void waive() {
+        this.status = FineStatus.WAIVED;
     }
 
     public void adjustAmount(double newAmount) {
         this.amount = newAmount;
     }
 
-    public boolean dispute(String reason) {
-        return false;
+    public boolean disputeFine(String reason) {
+        // Logic to handle dispute
+        this.status = FineStatus.DISPUTED;
+        return true;
     }
 
     public enum FineReason {

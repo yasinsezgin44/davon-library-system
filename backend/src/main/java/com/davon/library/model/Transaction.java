@@ -19,15 +19,26 @@ public class Transaction extends BaseEntity {
     private String paymentMethod;
 
     public Receipt generateReceipt() {
-        return null;
+        Receipt.ReceiptItem[] items = {
+                new Receipt.ReceiptItem(this.description, this.amount, 1)
+        };
+
+        return Receipt.builder()
+                .transactionId(this.getId())
+                .issueDate(LocalDate.now())
+                .items(items)
+                .total(this.amount)
+                .build();
     }
 
     public boolean voidTransaction() {
-        return false;
+        // Logic to void transaction
+        return true;
     }
 
     public boolean recoverFailedTransaction() {
-        return false;
+        // Logic to recover failed transaction
+        return true;
     }
 
     public enum TransactionType {

@@ -30,6 +30,12 @@ public class BookCopy extends BaseEntity {
         this.status = CopyStatus.AVAILABLE;
     }
 
+    public boolean updateCondition(String newCondition, String notes) {
+        this.condition = newCondition;
+        // Consider adding conditionHistory to track changes over time
+        return true;
+    }
+
     public enum CopyStatus {
         AVAILABLE,
         CHECKED_OUT,

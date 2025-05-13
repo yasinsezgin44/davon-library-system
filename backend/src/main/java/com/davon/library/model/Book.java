@@ -12,8 +12,8 @@ import java.util.Set;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = {"authors"})
-@ToString(callSuper = true, exclude = {"authors"})
+@EqualsAndHashCode(callSuper = true, exclude = { "authors" })
+@ToString(callSuper = true, exclude = { "authors" })
 public class Book extends BaseEntity {
     private String title;
     private String ISBN;
@@ -32,8 +32,16 @@ public class Book extends BaseEntity {
     }
 
     public BookDetails getDetails() {
-        // Return a details object (to be defined)
-        return null; // Placeholder
+        return new BookDetails(
+                this.title,
+                this.ISBN,
+                this.publicationYear,
+                this.description,
+                this.coverImage,
+                this.pages,
+                this.authors,
+                this.publisher,
+                this.category);
     }
 
     public boolean validateISBN() {
