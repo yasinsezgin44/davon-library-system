@@ -23,6 +23,14 @@ public class LoanService {
      * @return the created Loan, or null if not available
      */
     public Loan checkoutBook(Member member, BookCopy bookCopy, int loanPeriodDays) {
+        if (member == null || bookCopy == null) {
+            throw new IllegalArgumentException("Member and BookCopy cannot be null");
+        }
+
+        if (!member.isActive()) {
+            throw new IllegalStateException("Member account is not active");
+        }
+
         if (bookCopy.getStatus() != BookCopy.CopyStatus.AVAILABLE) {
             return null; // Not available
         }
