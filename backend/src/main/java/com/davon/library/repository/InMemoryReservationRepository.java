@@ -1,7 +1,7 @@
 package com.davon.library.repository;
 
 import com.davon.library.model.*;
-import com.davon.library.service.ReservationRepository;
+import com.davon.library.repository.ReservationRepository;
 import java.util.*;
 import java.time.LocalDate;
 
