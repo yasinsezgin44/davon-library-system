@@ -4,127 +4,355 @@
         <meta charset="UTF-8"> 
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Davon Library</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <style>
+            :root {
+                --davon-black: #1a1a1a;
+                --davon-red: #D10000;
+                --davon-white: #FFFFFF;
+                --davon-light-gray: #f0f0f0;
+                --davon-text-dark: #333333;
+                --davon-text-light: #e0e0e0;
+            }
+            body {
+                font-family: 'Montserrat', Arial, sans-serif;
+                background: var(--davon-light-gray);
+                margin: 0;
+                padding: 0;
+                color: var(--davon-text-dark);
+                min-height: 100vh;
+            }
+            .container {
+                max-width: 1100px;
+                width: 90%;
+                margin: 60px auto 0 auto;
+                background: var(--davon-white);
+                border-radius: 18px;
+                box-shadow: 0 8px 32px rgba(60, 72, 100, 0.13);
+                padding: 40px 32px 48px 32px;
+                border: 1.5px solid var(--davon-light-gray);
+            }
+            .logo {
+                display: block;
+                margin: 0 auto 18px auto;
+                width: 110px;
+                height: auto;
+            }
+            .header-content {
+                text-align: center;
+                width: 100%;
+                margin-bottom: 2rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .title-group {
+                display: inline-block;
+                text-align: center;
+            }
+            .title-group h1,
+            .title-group .tagline {
+                display: block;
+                width: 100%;
+            }
+            h1 {
+                text-align: center;
+                margin-bottom: 8px;
+                font-size: 2.5rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+                color: var(--davon-black);
+                position: relative;
+                cursor: pointer;
+                display: block;
+            }
+            .tagline {
+                text-align: center;
+                margin-bottom: 8px;
+                font-size: 1.1rem;
+                font-weight: 500;
+                color: var(--davon-red);
+                position: relative;
+                display: inline-block;
+                max-width: 100%;
+                white-space: normal;
+            }
+            /* Remove any potential interference from external styles */
+            .header-content .tagline {
+                margin-left: 0;
+                margin-right: 0;
+                padding-left: 0;
+                padding-right: 0;
+                float: none;
+            }
+            .divider {
+                border: none;
+                border-top: 2px solid var(--davon-light-gray);
+                margin: 28px 0 32px 0;
+                width: 120px;
+                transition: all 0.35s cubic-bezier(.4,2,.6,1);
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .product-info {
+                background: #fff5f5;
+                border-left: 4px solid var(--davon-red);
+                border-radius: 8px;
+                padding: 18px 20px;
+                margin-bottom: 32px;
+                font-size: 1.08rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .product-info-icon {
+                color: var(--davon-red);
+                font-size: 1.5rem;
+                margin-top: 2px;
+            }
+            .enter-btn {
+                display: block;
+                margin: 36px auto 0 auto;
+                padding: 18px 44px;
+                background: var(--davon-red);
+                color: var(--davon-white);
+                border: none;
+                border-radius: 8px;
+                font-size: 1.18rem;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+                transition: background 0.2s, transform 0.2s;
+                text-decoration: none;
+                letter-spacing: 0.5px;
+            }
+            .enter-btn:hover {
+                background: #a10000;
+                transform: translateY(-2px) scale(1.03);
+            }
+            .faq-section {
+                margin-top: 44px;
+            }
+            .faq-title {
+                font-size: 1.35rem;
+                margin-bottom: 18px;
+                text-align: center;
+                color: var(--davon-red);
+                font-weight: 600;
+            }
+            .faq-list {
+                list-style: none;
+                padding: 0;
+            }
+            .faq-item {
+                margin-bottom: 18px;
+                border-radius: 8px;
+                background: var(--davon-light-gray);
+                box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+                overflow: hidden;
+            }
+            .faq-question {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                padding: 16px 20px;
+                font-weight: 600;
+                color: var(--davon-black);
+                background: var(--davon-white);
+                border: none;
+                width: 100%;
+                font-size: 1.08rem;
+                transition: background 0.2s;
+            }
+            .faq-question:hover, .faq-question[aria-expanded="true"] {
+                background: #ffeaea;
+            }
+            .faq-icon {
+                color: var(--davon-red);
+                font-size: 1.2rem;
+                margin-right: 12px;
+                transition: transform 0.2s;
+            }
+            .faq-question[aria-expanded="true"] .faq-icon {
+                transform: rotate(90deg);
+            }
+            .faq-answer {
+                max-height: 0;
+                overflow: hidden;
+                background: var(--davon-light-gray);
+                color: var(--davon-text-dark);
+                font-weight: 400;
+                font-size: 1rem;
+                padding: 0 20px;
+                transition: max-height 0.3s ease, padding 0.3s;
+            }
+            .faq-item.open .faq-answer {
+                max-height: 200px;
+                padding: 14px 20px 18px 52px;
+            }
+            @media (max-width: 700px) {
+                .container { padding: 18px 4vw 32px 4vw; }
+                h1 { font-size: 2rem; }
+            }
+            .key-features-section {
+                margin-top: 40px;
+                padding-top: 20px;
+                border-top: 1px solid var(--davon-light-gray);
+            }
+            .section-title {
+                text-align: center;
+                font-size: 1.8rem;
+                color: var(--davon-black);
+                margin-bottom: 30px;
+                font-weight: 600;
+            }
+            .features-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 25px;
+                margin-top: 20px;
+            }
+            .feature-item {
+                background-color: var(--davon-white);
+                padding: 25px;
+                border-radius: 12px;
+                text-align: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+                border: 1px solid #eef;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            .feature-item:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            }
+            .feature-item .feature-icon {
+                font-size: 2.5rem;
+                color: var(--davon-red);
+                margin-bottom: 15px;
+            }
+            .feature-item h3 {
+                font-size: 1.25rem;
+                color: var(--davon-black);
+                margin-bottom: 10px;
+            }
+            .feature-item p {
+                font-size: 0.95rem;
+                color: var(--davon-text-dark);
+                line-height: 1.6;
+            }
+            .feature-item:nth-child(4) {
+                grid-column: 2 / 3;
+            }
+        </style>
+        <script src="https://kit.fontawesome.com/4b8b59b5e7.js" crossorigin="anonymous"></script>
     </head>
     <body>
-        <header class="header-container">
-            <div class="logo-title-container">
-        <img src="images/logo.png" alt="Davon Library Logo" class="library-logo">
-        <h1>Davon Library</h1>
+        <div class="container">
+            <img src="images/logo.png" alt="Davon Library Logo" class="logo">
+            <div class="header-content">
+                <div class="title-group">
+                    <h1 tabindex="0">Davon Library System</h1>
+                    <div class="tagline">Empowering Knowledge. Connecting Communities.</div>
+                </div>
+            </div>
+            <hr class="divider">
+            <div class="product-info">
+                <span>
+                    Welcome to the <b>Davon Library System</b>! Effortlessly manage, search, and discover books and resources. Our platform is designed for modern libraries, offering seamless access to collections, digital resources, and community features for everyone.
+                </span>
             </div>
 
-            <input type="checkbox" id="menu-toggle" class="menu-toggle">
-            <label for="menu-toggle" class="menu-icon">☰</label>
+            <a href="http://localhost:3000" class="enter-btn">Go to Library System Application &rarr;</a>
 
-            <nav>
-                <ul class="nav-menu">
-                    <li class="nav-item"><a href="#home" class="nav-link">Home</a></li>
-                    <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
-                    <li class="nav-item"><a href="#services" class="nav-link">Services</a></li>
-                    <li class="nav-item"><a href="#collection" class="nav-link">Collection</a></li>
-                    <li class="nav-item"><a href="#events" class="nav-link">Events</a></li>
-                    <li class="nav-item"><a href="#contact" class="nav-link">Contact</a></li>
+            <div class="key-features-section">
+                <h2 class="section-title">Key Features of Davon Library</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <i class="fas fa-search feature-icon"></i>
+                        <h3>Advanced Search</h3>
+                        <p>Quickly find books, articles, and digital media with powerful filtering and sorting options.</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-book-reader feature-icon"></i>
+                        <h3>Digital Collection</h3>
+                        <p>Access a vast collection of e-books, audiobooks, and online journals from anywhere.</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-users feature-icon"></i>
+                        <h3>Community Engagement</h3>
+                        <p>Participate in events, book clubs, and workshops. Connect with fellow readers.</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-user-shield feature-icon"></i>
+                        <h3>Personalized Accounts</h3>
+                        <p>Manage your loans, reservations, reading history, and preferences with ease.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section">
+                <div class="faq-title">Frequently Asked Questions</div>
+                <ul class="faq-list">
+                    <li class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <span class="faq-icon"><i class="fas fa-question-circle"></i></span>
+                            What is Davon Library System?
+                        </button>
+                        <div class="faq-answer">
+                            A modern platform for managing and exploring library resources.
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <span class="faq-icon"><i class="fas fa-users"></i></span>
+                            Who can use it?
+                        </button>
+                        <div class="faq-answer">
+                            Anyone with access to the library—students, staff, and the public.
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <span class="faq-icon"><i class="fas fa-laptop"></i></span>
+                            How do I access digital resources?
+                        </button>
+                        <div class="faq-answer">
+                            Log in to the application and browse the digital library section.
+                        </div>
+                    </li>
+                    <li class="faq-item">
+                        <button class="faq-question" aria-expanded="false">
+                            <span class="faq-icon"><i class="fas fa-headset"></i></span>
+                            Where can I get support?
+                        </button>
+                        <div class="faq-answer">
+                            Contact us through the support page in the application.
+                        </div>
+                    </li>
                 </ul>
-            </nav>
-        </header>
-        <link rel="stylesheet" href="style.css">
-
-        <section class="hero-section">
-            <div class="hero-content">
-                <h2 class="hero-title">Welcome to Davon Library System</h2>
-                <p class="hero-description">
-                    Discover a world of knowledge at your fingertips. Our modern library system 
-                    offers extensive collections, digital resources, and innovative services to 
-                    support your learning journey.
-                </p>
-                <a href="#explore" class="cta-button">Explore Our Collection</a>
             </div>
-        </section>
-
-        <section class="features-section">
-            <h2 class="section-title">Our Library Features</h2>
-            <div class="features-container">
-                <!-- Feature 1 -->
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-book"></i> <!-- You'll need to add Font Awesome or another icon library -->
-                    </div>
-                    <div class="feature-content">
-                        <h3 class="feature-title">Extensive Collection</h3>
-                        <p class="feature-description">
-                            Access over 50,000 books, journals, and digital media across all subjects and interests.
-                        </p>
-                        <a href="#" class="feature-link">Browse Catalog</a>
-                    </div>
-                </div>
-        
-                <!-- Feature 2 -->
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-laptop"></i>
-                    </div>
-                    <div class="feature-content">
-                        <h3 class="feature-title">Digital Resources</h3>
-                        <p class="feature-description">
-                            Enjoy 24/7 access to e-books, research databases, and online learning materials.
-                        </p>
-                        <a href="#" class="feature-link">Explore Digital Library</a>
-                    </div>
-                </div>
-        
-                <!-- Feature 3 -->
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="feature-content">
-                        <h3 class="feature-title">Community Programs</h3>
-                        <p class="feature-description">
-                            Participate in book clubs, workshops, and educational events for all ages.
-                        </p>
-                        <a href="#" class="feature-link">View Calendar</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <footer class="footer">
-            <div class="footer-container">
-                <div class="footer-section">
-                    <h3 class="footer-title">Contact Us</h3>
-                    <ul class="contact-info">
-                        <li><i class="fas fa-map-marker-alt"></i> 123 Library Street, Davon City</li>
-                        <li><i class="fas fa-phone"></i> (555) 123-4567</li>
-                        <li><i class="fas fa-envelope"></i> info@davonlibrary.com</li>
-                        <li><i class="fas fa-clock"></i> Mon-Fri: 9AM-8PM, Sat-Sun: 10AM-6PM</li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h3 class="footer-title">Quick Links</h3>
-                    <ul class="contact-info">
-                        <li><a href="#" style="color: white; text-decoration: none;">About Us</a></li>
-                        <li><a href="#" style="color: white; text-decoration: none;">Services</a></li>
-                        <li><a href="#" style="color: white; text-decoration: none;">Membership</a></li>
-                        <li><a href="#" style="color: white; text-decoration: none;">Events</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h3 class="footer-title">Connect With Us</h3>
-                    <p>Join our community and stay updated with the latest events and additions to our collection.</p>
-                    <div class="social-links">
-                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="copyright">
-                &copy; 2023 Davon Library System. All Rights Reserved.
-            </div>
-        </footer>
+        </div>
+        <script>
+            // FAQ accordion logic
+            document.querySelectorAll('.faq-question').forEach((btn) => {
+                btn.addEventListener('click', function() {
+                    const item = this.parentElement;
+                    const expanded = this.getAttribute('aria-expanded') === 'true';
+                    // Close all
+                    document.querySelectorAll('.faq-item').forEach((el) => {
+                        el.classList.remove('open');
+                        el.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+                    });
+                    // Open this one if it was closed
+                    if (!expanded) {
+                        item.classList.add('open');
+                        this.setAttribute('aria-expanded', 'true');
+                    }
+                });
+            });
+        </script>
     </body>
 </html>
