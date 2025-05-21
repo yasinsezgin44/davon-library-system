@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.ReservationServiceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:04:42.381Z" hostname="Yasins-MacBook-Air.local" time="0.005">
+<testsuite name="com.davon.library.service.ReservationServiceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:06:10.493Z" hostname="Yasins-MacBook-Air.local" time="0.005">
   <properties/>
   <testcase name="testPlaceReservationForAlreadyReservedBook()" classname="com.davon.library.service.ReservationServiceTest" time="0.001"/>
-  <testcase name="testProcessAvailableReservationsNoReservations()" classname="com.davon.library.service.ReservationServiceTest" time="0.001"/>
-  <testcase name="testPlaceReservationForUnavailableBook()" classname="com.davon.library.service.ReservationServiceTest" time="0.0"/>
+  <testcase name="testProcessAvailableReservationsNoReservations()" classname="com.davon.library.service.ReservationServiceTest" time="0.0"/>
+  <testcase name="testPlaceReservationForUnavailableBook()" classname="com.davon.library.service.ReservationServiceTest" time="0.001"/>
   <testcase name="testPlaceReservationForAvailableBook()" classname="com.davon.library.service.ReservationServiceTest" time="0.0"/>
   <testcase name="testCancelNonExistentReservation()" classname="com.davon.library.service.ReservationServiceTest" time="0.001"/>
-  <testcase name="testProcessAvailableReservations()" classname="com.davon.library.service.ReservationServiceTest" time="0.001"/>
-  <testcase name="testCancelReservation()" classname="com.davon.library.service.ReservationServiceTest" time="0.0"/>
+  <testcase name="testProcessAvailableReservations()" classname="com.davon.library.service.ReservationServiceTest" time="0.0"/>
+  <testcase name="testCancelReservation()" classname="com.davon.library.service.ReservationServiceTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
