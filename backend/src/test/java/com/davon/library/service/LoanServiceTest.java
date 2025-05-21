@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,7 +26,7 @@ class LoanServiceTest {
         bookCopyRepository = new TestBookCopyRepository();
         loanService = new LoanService(loanRepository, bookCopyRepository);
 
-        member = Member.builder().id(1L).fullName("Test Member").build();
+        member = Member.builder().id(1L).fullName("Test Member").active(true).build();
         book = Book.builder().id(1L).title("Test Book").ISBN("1234567890").build();
         copy = BookCopy.builder().id(1L).book(book).status(BookCopy.CopyStatus.AVAILABLE).build();
     }
@@ -45,7 +46,9 @@ class LoanServiceTest {
     void testCheckoutBookNotAvailable() {
         copy.setStatus(BookCopy.CopyStatus.LOST);
         Loan loan = loanService.checkoutBook(member, copy, 14);
-        assertNull(loan);
+        if (loan != null) {
+            fail("Loan should be null but was: " + loan.toString());
+        }
     }
 
     @Test
@@ -65,13 +68,24 @@ class LoanServiceTest {
     }
 
     // Simple test implementations of repositories
-    class TestLoanRepository implements LoanRepository {
+    static class TestLoanRepository implements LoanRepository {
         private List<Loan> loans = new ArrayList<>();
 
         @Override
         public Loan save(Loan loan) {
+            loans.removeIf(l -> l.getId() != null && l.getId().equals(loan.getId()));
             loans.add(loan);
             return loan;
+        }
+
+        @Override
+        public Optional<Loan> findById(Long id) {
+            return loans.stream().filter(l -> l.getId() != null && l.getId().equals(id)).findFirst();
+        }
+
+        @Override
+        public List<Loan> findAllByMember(Member member) {
+            return loans.stream().filter(l -> l.getMember().equals(member)).collect(Collectors.toList());
         }
 
         @Override
@@ -82,12 +96,28 @@ class LoanServiceTest {
                             l.getStatus() == Loan.LoanStatus.ACTIVE)
                     .findFirst();
         }
+
+        @Override
+        public List<Loan> findOverdueLoans(LocalDate date) {
+            return loans.stream()
+                    .filter(l -> l.getDueDate().isBefore(date) && l.getStatus() == Loan.LoanStatus.ACTIVE)
+                    .collect(Collectors.toList());
+        }
     }
 
-    class TestBookCopyRepository implements BookCopyRepository {
+    static class TestBookCopyRepository implements BookCopyRepository {
+        private List<BookCopy> copies = new ArrayList<>();
+
         @Override
-        public BookCopy save(BookCopy copy) {
-            return copy;
+        public BookCopy save(BookCopy copyToSave) {
+            copies.removeIf(c -> c.getId() != null && c.getId().equals(copyToSave.getId()));
+            copies.add(copyToSave);
+            return copyToSave;
+        }
+
+        @Override
+        public Optional<BookCopy> findById(Long id) {
+            return copies.stream().filter(c -> c.getId() != null && c.getId().equals(id)).findFirst();
         }
     }
 }

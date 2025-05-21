@@ -21,6 +21,7 @@ public class Book extends BaseEntity {
     private String description;
     private String coverImage;
     private int pages;
+    @lombok.Builder.Default
     private Set<Author> authors = new HashSet<>();
     private Publisher publisher;
     private Category category;

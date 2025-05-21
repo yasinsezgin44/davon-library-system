@@ -4,6 +4,7 @@ import com.davon.library.model.BookCopy;
 import com.davon.library.service.BookCopyRepository;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryBookCopyRepository implements BookCopyRepository {
     private final Map<Long, BookCopy> copies = new HashMap<>();
@@ -16,5 +17,10 @@ public class InMemoryBookCopyRepository implements BookCopyRepository {
         }
         copies.put(copy.getId(), copy);
         return copy;
+    }
+
+    @Override
+    public Optional<BookCopy> findById(Long id) {
+        return Optional.ofNullable(copies.get(id));
     }
 }

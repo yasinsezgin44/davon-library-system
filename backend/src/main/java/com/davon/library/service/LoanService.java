@@ -9,6 +9,7 @@ import java.util.*;
  * Service for handling book loans (checkout and return).
  */
 public class LoanService {
+
     private final LoanRepository loanRepository;
     private final BookCopyRepository bookCopyRepository;
 
@@ -32,7 +33,7 @@ public class LoanService {
         }
 
         if (bookCopy.getStatus() != BookCopy.CopyStatus.AVAILABLE) {
-            return null; // Not available
+            return null;
         }
         Loan loan = Loan.builder()
                 .member(member)
@@ -66,8 +67,10 @@ public class LoanService {
 
         Loan loan = loanOpt.get();
         loan.returnBook();
-        bookCopy.setStatus(BookCopy.CopyStatus.AVAILABLE);
-        bookCopyRepository.save(bookCopy);
-        return loanRepository.save(loan);
+        bookCopy.checkIn(); // bookCopy status is now AVAILABLE
+
+        loanRepository.save(loan);
+        bookCopyRepository.save(bookCopy); // Save the updated BookCopy status
+        return loan;
     }
 }

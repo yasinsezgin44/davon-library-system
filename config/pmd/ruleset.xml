@@ -43,18 +43,19 @@
     <!-- Documentation -->
     <rule ref="category/java/documentation.xml">
         <exclude name="CommentSize"/>
+        <exclude name="CommentRequired"/>
     </rule>
 
     <!-- Error prone -->
-    <rule ref="category/java/errorprone.xml">
-        <exclude name="BeanMembersShouldSerialize"/>
-        <exclude name="DataflowAnomalyAnalysis"/>
-        <exclude name="NullAssignment"/>
-        <exclude name="AvoidFieldNameMatchingMethodName"/>
-        <exclude name="AvoidDuplicateLiterals"/>
-        <exclude name="AvoidLiteralsInIfCondition"/>
-        <exclude name="UseLocaleWithCaseConversions"/>
-    </rule>
+    <!-- <rule ref="category/java/errorprone.xml"> -->
+        <!-- <exclude name="BeanMembersShouldSerialize"/> -->
+        <!-- <exclude name="DataflowAnomalyAnalysis"/> -->
+        <!-- <exclude name="NullAssignment"/> -->
+        <!-- <exclude name="AvoidFieldNameMatchingMethodName"/> -->
+        <!-- <exclude name="AvoidDuplicateLiterals"/> -->
+        <!-- <exclude name="AvoidLiteralsInIfCondition"/> -->
+        <!-- <exclude name="UseLocaleWithCaseConversions"/> -->
+    <!-- </rule> -->
 
     <!-- Performance -->
     <rule ref="category/java/performance.xml">

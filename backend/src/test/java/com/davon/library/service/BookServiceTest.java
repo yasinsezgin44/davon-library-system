@@ -1,121 +1,175 @@
 package com.davon.library.service;
 
 import com.davon.library.model.Book;
+import com.davon.library.model.Author;
+import com.davon.library.model.Publisher;
+import com.davon.library.model.Category;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 class BookServiceTest {
-
     private BookService bookService;
-
-    @Mock
-    private BookRepository bookRepository;
+    private TestBookRepository bookRepository;
+    private Book testBook;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        bookRepository = new TestBookRepository();
         bookService = new BookService(bookRepository);
+
+        // Create a test book
+        testBook = Book.builder()
+                .id(1L)
+                .title("Test Book")
+                .ISBN("1234567890")
+                .publicationYear(2023)
+                .description("A test book for unit testing")
+                .pages(200)
+                .build();
+
+        // Add the test book
+        bookService.createBook(testBook);
     }
 
     @Test
-    void testCreateBook() {
-        // Arrange
-        Book book = new Book();
-        book.setTitle("Test Book");
-        book.setISBN("1234567890");
-        book.setPublicationYear(2023);
-
-        when(bookRepository.save(any(Book.class))).thenReturn(book);
-
-        // Act
-        Book savedBook = bookService.createBook(book);
-
-        // Assert
-        assertNotNull(savedBook);
-        assertEquals("Test Book", savedBook.getTitle());
+    void testGetAllBooks() {
+        List<Book> books = bookService.getAllBooks();
+        assertEquals(1, books.size());
+        assertEquals("Test Book", books.get(0).getTitle());
     }
 
     @Test
     void testGetBookById() {
-        // Arrange
-        Book book = new Book();
-        book.setId(1L);
-        book.setTitle("Test Book");
-
-        // Act
-        bookService.createBook(book);
         Book foundBook = bookService.getBookById(1L);
-
-        // Assert
         assertNotNull(foundBook);
-        assertEquals(1L, foundBook.getId());
         assertEquals("Test Book", foundBook.getTitle());
+
+        // Non-existent book
+        Book notFoundBook = bookService.getBookById(999L);
+        assertNull(notFoundBook);
+    }
+
+    @Test
+    void testCreateBook() {
+        Book newBook = Book.builder()
+                .id(2L)
+                .title("Another Test Book")
+                .ISBN("0987654321")
+                .publicationYear(2022)
+                .build();
+
+        Book createdBook = bookService.createBook(newBook);
+        assertNotNull(createdBook);
+        assertEquals("Another Test Book", createdBook.getTitle());
+
+        // Verify it was added to the collection
+        List<Book> allBooks = bookService.getAllBooks();
+        assertEquals(2, allBooks.size());
     }
 
     @Test
     void testUpdateBook() {
-        // Arrange
-        Book book = new Book();
-        book.setId(1L);
-        book.setTitle("Original Title");
+        Book updatedBook = Book.builder()
+                .id(1L)
+                .title("Updated Test Book")
+                .ISBN("1234567890")
+                .publicationYear(2023)
+                .build();
 
-        Book updatedBook = new Book();
-        updatedBook.setId(1L);
-        updatedBook.setTitle("Updated Title");
-
-        // Act
-        bookService.createBook(book);
         Book result = bookService.updateBook(1L, updatedBook);
-
-        // Assert
         assertNotNull(result);
-        assertEquals("Updated Title", result.getTitle());
+        assertEquals("Updated Test Book", result.getTitle());
+
+        // Verify the book was updated in the collection
+        Book foundBook = bookService.getBookById(1L);
+        assertEquals("Updated Test Book", foundBook.getTitle());
     }
 
     @Test
     void testDeleteBook() {
-        // Arrange
-        Book book = new Book();
-        book.setId(1L);
-        book.setTitle("Test Book");
-
-        // Act
-        bookService.createBook(book);
         bookService.deleteBook(1L);
-        Book result = bookService.getBookById(1L);
 
-        // Assert
-        assertNull(result);
+        // Verify the book was deleted
+        List<Book> allBooks = bookService.getAllBooks();
+        assertEquals(0, allBooks.size());
+
+        Book foundBook = bookService.getBookById(1L);
+        assertNull(foundBook);
     }
 
     @Test
     void testSearchBooks() {
-        // Arrange
-        Book book1 = new Book();
-        book1.setTitle("Java Programming");
-        book1.setISBN("1234567890");
-        book1.setDescription("Java programming guide");
+        // Add more books with distinct searchable terms
+        Book javaBook = Book.builder()
+                .id(2L)
+                .title("Programming in Java")
+                .ISBN("2222222222")
+                .description("A Java programming guide")
+                .publicationYear(2020)
+                .build();
 
-        Book book2 = new Book();
-        book2.setTitle("Python Basics");
-        book2.setISBN("0987654321");
-        book2.setDescription("Python for beginners");
+        Book pythonBook = Book.builder()
+                .id(3L)
+                .title("Python Basics")
+                .ISBN("3333333333")
+                .description("A Python programming guide")
+                .publicationYear(2021)
+                .build();
 
-        // Act
-        bookService.createBook(book1);
-        bookService.createBook(book2);
-        List<Book> results = bookService.searchBooks("Java");
+        bookService.createBook(javaBook);
+        bookService.createBook(pythonBook);
 
-        // Assert
-        assertEquals(1, results.size());
-        assertEquals("Java Programming", results.get(0).getTitle());
+        // Verify we have 3 total books
+        List<Book> allBooks = bookService.getAllBooks();
+        assertEquals(3, allBooks.size());
+
+        // Search by title - single result
+        List<Book> pythonBooks = bookService.searchBooks("Python");
+        assertEquals(1, pythonBooks.size());
+        assertEquals("Python Basics", pythonBooks.get(0).getTitle());
+
+        // Search by specific ISBN
+        List<Book> isbnBooks = bookService.searchBooks("2222");
+        assertEquals(1, isbnBooks.size());
+        assertEquals("Programming in Java", isbnBooks.get(0).getTitle());
+
+        // Search by description
+        List<Book> testingBooks = bookService.searchBooks("testing");
+        assertEquals(1, testingBooks.size());
+        assertEquals("Test Book", testingBooks.get(0).getTitle());
+
+        // Search with no matches
+        List<Book> noMatches = bookService.searchBooks("xyz123");
+        assertEquals(0, noMatches.size());
+    }
+
+    // Test repository implementation
+    static class TestBookRepository implements BookRepository {
+        private Set<Book> books = new HashSet<>();
+
+        @Override
+        public Book save(Book book) {
+            books.add(book);
+            return book;
+        }
+
+        @Override
+        public Book findById(Long id) {
+            return books.stream()
+                    .filter(b -> b.getId().equals(id))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        @Override
+        public void delete(Book book) {
+            books.remove(book);
+        }
     }
 }

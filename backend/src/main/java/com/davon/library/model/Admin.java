@@ -12,6 +12,7 @@ import java.util.Set;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Admin extends User {
     private int adminLevel;
     private String department;

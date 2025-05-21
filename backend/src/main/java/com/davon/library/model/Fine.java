@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Fine extends BaseEntity {
     private double amount;
     private FineReason reason;

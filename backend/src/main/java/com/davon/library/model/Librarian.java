@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Librarian extends User {
     private LocalDate employmentDate;
     private String employeeId;

@@ -14,13 +14,19 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, exclude = { "loans", "reservations", "fines" })
 public class Member extends User {
     private LocalDate membershipStartDate;
     private LocalDate membershipEndDate;
     private String address;
+    @lombok.Builder.Default
     private Set<Loan> loans = new HashSet<>();
+    @lombok.Builder.Default
     private Set<Reservation> reservations = new HashSet<>();
+    @lombok.Builder.Default
     private double fineBalance = 0.0;
+    @lombok.Builder.Default
     private Set<Fine> fines = new HashSet<>();
 
     public boolean borrowBooks(List<Long> bookIds) {

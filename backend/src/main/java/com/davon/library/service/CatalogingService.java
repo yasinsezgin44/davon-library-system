@@ -1,7 +1,12 @@
 package com.davon.library.service;
 
+import com.davon.library.model.Book;
+import com.davon.library.model.Category;
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 
+@RequiredArgsConstructor
 public class CatalogingService {
     private final BookRepository bookRepository;
     private final BookCopyRepository bookCopyRepository;

@@ -10,12 +10,15 @@ import java.util.Map;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Report extends BaseEntity {
     private String title;
     private LocalDate dateGenerated;
     private LocalDate startDate;
     private LocalDate endDate;
+    @lombok.Builder.Default
     private Map<String, String> content = new HashMap<>();
+    private String generatedBy;
 
     public void addContent(String key, String value) {
         content.put(key, value);

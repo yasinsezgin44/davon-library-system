@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.davon.library.service.AdminServiceTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:09:27.528Z" hostname="Yasins-MacBook-Air.local" time="0.058">
+  <properties/>
+  <testcase name="testConfigureSecurityPolicy()" classname="com.davon.library.service.AdminServiceTest" time="0.028"/>
+  <testcase name="testLockUserAccount_Success()" classname="com.davon.library.service.AdminServiceTest" time="0.004"/>
+  <testcase name="testListUserAccounts()" classname="com.davon.library.service.AdminServiceTest" time="0.002"/>
+  <testcase name="testSetUserRole_UserNotFound()" classname="com.davon.library.service.AdminServiceTest" time="0.002"/>
+  <testcase name="testSetUserRole_Success()" classname="com.davon.library.service.AdminServiceTest" time="0.003"/>
+  <testcase name="testCreateUserAccount_Success()" classname="com.davon.library.service.AdminServiceTest" time="0.003"/>
+  <testcase name="testViewSecurityLogs()" classname="com.davon.library.service.AdminServiceTest" time="0.002"/>
+  <testcase name="testCreateUserAccount_Failure()" classname="com.davon.library.service.AdminServiceTest" time="0.002"/>
+  <testcase name="testLockUserAccount_UserNotFound()" classname="com.davon.library.service.AdminServiceTest" time="0.002"/>
+  <testcase name="testUnlockUserAccount_Success()" classname="com.davon.library.service.AdminServiceTest" time="0.002"/>
+  <testcase name="testDeleteUserAccount()" classname="com.davon.library.service.AdminServiceTest" time="0.001"/>
+  <testcase name="testUnlockUserAccount_UserNotFound()" classname="com.davon.library.service.AdminServiceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
