@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.controller.BookControllerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:02:48.755Z" hostname="Yasins-MacBook-Air.local" time="0.051">
+<testsuite name="com.davon.library.controller.BookControllerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:04:40.177Z" hostname="Yasins-MacBook-Air.local" time="1.266">
   <properties/>
-  <testcase name="testSearchBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.032"/>
-  <testcase name="testGetAllBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.002"/>
-  <testcase name="testUpdateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.002"/>
+  <testcase name="testSearchBooks()" classname="com.davon.library.controller.BookControllerTest" time="1.225"/>
+  <testcase name="testGetAllBooks()" classname="com.davon.library.controller.BookControllerTest" time="0.006"/>
+  <testcase name="testUpdateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.01"/>
   <testcase name="testGetBookById()" classname="com.davon.library.controller.BookControllerTest" time="0.003"/>
-  <testcase name="testCreateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.006"/>
-  <testcase name="testDeleteBook()" classname="com.davon.library.controller.BookControllerTest" time="0.001"/>
+  <testcase name="testCreateBook()" classname="com.davon.library.controller.BookControllerTest" time="0.003"/>
+  <testcase name="testDeleteBook()" classname="com.davon.library.controller.BookControllerTest" time="0.003"/>
   <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
+  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/yasinsezgin/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.4/3bf5ac1104554908cc623e40e58a00be37c35f36/byte-buddy-agent-1.14.4.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
 </testsuite>

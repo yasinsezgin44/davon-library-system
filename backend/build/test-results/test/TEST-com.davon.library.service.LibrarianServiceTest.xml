@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.LibrarianServiceTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:02:49.345Z" hostname="Yasins-MacBook-Air.local" time="0.161">
+<testsuite name="com.davon.library.service.LibrarianServiceTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:04:42.095Z" hostname="Yasins-MacBook-Air.local" time="0.186">
   <properties/>
-  <testcase name="testRenewLoanForMember()" classname="com.davon.library.service.LibrarianServiceTest" time="0.121"/>
-  <testcase name="testRegisterMember()" classname="com.davon.library.service.LibrarianServiceTest" time="0.002"/>
+  <testcase name="testRenewLoanForMember()" classname="com.davon.library.service.LibrarianServiceTest" time="0.145"/>
+  <testcase name="testRegisterMember()" classname="com.davon.library.service.LibrarianServiceTest" time="0.003"/>
   <testcase name="testProcessPayment_Success()" classname="com.davon.library.service.LibrarianServiceTest" time="0.004"/>
   <testcase name="testGenerateDailyCirculationReport()" classname="com.davon.library.service.LibrarianServiceTest" time="0.003"/>
   <testcase name="testCheckoutBookForMember_Success()" classname="com.davon.library.service.LibrarianServiceTest" time="0.004"/>
   <testcase name="testReturnBookFromMember()" classname="com.davon.library.service.LibrarianServiceTest" time="0.002"/>
-  <testcase name="testCheckoutBookForMember_MemberNotFound()" classname="com.davon.library.service.LibrarianServiceTest" time="0.002"/>
+  <testcase name="testCheckoutBookForMember_MemberNotFound()" classname="com.davon.library.service.LibrarianServiceTest" time="0.003"/>
   <testcase name="testUpdateMemberInfo()" classname="com.davon.library.service.LibrarianServiceTest" time="0.002"/>
   <testcase name="testUpdateBookLocation()" classname="com.davon.library.service.LibrarianServiceTest" time="0.002"/>
-  <testcase name="testDeactivateMemberAccount()" classname="com.davon.library.service.LibrarianServiceTest" time="0.002"/>
-  <testcase name="testAddBookToCatalog()" classname="com.davon.library.service.LibrarianServiceTest" time="0.004"/>
+  <testcase name="testDeactivateMemberAccount()" classname="com.davon.library.service.LibrarianServiceTest" time="0.003"/>
+  <testcase name="testAddBookToCatalog()" classname="com.davon.library.service.LibrarianServiceTest" time="0.002"/>
   <testcase name="testRemoveBookFromCatalog()" classname="com.davon.library.service.LibrarianServiceTest" time="0.002"/>
   <testcase name="testPerformInventoryCheck()" classname="com.davon.library.service.LibrarianServiceTest" time="0.003"/>
   <testcase name="testUpdateBookCatalog()" classname="com.davon.library.service.LibrarianServiceTest" time="0.002"/>

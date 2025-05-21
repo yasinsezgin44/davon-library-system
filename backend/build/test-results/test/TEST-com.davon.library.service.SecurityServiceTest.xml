@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.SecurityServiceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:02:49.610Z" hostname="Yasins-MacBook-Air.local" time="0.038">
+<testsuite name="com.davon.library.service.SecurityServiceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:04:42.387Z" hostname="Yasins-MacBook-Air.local" time="0.033">
   <properties/>
-  <testcase name="testSendSecurityAlert()" classname="com.davon.library.service.SecurityServiceTest" time="0.025"/>
+  <testcase name="testSendSecurityAlert()" classname="com.davon.library.service.SecurityServiceTest" time="0.022"/>
   <testcase name="testLogSecurityEvent()" classname="com.davon.library.service.SecurityServiceTest" time="0.003"/>
   <testcase name="testProcessSecurityAlert()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
   <testcase name="testAccountLocking()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
-  <testcase name="testHashPassword()" classname="com.davon.library.service.SecurityServiceTest" time="0.003"/>
+  <testcase name="testHashPassword()" classname="com.davon.library.service.SecurityServiceTest" time="0.002"/>
   <testcase name="testVerifyPassword()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
   <testcase name="testGenerateAndValidateVerificationToken()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
   <testcase name="testGenerateAndValidatePasswordResetToken()" classname="com.davon.library.service.SecurityServiceTest" time="0.001"/>
