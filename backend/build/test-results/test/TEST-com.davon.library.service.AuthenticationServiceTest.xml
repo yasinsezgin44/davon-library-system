@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.AuthenticationServiceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:07:04.193Z" hostname="Yasins-MacBook-Air.local" time="0.177">
+<testsuite name="com.davon.library.service.AuthenticationServiceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:09:27.588Z" hostname="Yasins-MacBook-Air.local" time="0.178">
   <properties/>
-  <testcase name="testLoginWithLockedAccount()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.123"/>
-  <testcase name="testRegisterAccount()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.038"/>
+  <testcase name="testLoginWithLockedAccount()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.125"/>
+  <testcase name="testRegisterAccount()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.036"/>
   <testcase name="testFailedLogin()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.001"/>
-  <testcase name="testSessionValidation()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.004"/>
+  <testcase name="testSessionValidation()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.003"/>
   <testcase name="testSuccessfulLogin()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.002"/>
   <testcase name="testVerifyEmailWithInvalidToken()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.001"/>
-  <testcase name="testLogout()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.001"/>
-  <testcase name="testVerifyEmail()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.001"/>
+  <testcase name="testLogout()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.003"/>
+  <testcase name="testVerifyEmail()" classname="com.davon.library.service.AuthenticationServiceTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

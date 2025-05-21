@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.InventoryServiceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:07:04.476Z" hostname="Yasins-MacBook-Air.local" time="0.01">
+<testsuite name="com.davon.library.service.InventoryServiceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:09:27.874Z" hostname="Yasins-MacBook-Air.local" time="0.011">
   <properties/>
   <testcase name="testAddBook()" classname="com.davon.library.service.InventoryServiceTest" time="0.002"/>
   <testcase name="testSearchBooks()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
@@ -10,7 +10,7 @@
   <testcase name="testUpdateBookStatus()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
   <testcase name="testUpdateBookCopyLocation()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
   <testcase name="testAddBookCopy()" classname="com.davon.library.service.InventoryServiceTest" time="0.0"/>
-  <testcase name="testRemoveBook()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
+  <testcase name="testRemoveBook()" classname="com.davon.library.service.InventoryServiceTest" time="0.0"/>
   <testcase name="testGetTotalBooks()" classname="com.davon.library.service.InventoryServiceTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
