@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.davon.library.service.ReportServiceTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:06:10.485Z" hostname="Yasins-MacBook-Air.local" time="0.007">
+<testsuite name="com.davon.library.service.ReportServiceTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2025-05-21T07:07:04.684Z" hostname="Yasins-MacBook-Air.local" time="0.006">
   <properties/>
   <testcase name="testGenerateDailyCirculation()" classname="com.davon.library.service.ReportServiceTest" time="0.001"/>
-  <testcase name="testGenerateMembershipReport()" classname="com.davon.library.service.ReportServiceTest" time="0.004"/>
-  <testcase name="testGenerateOverdueItemsReport()" classname="com.davon.library.service.ReportServiceTest" time="0.001"/>
+  <testcase name="testGenerateMembershipReport()" classname="com.davon.library.service.ReportServiceTest" time="0.003"/>
+  <testcase name="testGenerateOverdueItemsReport()" classname="com.davon.library.service.ReportServiceTest" time="0.0"/>
   <testcase name="testGenerateInventoryStatusReport()" classname="com.davon.library.service.ReportServiceTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
