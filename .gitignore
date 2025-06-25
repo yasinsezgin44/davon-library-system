@@ -25,6 +25,9 @@ frontend/build/
 # Environment files
 .env*
 
+# History files
+.Rhistory
+
 # Misc
 *.lock
 npm-debug.log*
