@@ -3,10 +3,11 @@ package com.davon.library.controller;
 import com.davon.library.model.Member;
 import com.davon.library.model.User;
 import com.davon.library.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,18 +16,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@QuarkusTest
 class UserControllerTest {
 
-    private UserController userController;
+    @Inject
+    UserController userController;
 
-    @Mock
-    private UserService userService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        userController = new UserController(userService);
-    }
+    @InjectMock
+    UserService userService;
 
     @Test
     void testGetUsersWithNullFilter() {
@@ -50,8 +47,23 @@ class UserControllerTest {
     void testCreateUser() {
         Member member = new Member();
         when(userService.createUser(any(User.class))).thenReturn(member);
-        User result = userController.createUser(new Object());
+
+        Response response = userController.createUser(member);
+
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        User result = (User) response.getEntity();
         assertNotNull(result);
+        verify(userService, times(1)).createUser(any(User.class));
+    }
+
+    @Test
+    void testCreateUser_BadRequest() {
+        Member member = new Member();
+        when(userService.createUser(any(User.class))).thenThrow(new RuntimeException("Invalid user"));
+
+        Response response = userController.createUser(member);
+
+        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         verify(userService, times(1)).createUser(any(User.class));
     }
 
@@ -60,7 +72,11 @@ class UserControllerTest {
         Member member = new Member();
         when(userService.findById(1L)).thenReturn(member);
         when(userService.updateUser(eq(1L), any(User.class))).thenReturn(member);
-        User result = userController.updateUser(1L, new Object());
+
+        Response response = userController.updateUser(1L, member);
+
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        User result = (User) response.getEntity();
         assertNotNull(result);
         verify(userService, times(1)).findById(1L);
         verify(userService, times(1)).updateUser(eq(1L), any(User.class));
@@ -68,9 +84,12 @@ class UserControllerTest {
 
     @Test
     void testUpdateUser_UserNotFound() {
+        Member member = new Member();
         when(userService.findById(1L)).thenReturn(null);
-        User result = userController.updateUser(1L, new Object());
-        assertNull(result);
+
+        Response response = userController.updateUser(1L, member);
+
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
         verify(userService, times(1)).findById(1L);
         verify(userService, never()).updateUser(anyLong(), any(User.class));
     }
@@ -78,7 +97,20 @@ class UserControllerTest {
     @Test
     void testDeleteUser() {
         when(userService.deactivateUser(1L)).thenReturn(true);
-        userController.deleteUser(1L);
+
+        Response response = userController.deleteUser(1L);
+
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        verify(userService, times(1)).deactivateUser(1L);
+    }
+
+    @Test
+    void testDeleteUser_NotFound() {
+        doThrow(new RuntimeException("User not found")).when(userService).deactivateUser(1L);
+
+        Response response = userController.deleteUser(1L);
+
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
         verify(userService, times(1)).deactivateUser(1L);
     }
 
@@ -86,8 +118,22 @@ class UserControllerTest {
     void testGetUserById() {
         Member member = new Member();
         when(userService.findById(1L)).thenReturn(member);
-        User result = userController.getUserById(1L);
+
+        Response response = userController.getUserById(1L);
+
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        User result = (User) response.getEntity();
         assertNotNull(result);
+        verify(userService, times(1)).findById(1L);
+    }
+
+    @Test
+    void testGetUserById_NotFound() {
+        when(userService.findById(1L)).thenReturn(null);
+
+        Response response = userController.getUserById(1L);
+
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
         verify(userService, times(1)).findById(1L);
     }
 
