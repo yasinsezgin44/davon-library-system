@@ -2,7 +2,6 @@ package com.davon.library.controller;
 
 import com.davon.library.model.Book;
 import com.davon.library.service.BookService;
-import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
