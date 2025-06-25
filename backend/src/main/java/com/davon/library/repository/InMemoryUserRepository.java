@@ -2,10 +2,13 @@ package com.davon.library.repository;
 
 import com.davon.library.model.User;
 import com.davon.library.service.UserRepository;
+
+import jakarta.enterprise.context.ApplicationScoped;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@ApplicationScoped
 public class InMemoryUserRepository implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
     private Long nextId = 1L;

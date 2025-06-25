@@ -3,6 +3,7 @@ package com.davon.library.repository;
 import com.davon.library.model.Book;
 import com.davon.library.service.BookRepository;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -10,6 +11,7 @@ import java.util.Objects;
 /**
  * In-memory implementation of the BookRepository interface.
  */
+@ApplicationScoped
 public class InMemoryBookRepository implements BookRepository {
     private final Map<Long, Book> books = new HashMap<>();
     private Long nextId = 1L;

@@ -3,6 +3,8 @@ package com.davon.library.service;
 import com.davon.library.model.*;
 import com.davon.library.event.UserStatusListener;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -11,14 +13,14 @@ import lombok.Data;
 /**
  * Service for managing users (Member, Librarian, Admin).
  */
+@ApplicationScoped
 public class UserService {
     private final Set<User> users = new HashSet<>();
-    private final UserRepository userRepository;
-    private final List<UserStatusListener> statusListeners = new ArrayList<>();
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    @Inject
+    UserRepository userRepository;
+
+    private final List<UserStatusListener> statusListeners = new ArrayList<>();
 
     public User createUser(User user) {
         users.add(user);
