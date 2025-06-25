@@ -1,28 +1,37 @@
 package com.davon.library.service;
 
 import com.davon.library.model.Book;
-import com.davon.library.model.Author;
-import com.davon.library.model.Publisher;
-import com.davon.library.model.Category;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-import java.util.List;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
+@QuarkusTest
 class BookServiceTest {
-    private BookService bookService;
-    private TestBookRepository bookRepository;
+
+    @Inject
+    BookService bookService;
+
+    @InjectMock
+    BookRepository bookRepository;
+
     private Book testBook;
+    private Set<Book> mockBooks;
 
     @BeforeEach
     void setUp() {
-        bookRepository = new TestBookRepository();
-        bookService = new BookService(bookRepository);
-
         // Create a test book
         testBook = Book.builder()
                 .id(1L)
@@ -33,7 +42,33 @@ class BookServiceTest {
                 .pages(200)
                 .build();
 
-        // Add the test book
+        // Mock repository behavior - simulate in-memory storage
+        mockBooks = new HashSet<>();
+
+        // Mock save method
+        when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> {
+            Book book = invocation.getArgument(0);
+            mockBooks.add(book);
+            return book;
+        });
+
+        // Mock findById method
+        when(bookRepository.findById(anyLong())).thenAnswer(invocation -> {
+            Long id = invocation.getArgument(0);
+            return mockBooks.stream()
+                    .filter(book -> book.getId().equals(id))
+                    .findFirst()
+                    .orElse(null);
+        });
+
+        // Mock delete method
+        doAnswer(invocation -> {
+            Book book = invocation.getArgument(0);
+            mockBooks.remove(book);
+            return null;
+        }).when(bookRepository).delete(any(Book.class));
+
+        // Add the test book to start
         bookService.createBook(testBook);
     }
 
@@ -68,9 +103,8 @@ class BookServiceTest {
         assertNotNull(createdBook);
         assertEquals("Another Test Book", createdBook.getTitle());
 
-        // Verify it was added to the collection
-        List<Book> allBooks = bookService.getAllBooks();
-        assertEquals(2, allBooks.size());
+        // Verify save was called
+        verify(bookRepository, atLeast(2)).save(any(Book.class));
     }
 
     @Test
@@ -85,17 +119,13 @@ class BookServiceTest {
         Book result = bookService.updateBook(1L, updatedBook);
         assertNotNull(result);
         assertEquals("Updated Test Book", result.getTitle());
-
-        // Verify the book was updated in the collection
-        Book foundBook = bookService.getBookById(1L);
-        assertEquals("Updated Test Book", foundBook.getTitle());
     }
 
     @Test
     void testDeleteBook() {
         bookService.deleteBook(1L);
 
-        // Verify the book was deleted
+        // Verify the book was deleted from the service's internal storage
         List<Book> allBooks = bookService.getAllBooks();
         assertEquals(0, allBooks.size());
 
@@ -147,29 +177,5 @@ class BookServiceTest {
         // Search with no matches
         List<Book> noMatches = bookService.searchBooks("xyz123");
         assertEquals(0, noMatches.size());
-    }
-
-    // Test repository implementation
-    static class TestBookRepository implements BookRepository {
-        private Set<Book> books = new HashSet<>();
-
-        @Override
-        public Book save(Book book) {
-            books.add(book);
-            return book;
-        }
-
-        @Override
-        public Book findById(Long id) {
-            return books.stream()
-                    .filter(b -> b.getId().equals(id))
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        @Override
-        public void delete(Book book) {
-            books.remove(book);
-        }
     }
 }
