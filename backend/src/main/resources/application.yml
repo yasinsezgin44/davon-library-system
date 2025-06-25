@@ -11,7 +11,8 @@ quarkus:
   log:
     level: INFO
     category:
-      "com.davon.library": DEBUG
+      "com.davon.library":
+        level: DEBUG
   smallrye-openapi:
     info-title: Davon Library System API
     info-version: 1.0.0

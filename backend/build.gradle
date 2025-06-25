@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'io.quarkus' version '3.6.0'
+    id 'io.quarkus' version '3.2.9.Final'
     id 'checkstyle'
     id 'pmd'
     id 'com.github.spotbugs' version '5.2.5'
@@ -30,6 +30,9 @@ dependencies {
     // Mockito for mocking in tests
     testImplementation 'org.mockito:mockito-core:5.3.1'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
+    
+    // Logback for testing
+    testImplementation 'ch.qos.logback:logback-classic:1.4.11'
     
     // Lombok for reducing boilerplate code
     compileOnly 'org.projectlombok:lombok:1.18.30'
