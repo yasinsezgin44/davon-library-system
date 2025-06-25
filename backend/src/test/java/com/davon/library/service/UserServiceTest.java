@@ -2,57 +2,46 @@ package com.davon.library.service;
 
 import com.davon.library.model.*;
 import com.davon.library.event.UserStatusListener;
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.InjectMock;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-@QuarkusTest
+@ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-    @Inject
-    UserService userService;
+    private UserService userService;
 
-    @InjectMock
-    UserRepository userRepository;
+    @Mock
+    private UserRepository userRepository;
 
     private Member testMember;
     private Librarian testLibrarian;
     private TestUserStatusListener testListener;
-    private Set<User> mockUsers;
 
     @BeforeEach
-    void setUp() {
-        // Mock repository behavior - simulate in-memory storage
-        mockUsers = new HashSet<>();
+    void setUp() throws Exception {
+        userService = new UserService();
 
-        // Mock save method
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-            User user = invocation.getArgument(0);
-            mockUsers.add(user);
-            return user;
-        });
+        // Use reflection to inject the mock repository
+        Field repositoryField = UserService.class.getDeclaredField("userRepository");
+        repositoryField.setAccessible(true);
+        repositoryField.set(userService, userRepository);
 
-        // Mock findById method
-        when(userRepository.findById(anyLong())).thenAnswer(invocation -> {
-            Long id = invocation.getArgument(0);
-            return mockUsers.stream()
-                    .filter(user -> user.getId().equals(id))
-                    .findFirst();
-        });
+        // Mock repository save method
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Create test users
         testMember = Member.builder()
