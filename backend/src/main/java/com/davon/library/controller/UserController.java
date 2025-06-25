@@ -32,7 +32,7 @@ public class UserController {
 
     @POST
     @Operation(summary = "Create new user", description = "Add a new user to the system")
-    public Response createUser(User userData) {
+    public Response createUser(Member userData) {
         try {
             User newUser = userService.createUser(userData);
             return Response.status(Response.Status.CREATED).entity(newUser).build();
@@ -44,7 +44,7 @@ public class UserController {
     @PUT
     @Path("/{id}")
     @Operation(summary = "Update user", description = "Update an existing user")
-    public Response updateUser(@PathParam("id") Long id, User userData) {
+    public Response updateUser(@PathParam("id") Long id, Member userData) {
         try {
             User user = userService.findById(id);
             if (user == null) {
@@ -61,10 +61,14 @@ public class UserController {
     @Path("/{id}")
     @Operation(summary = "Delete user", description = "Deactivate a user")
     public Response deleteUser(@PathParam("id") Long id) {
-        try {
-            userService.deactivateUser(id);
+        User user = userService.findById(id);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        boolean success = userService.deactivateUser(id);
+        if (success) {
             return Response.noContent().build();
-        } catch (Exception e) {
+        } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }

@@ -2,6 +2,8 @@ package com.davon.library.model;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -13,6 +15,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "userType")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Member.class, name = "member"),
+        @JsonSubTypes.Type(value = Librarian.class, name = "librarian"),
+        @JsonSubTypes.Type(value = Admin.class, name = "admin")
+})
 public abstract class User extends BaseEntity {
     private String username;
     private String passwordHash;

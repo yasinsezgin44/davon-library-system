@@ -34,12 +34,11 @@ public class BookController {
     @Path("/{id}")
     @Operation(summary = "Get book by ID", description = "Retrieve a specific book by its ID")
     public Response getBookById(@PathParam("id") Long id) {
-        try {
-            Book book = bookService.getBookById(id);
-            return Response.ok(book).build();
-        } catch (Exception e) {
+        Book book = bookService.getBookById(id);
+        if (book == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        return Response.ok(book).build();
     }
 
     @POST
@@ -69,12 +68,12 @@ public class BookController {
     @Path("/{id}")
     @Operation(summary = "Delete book", description = "Remove a book from the library")
     public Response deleteBook(@PathParam("id") Long id) {
-        try {
-            bookService.deleteBook(id);
-            return Response.noContent().build();
-        } catch (Exception e) {
+        Book book = bookService.getBookById(id);
+        if (book == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        bookService.deleteBook(id);
+        return Response.noContent().build();
     }
 
     @GET
