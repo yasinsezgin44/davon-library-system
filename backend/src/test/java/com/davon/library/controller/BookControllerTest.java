@@ -2,10 +2,11 @@ package com.davon.library.controller;
 
 import com.davon.library.model.Book;
 import com.davon.library.service.BookService;
-import org.junit.jupiter.api.BeforeEach;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,18 +17,14 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@QuarkusTest
 class BookControllerTest {
 
-    private BookController bookController;
+    @Inject
+    BookController bookController;
 
-    @Mock
-    private BookService bookService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        bookController = new BookController(bookService);
-    }
+    @InjectMock
+    BookService bookService;
 
     @Test
     void testGetAllBooks() {
@@ -62,12 +59,27 @@ class BookControllerTest {
         when(bookService.getBookById(1L)).thenReturn(book);
 
         // Act
-        Book result = bookController.getBookById(1L);
+        Response response = bookController.getBookById(1L);
 
         // Assert
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        Book result = (Book) response.getEntity();
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("Test Book", result.getTitle());
+        verify(bookService, times(1)).getBookById(1L);
+    }
+
+    @Test
+    void testGetBookById_NotFound() {
+        // Arrange
+        when(bookService.getBookById(1L)).thenThrow(new RuntimeException("Book not found"));
+
+        // Act
+        Response response = bookController.getBookById(1L);
+
+        // Assert
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
         verify(bookService, times(1)).getBookById(1L);
     }
 
@@ -80,11 +92,29 @@ class BookControllerTest {
         when(bookService.createBook(any(Book.class))).thenReturn(book);
 
         // Act
-        Book result = bookController.createBook(book);
+        Response response = bookController.createBook(book);
 
         // Assert
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        Book result = (Book) response.getEntity();
         assertNotNull(result);
         assertEquals("New Book", result.getTitle());
+        verify(bookService, times(1)).createBook(any(Book.class));
+    }
+
+    @Test
+    void testCreateBook_BadRequest() {
+        // Arrange
+        Book book = new Book();
+        book.setTitle("New Book");
+
+        when(bookService.createBook(any(Book.class))).thenThrow(new RuntimeException("Invalid book"));
+
+        // Act
+        Response response = bookController.createBook(book);
+
+        // Assert
+        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         verify(bookService, times(1)).createBook(any(Book.class));
     }
 
@@ -98,9 +128,11 @@ class BookControllerTest {
         when(bookService.updateBook(anyLong(), any(Book.class))).thenReturn(book);
 
         // Act
-        Book result = bookController.updateBook(1L, book);
+        Response response = bookController.updateBook(1L, book);
 
         // Assert
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        Book result = (Book) response.getEntity();
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("Updated Book", result.getTitle());
@@ -108,11 +140,45 @@ class BookControllerTest {
     }
 
     @Test
-    void testDeleteBook() {
+    void testUpdateBook_NotFound() {
+        // Arrange
+        Book book = new Book();
+        book.setId(1L);
+        book.setTitle("Updated Book");
+
+        when(bookService.updateBook(anyLong(), any(Book.class))).thenThrow(new RuntimeException("Book not found"));
+
         // Act
-        bookController.deleteBook(1L);
+        Response response = bookController.updateBook(1L, book);
 
         // Assert
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+        verify(bookService, times(1)).updateBook(anyLong(), any(Book.class));
+    }
+
+    @Test
+    void testDeleteBook() {
+        // Arrange
+        doNothing().when(bookService).deleteBook(1L);
+
+        // Act
+        Response response = bookController.deleteBook(1L);
+
+        // Assert
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        verify(bookService, times(1)).deleteBook(1L);
+    }
+
+    @Test
+    void testDeleteBook_NotFound() {
+        // Arrange
+        doThrow(new RuntimeException("Book not found")).when(bookService).deleteBook(1L);
+
+        // Act
+        Response response = bookController.deleteBook(1L);
+
+        // Assert
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
         verify(bookService, times(1)).deleteBook(1L);
     }
 
