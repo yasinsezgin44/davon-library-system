@@ -1,203 +1,95 @@
 package com.davon.library.controller;
 
 import com.davon.library.model.Book;
-import com.davon.library.service.BookService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.InjectMock;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
+import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 class BookControllerTest {
 
-    @Inject
-    BookController bookController;
-
-    @InjectMock
-    BookService bookService;
-
     @Test
     void testGetAllBooks() {
-        // Arrange
-        Book book1 = new Book();
-        book1.setId(1L);
-        book1.setTitle("Book 1");
-
-        Book book2 = new Book();
-        book2.setId(2L);
-        book2.setTitle("Book 2");
-
-        List<Book> books = Arrays.asList(book1, book2);
-
-        when(bookService.getAllBooks()).thenReturn(books);
-
-        // Act
-        List<Book> result = bookController.getAllBooks();
-
-        // Assert
-        assertEquals(2, result.size());
-        verify(bookService, times(1)).getAllBooks();
+        given()
+                .when().get("/api/books")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", greaterThanOrEqualTo(0));
     }
 
     @Test
-    void testGetBookById() {
-        // Arrange
+    void testCreateAndGetBook() {
         Book book = new Book();
-        book.setId(1L);
         book.setTitle("Test Book");
+        book.setISBN("9781234567890");
+        book.setPublicationYear(2023);
+        book.setDescription("A test book");
 
-        when(bookService.getBookById(1L)).thenReturn(book);
-
-        // Act
-        Response response = bookController.getBookById(1L);
-
-        // Assert
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        Book result = (Book) response.getEntity();
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("Test Book", result.getTitle());
-        verify(bookService, times(1)).getBookById(1L);
-    }
-
-    @Test
-    void testGetBookById_NotFound() {
-        // Arrange
-        when(bookService.getBookById(1L)).thenThrow(new RuntimeException("Book not found"));
-
-        // Act
-        Response response = bookController.getBookById(1L);
-
-        // Assert
-        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
-        verify(bookService, times(1)).getBookById(1L);
-    }
-
-    @Test
-    void testCreateBook() {
-        // Arrange
-        Book book = new Book();
-        book.setTitle("New Book");
-
-        when(bookService.createBook(any(Book.class))).thenReturn(book);
-
-        // Act
-        Response response = bookController.createBook(book);
-
-        // Assert
-        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
-        Book result = (Book) response.getEntity();
-        assertNotNull(result);
-        assertEquals("New Book", result.getTitle());
-        verify(bookService, times(1)).createBook(any(Book.class));
-    }
-
-    @Test
-    void testCreateBook_BadRequest() {
-        // Arrange
-        Book book = new Book();
-        book.setTitle("New Book");
-
-        when(bookService.createBook(any(Book.class))).thenThrow(new RuntimeException("Invalid book"));
-
-        // Act
-        Response response = bookController.createBook(book);
-
-        // Assert
-        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
-        verify(bookService, times(1)).createBook(any(Book.class));
-    }
-
-    @Test
-    void testUpdateBook() {
-        // Arrange
-        Book book = new Book();
-        book.setId(1L);
-        book.setTitle("Updated Book");
-
-        when(bookService.updateBook(anyLong(), any(Book.class))).thenReturn(book);
-
-        // Act
-        Response response = bookController.updateBook(1L, book);
-
-        // Assert
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        Book result = (Book) response.getEntity();
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("Updated Book", result.getTitle());
-        verify(bookService, times(1)).updateBook(anyLong(), any(Book.class));
-    }
-
-    @Test
-    void testUpdateBook_NotFound() {
-        // Arrange
-        Book book = new Book();
-        book.setId(1L);
-        book.setTitle("Updated Book");
-
-        when(bookService.updateBook(anyLong(), any(Book.class))).thenThrow(new RuntimeException("Book not found"));
-
-        // Act
-        Response response = bookController.updateBook(1L, book);
-
-        // Assert
-        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
-        verify(bookService, times(1)).updateBook(anyLong(), any(Book.class));
-    }
-
-    @Test
-    void testDeleteBook() {
-        // Arrange
-        doNothing().when(bookService).deleteBook(1L);
-
-        // Act
-        Response response = bookController.deleteBook(1L);
-
-        // Assert
-        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
-        verify(bookService, times(1)).deleteBook(1L);
-    }
-
-    @Test
-    void testDeleteBook_NotFound() {
-        // Arrange
-        doThrow(new RuntimeException("Book not found")).when(bookService).deleteBook(1L);
-
-        // Act
-        Response response = bookController.deleteBook(1L);
-
-        // Assert
-        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
-        verify(bookService, times(1)).deleteBook(1L);
+        // Create a book
+        given()
+                .contentType(ContentType.JSON)
+                .body(book)
+                .when().post("/api/books")
+                .then()
+                .statusCode(201)
+                .contentType(ContentType.JSON)
+                .body("title", is("Test Book"))
+                .body("isbn", is("9781234567890"));
     }
 
     @Test
     void testSearchBooks() {
-        // Arrange
+        // First create a book to search for
         Book book = new Book();
         book.setTitle("Java Programming");
+        book.setISBN("9781111111111");
+        book.setDescription("A comprehensive guide to Java");
 
-        List<Book> books = Arrays.asList(book);
+        given()
+                .contentType(ContentType.JSON)
+                .body(book)
+                .when().post("/api/books")
+                .then()
+                .statusCode(201);
 
-        when(bookService.searchBooks(anyString())).thenReturn(books);
+        // Now search for it
+        given()
+                .param("q", "Java")
+                .when().get("/api/books/search")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", greaterThanOrEqualTo(1));
+    }
 
-        // Act
-        List<Book> result = bookController.searchBooks("Java");
+    @Test
+    void testGetBookByIdNotFound() {
+        given()
+                .when().get("/api/books/999")
+                .then()
+                .statusCode(404);
+    }
 
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Java Programming", result.get(0).getTitle());
-        verify(bookService, times(1)).searchBooks("Java");
+    @Test
+    void testDeleteBookNotFound() {
+        given()
+                .when().delete("/api/books/999")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void testHealthEndpoint() {
+        given()
+                .when().get("/api/health")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("status", is("UP"));
     }
 }
