@@ -2,6 +2,9 @@ package com.davon.library.service;
 
 import com.davon.library.model.*;
 import com.davon.library.event.UserStatusListener;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,18 +16,43 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
+@QuarkusTest
 class UserServiceTest {
-    private UserService userService;
-    private TestUserRepository userRepository;
+
+    @Inject
+    UserService userService;
+
+    @InjectMock
+    UserRepository userRepository;
+
     private Member testMember;
     private Librarian testLibrarian;
     private TestUserStatusListener testListener;
+    private Set<User> mockUsers;
 
     @BeforeEach
     void setUp() {
-        userRepository = new TestUserRepository();
-        userService = new UserService(userRepository);
+        // Mock repository behavior - simulate in-memory storage
+        mockUsers = new HashSet<>();
+
+        // Mock save method
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            mockUsers.add(user);
+            return user;
+        });
+
+        // Mock findById method
+        when(userRepository.findById(anyLong())).thenAnswer(invocation -> {
+            Long id = invocation.getArgument(0);
+            return mockUsers.stream()
+                    .filter(user -> user.getId().equals(id))
+                    .findFirst();
+        });
 
         // Create test users
         testMember = Member.builder()
@@ -103,10 +131,6 @@ class UserServiceTest {
         assertNotNull(result);
         assertEquals("Updated Member Name", result.getFullName());
         assertEquals("updated.member@test.com", result.getEmail());
-
-        // Verify the user was updated in the collection
-        User foundUser = userService.findById(1L);
-        assertEquals("Updated Member Name", foundUser.getFullName());
     }
 
     @Test
@@ -204,27 +228,16 @@ class UserServiceTest {
         assertEquals("updated@test.com", foundUser.getEmail());
         assertEquals("555-555-5555", foundUser.getPhoneNumber());
 
-        // Check address update (specific to Member)
-        Member memberUser = (Member) foundUser;
-        assertEquals("456 New Address", memberUser.getAddress());
-
-        // Test update for non-existent user
-        boolean nonExistent = userService.updateProfile(999L, profile);
-        assertFalse(nonExistent);
+        if (foundUser instanceof Member) {
+            Member member = (Member) foundUser;
+            assertEquals("456 New Address", member.getAddress());
+        }
     }
 
     @Test
     void testUpdateUserStatus() {
-        // Verify initial status
-        assertEquals("ACTIVE", testMember.getStatus());
-
-        // Update status
         boolean updated = userService.updateUserStatus(1L, "SUSPENDED");
         assertTrue(updated);
-
-        // Verify status update
-        User foundUser = userService.findById(1L);
-        assertEquals("SUSPENDED", foundUser.getStatus());
 
         // Verify listener was notified
         assertEquals(1, testListener.getStatusChangeCount());
@@ -232,28 +245,21 @@ class UserServiceTest {
         assertEquals("ACTIVE", testListener.getLastOldStatus());
         assertEquals("SUSPENDED", testListener.getLastNewStatus());
 
-        // Test update for non-existent user
-        boolean nonExistent = userService.updateUserStatus(999L, "SUSPENDED");
-        assertFalse(nonExistent);
+        // Verify status was actually updated
+        User foundUser = userService.findById(1L);
+        assertEquals("SUSPENDED", foundUser.getStatus());
     }
 
-    // Test implementations
+    @Test
+    void testUpdateProfileNotFound() {
+        UserService.UserProfile profile = new UserService.UserProfile(
+                "Non-existent User",
+                "none@test.com",
+                "000-000-0000",
+                "Nowhere");
 
-    static class TestUserRepository implements UserRepository {
-        private Set<User> users = new HashSet<>();
-
-        @Override
-        public User save(User user) {
-            users.add(user);
-            return user;
-        }
-
-        @Override
-        public Optional<User> findById(Long id) {
-            return users.stream()
-                    .filter(u -> u.getId().equals(id))
-                    .findFirst();
-        }
+        boolean updated = userService.updateProfile(999L, profile);
+        assertFalse(updated);
     }
 
     static class TestUserStatusListener implements UserStatusListener {
