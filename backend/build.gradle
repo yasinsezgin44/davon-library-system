@@ -1,15 +1,31 @@
 plugins {
     id 'java'
-    id 'application'
+    id 'io.quarkus' version '3.6.0'
     id 'checkstyle'
     id 'pmd'
     id 'com.github.spotbugs' version '5.2.5'
 }
 
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
 dependencies {
+    // Quarkus BOM
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    
+    // Core Quarkus dependencies
+    implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+    implementation 'io.quarkus:quarkus-smallrye-openapi'
+    implementation 'io.quarkus:quarkus-hibernate-validator'
+    implementation 'io.quarkus:quarkus-smallrye-health'
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-config-yaml'
+    
     // JUnit Jupiter for testing
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
     
     // Mockito for mocking in tests
     testImplementation 'org.mockito:mockito-core:5.3.1'
@@ -21,9 +37,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.30'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
     
-    // Slf4j for logging
-    implementation 'org.slf4j:slf4j-api:2.0.9'
-    implementation 'ch.qos.logback:logback-classic:1.4.11'
+    // Logging is provided by Quarkus
 }
 
 // Add Java version
@@ -32,12 +46,9 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-application {
-    mainClass = 'com.davon.library.LibraryManagementApp'
-}
-
 test {
     useJUnitPlatform()
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 }
 
 // Configure Checkstyle

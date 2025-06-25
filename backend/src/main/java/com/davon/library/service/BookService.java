@@ -3,6 +3,8 @@ package com.davon.library.service;
 import com.davon.library.model.Book;
 import lombok.RequiredArgsConstructor;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -12,10 +14,12 @@ import java.util.stream.Collectors;
 /**
  * Service for managing books.
  */
-@RequiredArgsConstructor
+@ApplicationScoped
 public class BookService {
     private final Set<Book> books = new HashSet<>();
-    private final BookRepository bookRepository;
+
+    @Inject
+    BookRepository bookRepository;
 
     public List<Book> getAllBooks() {
         return books.stream().collect(Collectors.toList());
