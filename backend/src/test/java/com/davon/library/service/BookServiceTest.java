@@ -1,39 +1,28 @@
 package com.davon.library.service;
 
 import com.davon.library.model.Book;
+import com.davon.library.repository.InMemoryBookRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class BookServiceTest {
 
     private BookService bookService;
-
-    @Mock
-    private BookRepository bookRepository;
-
     private Book testBook;
 
     @BeforeEach
     void setUp() throws Exception {
         bookService = new BookService();
 
-        // Use reflection to inject the mock repository
+        // Inject a real repository instance
         Field repositoryField = BookService.class.getDeclaredField("bookRepository");
         repositoryField.setAccessible(true);
-        repositoryField.set(bookService, bookRepository);
+        repositoryField.set(bookService, new InMemoryBookRepository());
 
         // Create a test book
         testBook = Book.builder()
@@ -44,9 +33,6 @@ class BookServiceTest {
                 .description("A test book for unit testing")
                 .pages(200)
                 .build();
-
-        // Mock repository save method
-        when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -56,13 +42,10 @@ class BookServiceTest {
         assertNotNull(createdBook);
         assertEquals("Test Book", createdBook.getTitle());
         assertEquals("1234567890", createdBook.getISBN());
-
-        verify(bookRepository, times(1)).save(testBook);
     }
 
     @Test
     void testGetAllBooks() {
-        // The service uses an internal Set, so we need to add books first
         bookService.createBook(testBook);
 
         List<Book> books = bookService.getAllBooks();
@@ -73,7 +56,6 @@ class BookServiceTest {
 
     @Test
     void testGetBookById() {
-        // Add book to internal storage
         bookService.createBook(testBook);
 
         Book foundBook = bookService.getBookById(1L);
@@ -87,7 +69,6 @@ class BookServiceTest {
 
     @Test
     void testUpdateBook() {
-        // Add original book
         bookService.createBook(testBook);
 
         Book updatedBook = Book.builder()
@@ -108,7 +89,6 @@ class BookServiceTest {
 
     @Test
     void testDeleteBook() {
-        // Add book first
         bookService.createBook(testBook);
         assertEquals(1, bookService.getAllBooks().size());
 

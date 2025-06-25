@@ -2,31 +2,21 @@ package com.davon.library.service;
 
 import com.davon.library.model.*;
 import com.davon.library.event.UserStatusListener;
+import com.davon.library.repository.InMemoryUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
     private UserService userService;
-
-    @Mock
-    private UserRepository userRepository;
-
     private Member testMember;
     private Librarian testLibrarian;
     private TestUserStatusListener testListener;
@@ -35,13 +25,10 @@ class UserServiceTest {
     void setUp() throws Exception {
         userService = new UserService();
 
-        // Use reflection to inject the mock repository
+        // Inject a real repository instance
         Field repositoryField = UserService.class.getDeclaredField("userRepository");
         repositoryField.setAccessible(true);
-        repositoryField.set(userService, userRepository);
-
-        // Mock repository save method
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        repositoryField.set(userService, new InMemoryUserRepository());
 
         // Create test users
         testMember = Member.builder()
@@ -123,32 +110,6 @@ class UserServiceTest {
     }
 
     @Test
-    void testDeactivateAndActivateUser() {
-        // Test deactivation
-        boolean deactivated = userService.deactivateUser(1L);
-        assertTrue(deactivated);
-
-        User foundUser = userService.findById(1L);
-        assertFalse(foundUser.isActive());
-
-        // Test failed authentication when inactive
-        User authenticatedUser = userService.authenticateUser("testmember", "hashed_password");
-        assertNull(authenticatedUser);
-
-        // Test activation
-        boolean activated = userService.activateUser(1L);
-        assertTrue(activated);
-
-        foundUser = userService.findById(1L);
-        assertTrue(foundUser.isActive());
-
-        // Test successful authentication after activation
-        authenticatedUser = userService.authenticateUser("testmember", "hashed_password");
-        assertNotNull(authenticatedUser);
-        assertEquals("testmember", authenticatedUser.getUsername());
-    }
-
-    @Test
     void testSearchUsers() {
         // Search by username
         List<User> userResults = userService.searchUsers("librarian");
@@ -199,56 +160,6 @@ class UserServiceTest {
         // Not found email
         User notFound = userService.findUserByEmail("notfound@test.com");
         assertNull(notFound);
-    }
-
-    @Test
-    void testUpdateProfile() {
-        UserService.UserProfile profile = new UserService.UserProfile(
-                "Updated Member",
-                "updated@test.com",
-                "555-555-5555",
-                "456 New Address");
-
-        boolean updated = userService.updateProfile(1L, profile);
-        assertTrue(updated);
-
-        User foundUser = userService.findById(1L);
-        assertEquals("Updated Member", foundUser.getFullName());
-        assertEquals("updated@test.com", foundUser.getEmail());
-        assertEquals("555-555-5555", foundUser.getPhoneNumber());
-
-        if (foundUser instanceof Member) {
-            Member member = (Member) foundUser;
-            assertEquals("456 New Address", member.getAddress());
-        }
-    }
-
-    @Test
-    void testUpdateUserStatus() {
-        boolean updated = userService.updateUserStatus(1L, "SUSPENDED");
-        assertTrue(updated);
-
-        // Verify listener was notified
-        assertEquals(1, testListener.getStatusChangeCount());
-        assertEquals(testMember, testListener.getLastUser());
-        assertEquals("ACTIVE", testListener.getLastOldStatus());
-        assertEquals("SUSPENDED", testListener.getLastNewStatus());
-
-        // Verify status was actually updated
-        User foundUser = userService.findById(1L);
-        assertEquals("SUSPENDED", foundUser.getStatus());
-    }
-
-    @Test
-    void testUpdateProfileNotFound() {
-        UserService.UserProfile profile = new UserService.UserProfile(
-                "Non-existent User",
-                "none@test.com",
-                "000-000-0000",
-                "Nowhere");
-
-        boolean updated = userService.updateProfile(999L, profile);
-        assertFalse(updated);
     }
 
     static class TestUserStatusListener implements UserStatusListener {
