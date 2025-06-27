@@ -1,9 +1,14 @@
 package com.davon.library.controller;
 
 import com.davon.library.model.Book;
+import com.davon.library.service.BookService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import jakarta.inject.Inject;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -11,6 +16,22 @@ import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 class BookControllerTest {
+
+    @Inject
+    BookService bookService;
+
+    @BeforeEach
+    void clearData() {
+        // Clear all books before each test to ensure isolation
+        try {
+            List<Book> allBooks = bookService.getAllBooks();
+            for (Book book : allBooks) {
+                bookService.deleteBook(book.getId());
+            }
+        } catch (BookService.BookServiceException e) {
+            // Ignore - data may not exist
+        }
+    }
 
     @Test
     void testGetAllBooks() {
