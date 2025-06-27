@@ -1,15 +1,27 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
-import com.davon.library.service.ReceiptService;
-import lombok.RequiredArgsConstructor;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.logging.Logger;
 
-@RequiredArgsConstructor
+/**
+ * Service for managing financial transactions and fines.
+ * Uses DAO pattern following SOLID principles.
+ */
+@ApplicationScoped
 public class TransactionManager {
-    private final FineService fineService;
-    private final ReceiptService receiptService;
+
+    private static final Logger logger = Logger.getLogger(TransactionManager.class.getName());
+
+    @Inject
+    private FineService fineService;
+
+    @Inject
+    private ReceiptService receiptService;
 
     /**
      * Process a payment and create a transaction record

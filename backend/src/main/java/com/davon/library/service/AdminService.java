@@ -1,14 +1,27 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
-import lombok.RequiredArgsConstructor;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
-@RequiredArgsConstructor
+/**
+ * Service for administrative operations.
+ * Uses DAO pattern following SOLID principles.
+ */
+@ApplicationScoped
 public class AdminService {
-    private final UserService userService;
-    private final SecurityService securityService;
+
+    private static final Logger logger = Logger.getLogger(AdminService.class.getName());
+
+    @Inject
+    private UserService userService;
+
+    @Inject
+    private SecurityService securityService;
 
     public boolean createUserAccount(User user, String password, String role) {
         user.setPasswordHash(securityService.hashPassword(password));

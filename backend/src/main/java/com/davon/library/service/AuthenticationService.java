@@ -1,19 +1,33 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
-import lombok.RequiredArgsConstructor;
-import lombok.Data;
-import lombok.AllArgsConstructor;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
-@RequiredArgsConstructor
+/**
+ * Service for handling authentication operations.
+ * Uses DAO pattern following SOLID principles.
+ */
+@ApplicationScoped
 public class AuthenticationService {
-    private final UserService userService;
-    private final EmailService emailService;
-    private final SecurityService securityService;
+
+    private static final Logger logger = Logger.getLogger(AuthenticationService.class.getName());
+
+    @Inject
+    private UserService userService;
+
+    @Inject
+    private EmailService emailService;
+
+    @Inject
+    private SecurityService securityService;
 
     // Map to store active sessions (in a real app, this would be in a
     // database/cache)
@@ -69,33 +83,43 @@ public class AuthenticationService {
         return true;
     }
 
-    public boolean registerAccount(User newUser, String password) {
-        // Hash the password
-        newUser.setPasswordHash(securityService.hashPassword(password));
+    public boolean registerAccount(User newUser, String password) throws AuthenticationException {
+        try {
+            // Hash the password
+            newUser.setPasswordHash(securityService.hashPassword(password));
 
-        // Create inactive user (pending email verification)
-        newUser.setActive(false);
+            // Create inactive user (pending email verification)
+            newUser.setActive(false);
 
-        // Save user
-        User createdUser = userService.createUser(newUser);
+            // Save user
+            User createdUser = userService.createUser(newUser);
 
-        // Generate verification token
-        String verificationToken = securityService.generateVerificationToken(createdUser.getId());
+            // Generate verification token
+            String verificationToken = securityService.generateVerificationToken(createdUser.getId());
 
-        // Send verification email
-        emailService.sendVerificationEmail(createdUser.getEmail(), verificationToken);
+            // Send verification email
+            emailService.sendVerificationEmail(createdUser.getEmail(), verificationToken);
 
-        return createdUser != null;
+            return createdUser != null;
+        } catch (UserService.UserServiceException e) {
+            logger.log(Level.SEVERE, "Failed to register account", e);
+            throw new AuthenticationException("Failed to register account: " + e.getMessage(), e);
+        }
     }
 
-    public boolean verifyEmail(String token) {
-        Long userId = securityService.validateVerificationToken(token);
-        if (userId == null) {
-            return false;
-        }
+    public boolean verifyEmail(String token) throws AuthenticationException {
+        try {
+            Long userId = securityService.validateVerificationToken(token);
+            if (userId == null) {
+                return false;
+            }
 
-        // Activate user
-        return userService.activateUser(userId);
+            // Activate user
+            return userService.activateUser(userId);
+        } catch (UserService.UserServiceException e) {
+            logger.log(Level.SEVERE, "Failed to verify email", e);
+            throw new AuthenticationException("Failed to verify email: " + e.getMessage(), e);
+        }
     }
 
     public boolean resetPassword(String email) {
@@ -113,22 +137,40 @@ public class AuthenticationService {
         return true;
     }
 
-    public boolean changePassword(Long userId, String oldPassword, String newPassword) {
-        User user = userService.findById(userId);
-        if (user == null) {
-            return false;
+    public boolean changePassword(Long userId, String oldPassword, String newPassword) throws AuthenticationException {
+        try {
+            User user = userService.findById(userId);
+            if (user == null) {
+                return false;
+            }
+
+            // Verify old password
+            if (!securityService.verifyPassword(oldPassword, user.getPasswordHash())) {
+                return false;
+            }
+
+            // Update password
+            user.setPasswordHash(securityService.hashPassword(newPassword));
+            userService.updateUser(userId, user);
+
+            return true;
+        } catch (UserService.UserServiceException e) {
+            logger.log(Level.SEVERE, "Failed to change password", e);
+            throw new AuthenticationException("Failed to change password: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Custom exception for authentication service operations.
+     */
+    public static class AuthenticationException extends Exception {
+        public AuthenticationException(String message) {
+            super(message);
         }
 
-        // Verify old password
-        if (!securityService.verifyPassword(oldPassword, user.getPasswordHash())) {
-            return false;
+        public AuthenticationException(String message, Throwable cause) {
+            super(message, cause);
         }
-
-        // Update password
-        user.setPasswordHash(securityService.hashPassword(newPassword));
-        userService.updateUser(userId, user);
-
-        return true;
     }
 
     private void handleFailedLogin(String username) {
@@ -143,14 +185,17 @@ public class AuthenticationService {
     }
 
     // Inner classes for authentication data structures
-    @Data
-    @AllArgsConstructor
     public static class LoginResult {
         private boolean success;
         private String sessionId;
         private String message;
 
-        // Add explicit getter methods to resolve the linter errors
+        public LoginResult(boolean success, String sessionId, String message) {
+            this.success = success;
+            this.sessionId = sessionId;
+            this.message = message;
+        }
+
         public boolean isSuccess() {
             return success;
         }
@@ -164,8 +209,6 @@ public class AuthenticationService {
         }
     }
 
-    @Data
-    @AllArgsConstructor
     public static class UserSession {
         private Long userId;
         private String username;
@@ -177,6 +220,26 @@ public class AuthenticationService {
             this.username = username;
             this.createdAt = createdAt;
             this.lastAccessedAt = createdAt;
+        }
+
+        public Long getUserId() {
+            return userId;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public LocalDateTime getCreatedAt() {
+            return createdAt;
+        }
+
+        public LocalDateTime getLastAccessedAt() {
+            return lastAccessedAt;
+        }
+
+        public void setLastAccessedAt(LocalDateTime lastAccessedAt) {
+            this.lastAccessedAt = lastAccessedAt;
         }
     }
 }
