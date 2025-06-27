@@ -45,65 +45,174 @@ public class UserService {
         }
     }
 
-    public User updateUser(Long userId, User updatedUser) {
-        users.removeIf(u -> Objects.equals(u.getId(), userId));
-        users.add(updatedUser);
-        return updatedUser;
+    /**
+     * Updates an existing user in the system.
+     * 
+     * @param userId      the ID of the user to update
+     * @param updatedUser the updated user data
+     * @return the updated user
+     * @throws UserServiceException if the user update fails
+     */
+    public User updateUser(Long userId, User updatedUser) throws UserServiceException {
+        try {
+            if (userId == null) {
+                throw new UserServiceException("User ID cannot be null");
+            }
+
+            if (!userDAO.existsById(userId)) {
+                throw new UserServiceException("User not found with ID: " + userId);
+            }
+
+            updatedUser.setId(userId);
+            validateUserForUpdate(updatedUser);
+            return userDAO.update(updatedUser);
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to update user", e);
+            throw new UserServiceException("Failed to update user: " + e.getMessage(), e);
+        }
     }
 
-    public boolean deactivateUser(Long userId) {
-        return users.stream()
-                .filter(u -> Objects.equals(u.getId(), userId))
-                .peek(u -> u.setActive(false))
-                .findFirst()
-                .isPresent();
+    /**
+     * Deactivates a user account.
+     * 
+     * @param userId the ID of the user to deactivate
+     * @return true if the user was successfully deactivated, false otherwise
+     * @throws UserServiceException if the operation fails
+     */
+    public boolean deactivateUser(Long userId) throws UserServiceException {
+        try {
+            Optional<User> userOpt = userDAO.findById(userId);
+            if (userOpt.isEmpty()) {
+                return false;
+            }
+
+            User user = userOpt.get();
+            user.setActive(false);
+            userDAO.update(user);
+            return true;
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to deactivate user", e);
+            throw new UserServiceException("Failed to deactivate user: " + e.getMessage(), e);
+        }
     }
 
-    public boolean activateUser(Long userId) {
-        return users.stream()
-                .filter(u -> Objects.equals(u.getId(), userId))
-                .peek(u -> u.setActive(true))
-                .findFirst()
-                .isPresent();
+    /**
+     * Activates a user account.
+     * 
+     * @param userId the ID of the user to activate
+     * @return true if the user was successfully activated, false otherwise
+     * @throws UserServiceException if the operation fails
+     */
+    public boolean activateUser(Long userId) throws UserServiceException {
+        try {
+            Optional<User> userOpt = userDAO.findById(userId);
+            if (userOpt.isEmpty()) {
+                return false;
+            }
+
+            User user = userOpt.get();
+            user.setActive(true);
+            userDAO.update(user);
+            return true;
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to activate user", e);
+            throw new UserServiceException("Failed to activate user: " + e.getMessage(), e);
+        }
     }
 
+    /**
+     * Searches for users using various criteria.
+     * 
+     * @param query the search query
+     * @return a list of users matching the search criteria
+     */
     public List<User> searchUsers(String query) {
-        return users.stream()
-                .filter(u -> u.getUsername().toLowerCase().contains(query.toLowerCase())
-                        || u.getFullName().toLowerCase().contains(query.toLowerCase())
-                        || u.getEmail().toLowerCase().contains(query.toLowerCase()))
-                .collect(Collectors.toList());
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+        return userDAO.searchUsers(query.trim());
     }
 
+    /**
+     * Authenticates a user with username and password.
+     * 
+     * @param username     the username
+     * @param passwordHash the hashed password
+     * @return the authenticated user if successful, null otherwise
+     */
     public User authenticateUser(String username, String passwordHash) {
-        return users.stream()
-                .filter(u -> u.getUsername().equals(username) && u.getPasswordHash().equals(passwordHash)
-                        && u.isActive())
-                .findFirst()
-                .orElse(null);
+        if (username == null || passwordHash == null) {
+            return null;
+        }
+
+        Optional<User> userOpt = userDAO.findByUsername(username);
+        if (userOpt.isEmpty()) {
+            return null;
+        }
+
+        User user = userOpt.get();
+        if (user.getPasswordHash().equals(passwordHash) && user.isActive()) {
+            return user;
+        }
+
+        return null;
     }
 
-    public User assignRole(User user, Role role) {
-        // Simply save the user
-        return userRepository.save(user);
+    /**
+     * Assigns a role to a user.
+     * 
+     * @param user the user to assign the role to
+     * @param role the role to assign
+     * @return the updated user
+     * @throws UserServiceException if the operation fails
+     */
+    public User assignRole(User user, Role role) throws UserServiceException {
+        try {
+            if (user == null || role == null) {
+                throw new UserServiceException("User and role cannot be null");
+            }
+
+            user.setRole(role);
+            return userDAO.update(user);
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to assign role", e);
+            throw new UserServiceException("Failed to assign role: " + e.getMessage(), e);
+        }
     }
 
-    public Set<User> getUsers() {
-        return users;
+    /**
+     * Gets all users in the system.
+     * 
+     * @return a list of all users
+     */
+    public List<User> getUsers() {
+        return userDAO.findAll();
     }
 
+    /**
+     * Finds a user by email address.
+     * 
+     * @param email the email address to search for
+     * @return the user if found, null otherwise
+     */
     public User findUserByEmail(String email) {
-        return users.stream()
-                .filter(u -> u.getEmail().equalsIgnoreCase(email))
-                .findFirst()
-                .orElse(null);
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
+        return userDAO.findByEmail(email.trim()).orElse(null);
     }
 
+    /**
+     * Finds a user by ID.
+     * 
+     * @param id the user ID
+     * @return the user if found, null otherwise
+     */
     public User findById(Long id) {
-        return users.stream()
-                .filter(u -> Objects.equals(u.getId(), id))
-                .findFirst()
-                .orElse(null);
+        if (id == null) {
+            return null;
+        }
+        return userDAO.findById(id).orElse(null);
     }
 
     public boolean updateProfile(Long userId, UserProfile profile) {
