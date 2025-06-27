@@ -4,12 +4,14 @@ import com.davon.library.model.Book;
 import com.davon.library.model.BookCopy;
 import com.davon.library.model.BookCopy.CopyStatus;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Service for managing library inventory.
  */
+@ApplicationScoped
 public class InventoryService {
     private final Set<Book> books = new HashSet<>();
     private final Set<BookCopy> bookCopies = new HashSet<>();

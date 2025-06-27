@@ -7,7 +7,7 @@ import com.davon.library.model.Author;
 import com.davon.library.model.Category;
 import com.davon.library.model.Publisher;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * This implementation follows SOLID principles by separating data access
  * concerns.
  */
-@ApplicationScoped
+@Singleton
 public class InMemoryBookDAOImpl extends AbstractInMemoryDAO<Book> implements BookDAO {
 
     @Override

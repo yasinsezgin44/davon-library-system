@@ -1,9 +1,11 @@
 package com.davon.library.service;
 
-import lombok.extern.slf4j.Slf4j;
+import jakarta.enterprise.context.ApplicationScoped;
+import java.util.logging.Logger;
 
-@Slf4j
+@ApplicationScoped
 public class EmailService {
+    private static final Logger logger = Logger.getLogger(EmailService.class.getName());
     private final String fromEmail = "noreply@librarysystem.com";
 
     public void sendVerificationEmail(String toEmail, String verificationToken) {
@@ -30,8 +32,8 @@ public class EmailService {
     private void sendEmail(String toEmail, String subject, String content) {
         // In a real implementation, this would connect to an email service
         // For now, just log the email
-        log.info("Sending email to: {}", toEmail);
-        log.info("Subject: {}", subject);
-        log.info("Content: {}", content);
+        logger.info("Sending email to: " + toEmail);
+        logger.info("Subject: " + subject);
+        logger.info("Content: " + content);
     }
 }

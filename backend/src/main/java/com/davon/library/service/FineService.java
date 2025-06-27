@@ -1,9 +1,11 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
+@ApplicationScoped
 public class FineService {
     private static final double DAILY_RATE = 0.50; // 50 cents per day
     private static final double MAX_FINE = 25.00; // Maximum fine amount

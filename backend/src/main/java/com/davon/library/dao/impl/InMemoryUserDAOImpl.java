@@ -8,7 +8,7 @@ import com.davon.library.model.Librarian;
 import com.davon.library.model.Admin;
 import com.davon.library.model.Role;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  * This implementation follows SOLID principles by separating data access
  * concerns.
  */
-@ApplicationScoped
+@Singleton
 public class InMemoryUserDAOImpl extends AbstractInMemoryDAO<User> implements UserDAO {
 
     private static final Logger logger = Logger.getLogger(InMemoryUserDAOImpl.class.getName());

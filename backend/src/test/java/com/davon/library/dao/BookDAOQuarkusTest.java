@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,20 @@ class BookDAOQuarkusTest {
 
     @Inject
     BookDAO bookDAO;
+
+    @BeforeEach
+    @Transactional
+    void clearData() {
+        // Clear all books before each test to ensure isolation
+        try {
+            List<Book> allBooks = bookDAO.findAll();
+            for (Book book : allBooks) {
+                bookDAO.deleteById(book.getId());
+            }
+        } catch (DAOException e) {
+            // Ignore - data may not exist
+        }
+    }
 
     @Test
     void testSaveAndFindById() throws DAOException {

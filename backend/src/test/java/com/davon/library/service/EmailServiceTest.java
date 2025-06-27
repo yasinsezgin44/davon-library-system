@@ -1,18 +1,17 @@
 package com.davon.library.service;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,28 +22,24 @@ class EmailServiceTest {
     @InjectMocks
     private EmailService emailService;
 
-    private ListAppender<ILoggingEvent> listAppender;
+    private TestLogHandler testLogHandler;
+    private Logger emailServiceLogger;
 
     @BeforeEach
     void setUp() {
-        // Get Logback logger
-        Logger emailServiceLogger = (Logger) LoggerFactory.getLogger(EmailService.class);
+        // Get Java Util Logging logger
+        emailServiceLogger = Logger.getLogger(EmailService.class.getName());
 
-        // Create and start a ListAppender
-        listAppender = new ListAppender<>();
-        listAppender.start();
-
-        // Add appender to the logger
-        emailServiceLogger.addAppender(listAppender);
-        emailServiceLogger.setLevel(Level.INFO); // Ensure INFO messages are captured
+        // Create and add custom test handler
+        testLogHandler = new TestLogHandler();
+        emailServiceLogger.addHandler(testLogHandler);
+        emailServiceLogger.setLevel(java.util.logging.Level.INFO);
     }
 
     @AfterEach
     void tearDown() {
-        // Detach appender
-        Logger emailServiceLogger = (Logger) LoggerFactory.getLogger(EmailService.class);
-        emailServiceLogger.detachAppender(listAppender);
-        listAppender.stop();
+        // Remove test handler
+        emailServiceLogger.removeHandler(testLogHandler);
     }
 
     @Test
@@ -53,12 +48,11 @@ class EmailServiceTest {
         String testToken = "testToken123";
         emailService.sendVerificationEmail(testEmail, testToken);
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(3, logsList.size());
-        assertTrue(logsList.get(0).getFormattedMessage().contains("Sending email to: " + testEmail));
-        assertTrue(logsList.get(1).getFormattedMessage().contains("Subject: Verify Your Library Account"));
-        assertTrue(
-                logsList.get(2).getFormattedMessage().contains("http://library.example.com/verify?token=" + testToken));
+        List<String> logMessages = testLogHandler.getMessages();
+        assertEquals(3, logMessages.size());
+        assertTrue(logMessages.get(0).contains("Sending email to: " + testEmail));
+        assertTrue(logMessages.get(1).contains("Subject: Verify Your Library Account"));
+        assertTrue(logMessages.get(2).contains("http://library.example.com/verify?token=" + testToken));
     }
 
     @Test
@@ -67,12 +61,11 @@ class EmailServiceTest {
         String testToken = "resetToken456";
         emailService.sendPasswordResetEmail(testEmail, testToken);
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(3, logsList.size());
-        assertTrue(logsList.get(0).getFormattedMessage().contains("Sending email to: " + testEmail));
-        assertTrue(logsList.get(1).getFormattedMessage().contains("Subject: Reset Your Library Account Password"));
-        assertTrue(logsList.get(2).getFormattedMessage()
-                .contains("http://library.example.com/reset-password?token=" + testToken));
+        List<String> logMessages = testLogHandler.getMessages();
+        assertEquals(3, logMessages.size());
+        assertTrue(logMessages.get(0).contains("Sending email to: " + testEmail));
+        assertTrue(logMessages.get(1).contains("Subject: Reset Your Library Account Password"));
+        assertTrue(logMessages.get(2).contains("http://library.example.com/reset-password?token=" + testToken));
     }
 
     @Test
@@ -81,10 +74,36 @@ class EmailServiceTest {
         String message = "Test security alert.";
         emailService.sendSecurityNotification(testEmail, message);
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(3, logsList.size());
-        assertTrue(logsList.get(0).getFormattedMessage().contains("Sending email to: " + testEmail));
-        assertTrue(logsList.get(1).getFormattedMessage().contains("Subject: Security Notification - Library Account"));
-        assertTrue(logsList.get(2).getFormattedMessage().contains(message));
+        List<String> logMessages = testLogHandler.getMessages();
+        assertEquals(3, logMessages.size());
+        assertTrue(logMessages.get(0).contains("Sending email to: " + testEmail));
+        assertTrue(logMessages.get(1).contains("Subject: Security Notification - Library Account"));
+        assertTrue(logMessages.get(2).contains(message));
+    }
+
+    /**
+     * Custom log handler for testing
+     */
+    private static class TestLogHandler extends Handler {
+        private final List<String> messages = new ArrayList<>();
+
+        @Override
+        public void publish(LogRecord record) {
+            messages.add(record.getMessage());
+        }
+
+        @Override
+        public void flush() {
+            // No-op
+        }
+
+        @Override
+        public void close() throws SecurityException {
+            messages.clear();
+        }
+
+        public List<String> getMessages() {
+            return new ArrayList<>(messages);
+        }
     }
 }
