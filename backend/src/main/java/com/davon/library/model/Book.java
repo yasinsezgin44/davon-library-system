@@ -15,8 +15,17 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true, exclude = { "authors" })
 @ToString(callSuper = true, exclude = { "authors" })
 public class Book extends BaseEntity {
+    @jakarta.validation.constraints.NotBlank
     private String title;
+
+    /**
+     * ISBN-10 or ISBN-13 allowed (10 or 13 digits). No hyphens/spaces for
+     * simplicity.
+     */
+    @jakarta.validation.constraints.Pattern(regexp = "\\d{10}|\\d{13}", message = "ISBN must be 10 or 13 digits")
     private String ISBN;
+
+    @jakarta.validation.constraints.Min(value = 1, message = "Publication year must be positive")
     private int publicationYear;
     private String description;
     private String coverImage;

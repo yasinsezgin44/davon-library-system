@@ -23,8 +23,15 @@ public class BookService {
 
     private static final Logger logger = Logger.getLogger(BookService.class.getName());
 
+    private final BookDAO bookDAO;
+
+    /**
+     * Constructor-based injection preferred for immutability and testability.
+     */
     @Inject
-    private BookDAO bookDAO;
+    public BookService(BookDAO bookDAO) {
+        this.bookDAO = bookDAO;
+    }
 
     /**
      * Retrieves all books from the system.

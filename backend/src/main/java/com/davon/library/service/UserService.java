@@ -23,10 +23,17 @@ public class UserService {
 
     private static final Logger logger = Logger.getLogger(UserService.class.getName());
 
-    @Inject
-    private UserDAO userDAO;
+    private final UserDAO userDAO;
 
     private final List<UserStatusListener> statusListeners = new ArrayList<>();
+
+    /**
+     * Constructor-based injection preferred for immutability and unit-testing.
+     */
+    @Inject
+    public UserService(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
 
     /**
      * Creates a new user in the system.
