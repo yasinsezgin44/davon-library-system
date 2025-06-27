@@ -31,12 +31,9 @@ class BookDAOQuarkusTest {
     void clearData() {
         // Clear all books before each test to ensure isolation
         try {
-            List<Book> allBooks = bookDAO.findAll();
-            for (Book book : allBooks) {
-                bookDAO.deleteById(book.getId());
-            }
+            bookDAO.clearAll();
         } catch (DAOException e) {
-            // Ignore - data may not exist
+            // Ignore - clear may fail if not supported
         }
     }
 
