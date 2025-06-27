@@ -51,7 +51,7 @@ public class UserController {
             }
             User updatedUser = userService.updateUser(id, userData);
             return Response.ok(updatedUser).build();
-        } catch (Exception e) {
+        } catch (UserService.UserServiceException e) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
@@ -60,15 +60,19 @@ public class UserController {
     @Path("/{id}")
     @Operation(summary = "Delete user", description = "Deactivate a user")
     public Response deleteUser(@PathParam("id") Long id) {
-        User user = userService.findById(id);
-        if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        boolean success = userService.deactivateUser(id);
-        if (success) {
-            return Response.noContent().build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        try {
+            User user = userService.findById(id);
+            if (user == null) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            boolean success = userService.deactivateUser(id);
+            if (success) {
+                return Response.noContent().build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+        } catch (UserService.UserServiceException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -76,15 +80,11 @@ public class UserController {
     @Path("/{id}")
     @Operation(summary = "Get user by ID", description = "Retrieve a specific user by their ID")
     public Response getUserById(@PathParam("id") Long id) {
-        try {
-            User user = userService.findById(id);
-            if (user == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
-            }
-            return Response.ok(user).build();
-        } catch (Exception e) {
+        User user = userService.findById(id);
+        if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        return Response.ok(user).build();
     }
 
     @GET
