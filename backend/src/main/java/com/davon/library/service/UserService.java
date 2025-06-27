@@ -1,30 +1,48 @@
 package com.davon.library.service;
 
+import com.davon.library.dao.UserDAO;
+import com.davon.library.dao.DAOException;
 import com.davon.library.model.*;
 import com.davon.library.event.UserStatusListener;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
  * Service for managing users (Member, Librarian, Admin).
+ * This service follows SOLID principles by depending on abstractions (UserDAO)
+ * and focusing only on business logic, not data access.
  */
 @ApplicationScoped
 public class UserService {
-    private final Set<User> users = new HashSet<>();
+
+    private static final Logger logger = Logger.getLogger(UserService.class.getName());
 
     @Inject
-    UserRepository userRepository;
+    private UserDAO userDAO;
 
     private final List<UserStatusListener> statusListeners = new ArrayList<>();
 
-    public User createUser(User user) {
-        users.add(user);
-        return user;
+    /**
+     * Creates a new user in the system.
+     * 
+     * @param user the user to create
+     * @return the created user with assigned ID
+     * @throws UserServiceException if the user creation fails
+     */
+    public User createUser(User user) throws UserServiceException {
+        try {
+            validateUserForCreation(user);
+            return userDAO.save(user);
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to create user", e);
+            throw new UserServiceException("Failed to create user: " + e.getMessage(), e);
+        }
     }
 
     public User updateUser(Long userId, User updatedUser) {

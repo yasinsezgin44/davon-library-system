@@ -1,58 +1,240 @@
 package com.davon.library.service;
 
+import com.davon.library.dao.BookDAO;
+import com.davon.library.dao.DAOException;
 import com.davon.library.model.Book;
-import lombok.RequiredArgsConstructor;
+import com.davon.library.model.Author;
+import com.davon.library.model.Category;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Service for managing books.
+ * This service follows SOLID principles by depending on abstractions (BookDAO)
+ * and focusing only on business logic, not data access.
  */
 @ApplicationScoped
 public class BookService {
-    private final Set<Book> books = new HashSet<>();
+
+    private static final Logger logger = Logger.getLogger(BookService.class.getName());
 
     @Inject
-    BookRepository bookRepository;
+    private BookDAO bookDAO;
 
+    /**
+     * Retrieves all books from the system.
+     * 
+     * @return a list of all books
+     */
     public List<Book> getAllBooks() {
-        return books.stream().collect(Collectors.toList());
+        return bookDAO.findAll();
     }
 
+    /**
+     * Retrieves a book by its ID.
+     * 
+     * @param id the book ID
+     * @return the book if found, null otherwise
+     */
     public Book getBookById(Long id) {
-        return books.stream()
-                .filter(book -> Objects.equals(book.getId(), id))
-                .findFirst()
-                .orElse(null);
+        if (id == null) {
+            return null;
+        }
+        return bookDAO.findById(id).orElse(null);
     }
 
-    public Book createBook(Book book) {
-        books.add(book);
-        return book;
+    /**
+     * Creates a new book in the system.
+     * 
+     * @param book the book to create
+     * @return the created book with assigned ID
+     * @throws BookServiceException if the book creation fails
+     */
+    public Book createBook(Book book) throws BookServiceException {
+        try {
+            validateBookForCreation(book);
+            return bookDAO.save(book);
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to create book", e);
+            throw new BookServiceException("Failed to create book: " + e.getMessage(), e);
+        }
     }
 
-    public Book updateBook(Long id, Book updatedBook) {
-        books.removeIf(book -> Objects.equals(book.getId(), id));
-        books.add(updatedBook);
-        return updatedBook;
+    /**
+     * Updates an existing book in the system.
+     * 
+     * @param id          the ID of the book to update
+     * @param updatedBook the updated book data
+     * @return the updated book
+     * @throws BookServiceException if the book update fails
+     */
+    public Book updateBook(Long id, Book updatedBook) throws BookServiceException {
+        try {
+            if (id == null) {
+                throw new BookServiceException("Book ID cannot be null");
+            }
+
+            if (!bookDAO.existsById(id)) {
+                throw new BookServiceException("Book not found with ID: " + id);
+            }
+
+            updatedBook.setId(id);
+            validateBookForUpdate(updatedBook);
+            return bookDAO.update(updatedBook);
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to update book", e);
+            throw new BookServiceException("Failed to update book: " + e.getMessage(), e);
+        }
     }
 
-    public void deleteBook(Long id) {
-        books.removeIf(book -> Objects.equals(book.getId(), id));
+    /**
+     * Deletes a book by its ID.
+     * 
+     * @param id the ID of the book to delete
+     * @throws BookServiceException if the book deletion fails
+     */
+    public void deleteBook(Long id) throws BookServiceException {
+        try {
+            if (id == null) {
+                throw new BookServiceException("Book ID cannot be null");
+            }
+
+            if (!bookDAO.existsById(id)) {
+                throw new BookServiceException("Book not found with ID: " + id);
+            }
+
+            bookDAO.deleteById(id);
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to delete book", e);
+            throw new BookServiceException("Failed to delete book: " + e.getMessage(), e);
+        }
     }
 
+    /**
+     * Searches for books using various criteria.
+     * 
+     * @param query the search query
+     * @return a list of books matching the search criteria
+     */
     public List<Book> searchBooks(String query) {
-        return books.stream()
-                .filter(book -> book.getTitle().toLowerCase().contains(query.toLowerCase())
-                        || (book.getISBN() != null && book.getISBN().toLowerCase().contains(query.toLowerCase()))
-                        || (book.getDescription() != null
-                                && book.getDescription().toLowerCase().contains(query.toLowerCase())))
-                .collect(Collectors.toList());
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+        return bookDAO.searchBooks(query.trim());
+    }
+
+    /**
+     * Finds books by category.
+     * 
+     * @param category the category to search for
+     * @return a list of books in the specified category
+     */
+    public List<Book> getBooksByCategory(Category category) {
+        return bookDAO.findByCategory(category);
+    }
+
+    /**
+     * Finds books by author.
+     * 
+     * @param author the author to search for
+     * @return a list of books by the specified author
+     */
+    public List<Book> getBooksByAuthor(Author author) {
+        return bookDAO.findByAuthor(author);
+    }
+
+    /**
+     * Finds a book by its ISBN.
+     * 
+     * @param isbn the ISBN to search for
+     * @return the book if found, null otherwise
+     */
+    public Book getBookByISBN(String isbn) {
+        return bookDAO.findByISBN(isbn).orElse(null);
+    }
+
+    /**
+     * Gets all available books (books with available copies).
+     * 
+     * @return a list of available books
+     */
+    public List<Book> getAvailableBooks() {
+        return bookDAO.findAvailableBooks();
+    }
+
+    /**
+     * Checks if a book exists by its ISBN.
+     * 
+     * @param isbn the ISBN to check
+     * @return true if a book with this ISBN exists, false otherwise
+     */
+    public boolean isISBNExists(String isbn) {
+        return bookDAO.existsByISBN(isbn);
+    }
+
+    /**
+     * Validates a book for creation.
+     * 
+     * @param book the book to validate
+     * @throws BookServiceException if validation fails
+     */
+    private void validateBookForCreation(Book book) throws BookServiceException {
+        if (book == null) {
+            throw new BookServiceException("Book cannot be null");
+        }
+
+        if (book.getId() != null) {
+            throw new BookServiceException("Book ID should be null for new books");
+        }
+
+        validateBookMetadata(book);
+    }
+
+    /**
+     * Validates a book for update.
+     * 
+     * @param book the book to validate
+     * @throws BookServiceException if validation fails
+     */
+    private void validateBookForUpdate(Book book) throws BookServiceException {
+        if (book == null) {
+            throw new BookServiceException("Book cannot be null");
+        }
+
+        if (book.getId() == null) {
+            throw new BookServiceException("Book ID cannot be null for updates");
+        }
+
+        validateBookMetadata(book);
+    }
+
+    /**
+     * Validates book metadata.
+     * 
+     * @param book the book to validate
+     * @throws BookServiceException if validation fails
+     */
+    private void validateBookMetadata(Book book) throws BookServiceException {
+        if (!book.validateMetadata()) {
+            throw new BookServiceException("Invalid book metadata");
+        }
+    }
+
+    /**
+     * Custom exception for book service operations.
+     */
+    public static class BookServiceException extends Exception {
+        public BookServiceException(String message) {
+            super(message);
+        }
+
+        public BookServiceException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }
