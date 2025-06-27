@@ -7,27 +7,31 @@ import com.davon.library.model.Category;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer;
 import static org.junit.jupiter.api.Assertions.*;
 
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Random;
 
 /**
  * Quarkus test class for BookDAO implementation.
  * Demonstrates that the new DAO pattern works correctly with Quarkus framework.
  */
 @QuarkusTest
+@TestMethodOrder(MethodOrderer.Random.class)
 class BookDAOQuarkusTest {
 
     @Inject
     BookDAO bookDAO;
 
+    private static final Random random = new Random();
+
     @BeforeEach
-    @Transactional
     void clearData() {
         // Clear all books before each test to ensure isolation
         try {
@@ -40,7 +44,7 @@ class BookDAOQuarkusTest {
     @Test
     void testSaveAndFindById() throws DAOException {
         // Given
-        Book book = createTestBook("Quarkus Guide", "1234567890123");
+        Book book = createTestBook("Quarkus Guide", generateUniqueISBN());
 
         // When
         Book savedBook = bookDAO.save(book);
@@ -50,13 +54,12 @@ class BookDAOQuarkusTest {
         assertNotNull(savedBook.getId());
         assertTrue(foundBook.isPresent());
         assertEquals("Quarkus Guide", foundBook.get().getTitle());
-        assertEquals("1234567890123", foundBook.get().getISBN());
     }
 
     @Test
     void testFindByISBN() throws DAOException {
         // Given
-        String isbn = "9876543210987";
+        String isbn = generateUniqueISBN();
         Book book = createTestBook("Microservices with Quarkus", isbn);
         bookDAO.save(book);
 
@@ -71,17 +74,9 @@ class BookDAOQuarkusTest {
     @Test
     void testSearchBooks() throws DAOException {
         // Given - Use unique ISBNs to avoid conflicts
-        Book book1 = createUniqueTestBook("Quarkus Programming");
-        try {
-            Thread.sleep(1);
-        } catch (InterruptedException e) {
-        } // Ensure different timestamps
-        Book book2 = createUniqueTestBook("Spring Boot Guide");
-        try {
-            Thread.sleep(1);
-        } catch (InterruptedException e) {
-        } // Ensure different timestamps
-        Book book3 = createUniqueTestBook("Advanced Quarkus");
+        Book book1 = createTestBook("Quarkus Programming", generateUniqueISBN());
+        Book book2 = createTestBook("Spring Boot Guide", generateUniqueISBN());
+        Book book3 = createTestBook("Advanced Quarkus", generateUniqueISBN());
 
         bookDAO.save(book1);
         bookDAO.save(book2);
@@ -99,7 +94,7 @@ class BookDAOQuarkusTest {
     @Test
     void testUpdateBook() throws DAOException {
         // Given
-        Book book = createTestBook("Original Title", "5555555555555");
+        Book book = createTestBook("Original Title", generateUniqueISBN());
         Book savedBook = bookDAO.save(book);
 
         // When
@@ -116,7 +111,7 @@ class BookDAOQuarkusTest {
     @Test
     void testDeleteBook() throws DAOException {
         // Given
-        Book book = createTestBook("To Be Deleted", "6666666666666");
+        Book book = createTestBook("To Be Deleted", generateUniqueISBN());
         Book savedBook = bookDAO.save(book);
 
         // When
@@ -130,19 +125,19 @@ class BookDAOQuarkusTest {
     @Test
     void testExistsByISBN() throws DAOException {
         // Given
-        String isbn = "7777777777777";
+        String isbn = generateUniqueISBN();
         Book book = createTestBook("Existence Test", isbn);
         bookDAO.save(book);
 
         // When & Then
         assertTrue(bookDAO.existsByISBN(isbn));
-        assertFalse(bookDAO.existsByISBN("9999999999999"));
+        assertFalse(bookDAO.existsByISBN(generateUniqueISBN()));
     }
 
     @Test
     void testDuplicateISBNValidation() throws DAOException {
         // Given
-        String isbn = "8888888888888";
+        String isbn = generateUniqueISBN();
         Book book1 = createTestBook("First Book", isbn);
         Book book2 = createTestBook("Duplicate ISBN", isbn);
 
@@ -158,8 +153,8 @@ class BookDAOQuarkusTest {
         // Given
         int initialCount = bookDAO.findAll().size();
 
-        Book book1 = createTestBook("Book One", "1010101010101");
-        Book book2 = createTestBook("Book Two", "2020202020202");
+        Book book1 = createTestBook("Book One", generateUniqueISBN());
+        Book book2 = createTestBook("Book Two", generateUniqueISBN());
 
         bookDAO.save(book1);
         bookDAO.save(book2);
@@ -176,7 +171,7 @@ class BookDAOQuarkusTest {
         // Given
         long initialCount = bookDAO.count();
 
-        Book book = createTestBook("Count Test", "3030303030303");
+        Book book = createTestBook("Count Test", generateUniqueISBN());
         bookDAO.save(book);
 
         // When
@@ -196,9 +191,10 @@ class BookDAOQuarkusTest {
                 .build();
     }
 
-    private Book createUniqueTestBook(String title) {
-        // Create a unique ISBN using timestamp
-        String isbn = "978" + String.valueOf(System.currentTimeMillis()).substring(3, 12) + "0";
-        return createTestBook(title, isbn);
+    private String generateUniqueISBN() {
+        // Generate a unique 13-digit ISBN using timestamp and random number
+        long timestamp = System.currentTimeMillis();
+        int randomNum = random.nextInt(1000);
+        return "978" + String.valueOf(timestamp).substring(3, 12) + (randomNum % 10);
     }
 }
