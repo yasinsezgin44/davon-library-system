@@ -215,49 +215,210 @@ public class UserService {
         return userDAO.findById(id).orElse(null);
     }
 
-    public boolean updateProfile(Long userId, UserProfile profile) {
-        User user = findById(userId);
-        if (user == null) {
-            return false;
+    /**
+     * Updates a user's profile information.
+     * 
+     * @param userId  the ID of the user to update
+     * @param profile the new profile information
+     * @return true if the profile was successfully updated, false otherwise
+     * @throws UserServiceException if the operation fails
+     */
+    public boolean updateProfile(Long userId, UserProfile profile) throws UserServiceException {
+        try {
+            Optional<User> userOpt = userDAO.findById(userId);
+            if (userOpt.isEmpty()) {
+                return false;
+            }
+
+            User user = userOpt.get();
+            user.setFullName(profile.getFullName());
+            user.setEmail(profile.getEmail());
+            user.setPhoneNumber(profile.getPhoneNumber());
+
+            if (user instanceof Member) {
+                Member member = (Member) user;
+                member.setAddress(profile.getAddress());
+            }
+
+            userDAO.update(user);
+            return true;
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to update user profile", e);
+            throw new UserServiceException("Failed to update user profile: " + e.getMessage(), e);
         }
-
-        user.setFullName(profile.getFullName());
-        user.setEmail(profile.getEmail());
-        user.setPhoneNumber(profile.getPhoneNumber());
-
-        if (user instanceof Member) {
-            Member member = (Member) user;
-            member.setAddress(profile.getAddress());
-        }
-
-        return true;
     }
 
+    /**
+     * Adds a status change listener.
+     * 
+     * @param listener the listener to add
+     */
     public void addStatusListener(UserStatusListener listener) {
-        statusListeners.add(listener);
+        if (listener != null) {
+            statusListeners.add(listener);
+        }
     }
 
+    /**
+     * Removes a status change listener.
+     * 
+     * @param listener the listener to remove
+     */
     public void removeStatusListener(UserStatusListener listener) {
         statusListeners.remove(listener);
     }
 
-    public boolean updateUserStatus(Long userId, String newStatus) {
-        User user = findById(userId);
-        if (user == null) {
-            return false;
+    /**
+     * Updates a user's status and notifies listeners.
+     * 
+     * @param userId    the ID of the user
+     * @param newStatus the new status
+     * @return true if the status was successfully updated, false otherwise
+     * @throws UserServiceException if the operation fails
+     */
+    public boolean updateUserStatus(Long userId, String newStatus) throws UserServiceException {
+        try {
+            Optional<User> userOpt = userDAO.findById(userId);
+            if (userOpt.isEmpty()) {
+                return false;
+            }
+
+            User user = userOpt.get();
+            String oldStatus = user.getStatus();
+            user.setStatus(newStatus);
+            userDAO.update(user);
+
+            // Notify listeners
+            notifyStatusChange(user, oldStatus, newStatus);
+            return true;
+        } catch (DAOException e) {
+            logger.log(Level.SEVERE, "Failed to update user status", e);
+            throw new UserServiceException("Failed to update user status: " + e.getMessage(), e);
         }
-
-        String oldStatus = user.getStatus();
-        user.setStatus(newStatus);
-
-        // Notify listeners
-        notifyStatusChange(user, oldStatus, newStatus);
-        return true;
     }
 
+    /**
+     * Gets active users.
+     * 
+     * @return a list of active users
+     */
+    public List<User> getActiveUsers() {
+        return userDAO.findActiveUsers();
+    }
+
+    /**
+     * Gets users by role.
+     * 
+     * @param role the role to filter by
+     * @return a list of users with the specified role
+     */
+    public List<User> getUsersByRole(Role role) {
+        return userDAO.findByRole(role);
+    }
+
+    /**
+     * Checks if a username is available.
+     * 
+     * @param username the username to check
+     * @return true if the username is available, false otherwise
+     */
+    public boolean isUsernameAvailable(String username) {
+        return !userDAO.existsByUsername(username);
+    }
+
+    /**
+     * Checks if an email is available.
+     * 
+     * @param email the email to check
+     * @return true if the email is available, false otherwise
+     */
+    public boolean isEmailAvailable(String email) {
+        return !userDAO.existsByEmail(email);
+    }
+
+    /**
+     * Validates a user for creation.
+     * 
+     * @param user the user to validate
+     * @throws UserServiceException if validation fails
+     */
+    private void validateUserForCreation(User user) throws UserServiceException {
+        if (user == null) {
+            throw new UserServiceException("User cannot be null");
+        }
+
+        if (user.getId() != null) {
+            throw new UserServiceException("User ID should be null for new users");
+        }
+
+        validateUserData(user);
+    }
+
+    /**
+     * Validates a user for update.
+     * 
+     * @param user the user to validate
+     * @throws UserServiceException if validation fails
+     */
+    private void validateUserForUpdate(User user) throws UserServiceException {
+        if (user == null) {
+            throw new UserServiceException("User cannot be null");
+        }
+
+        if (user.getId() == null) {
+            throw new UserServiceException("User ID cannot be null for updates");
+        }
+
+        validateUserData(user);
+    }
+
+    /**
+     * Validates user data.
+     * 
+     * @param user the user to validate
+     * @throws UserServiceException if validation fails
+     */
+    private void validateUserData(User user) throws UserServiceException {
+        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+            throw new UserServiceException("Username cannot be null or empty");
+        }
+
+        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+            throw new UserServiceException("Email cannot be null or empty");
+        }
+
+        if (user.getPasswordHash() == null || user.getPasswordHash().trim().isEmpty()) {
+            throw new UserServiceException("Password cannot be null or empty");
+        }
+    }
+
+    /**
+     * Notifies all listeners about a status change.
+     * 
+     * @param user      the user whose status changed
+     * @param oldStatus the old status
+     * @param newStatus the new status
+     */
     private void notifyStatusChange(User user, String oldStatus, String newStatus) {
         for (UserStatusListener listener : statusListeners) {
-            listener.onUserStatusChange(user, oldStatus, newStatus);
+            try {
+                listener.onUserStatusChange(user, oldStatus, newStatus);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Error notifying status listener", e);
+            }
+        }
+    }
+
+    /**
+     * Custom exception for user service operations.
+     */
+    public static class UserServiceException extends Exception {
+        public UserServiceException(String message) {
+            super(message);
+        }
+
+        public UserServiceException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 
