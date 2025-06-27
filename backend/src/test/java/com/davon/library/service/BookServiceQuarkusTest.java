@@ -3,7 +3,7 @@ package com.davon.library.service;
 import com.davon.library.dao.BookDAO;
 import com.davon.library.dao.DAOException;
 import com.davon.library.model.Book;
-import com.davon.library.service.exception.BookServiceException;
+import com.davon.library.service.BookService.BookServiceException;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -113,7 +113,7 @@ class BookServiceQuarkusTest {
 
         // When
         savedBook.setTitle("Updated Service Title");
-        Book updatedBook = bookService.updateBook(savedBook);
+        Book updatedBook = bookService.updateBook(savedBook.getId(), savedBook);
 
         // Then
         assertEquals("Updated Service Title", updatedBook.getTitle());
