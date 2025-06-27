@@ -5,7 +5,6 @@ import com.davon.library.model.Book;
 import com.davon.library.model.Author;
 import com.davon.library.model.Category;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
