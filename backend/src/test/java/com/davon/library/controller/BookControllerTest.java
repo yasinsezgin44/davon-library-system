@@ -45,10 +45,13 @@ class BookControllerTest {
     @Test
     void testSearchBooks() {
         // First create a book to search for
-        Book book = new Book();
-        book.setTitle("Java Programming");
-        book.setISBN("9781111111111");
-        book.setDescription("A comprehensive guide to Java");
+        Book book = Book.builder()
+                .title("Java Programming")
+                .ISBN("9781111111111")
+                .description("A comprehensive guide to Java")
+                .publicationYear(2023)
+                .pages(400)
+                .build();
 
         given()
                 .contentType(ContentType.JSON)
