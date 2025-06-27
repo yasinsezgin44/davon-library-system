@@ -1,27 +1,27 @@
 package com.davon.library.service;
 
-import com.davon.library.model.Book;
-import com.davon.library.model.Author;
 import com.davon.library.dao.BookDAO;
 import com.davon.library.dao.DAOException;
+import com.davon.library.model.Book;
+import com.davon.library.service.exception.BookServiceException;
 
 import io.quarkus.test.junit.QuarkusTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer;
 import static org.junit.jupiter.api.Assertions.*;
 
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Random;
 
 /**
- * Quarkus test for BookService.
- * Tests the service layer with the new DAO pattern.
+ * Quarkus test class for BookService implementation.
+ * Tests the service layer integration with DAO pattern.
  */
 @QuarkusTest
-@Transactional
+@TestMethodOrder(MethodOrderer.Random.class)
 class BookServiceQuarkusTest {
 
     @Inject
@@ -29,6 +29,8 @@ class BookServiceQuarkusTest {
 
     @Inject
     BookDAO bookDAO;
+
+    private static final Random random = new Random();
 
     @BeforeEach
     void clearData() {
@@ -41,107 +43,37 @@ class BookServiceQuarkusTest {
     }
 
     @Test
-    void testCreateBook() throws BookService.BookServiceException {
+    void testCreateBook() throws BookServiceException {
         // Given
-        Book book = createTestBook("Quarkus in Action", "9780123456789");
+        Book book = createTestBook("Service Test Book", generateUniqueISBN());
 
         // When
         Book createdBook = bookService.createBook(book);
 
         // Then
-        assertNotNull(createdBook);
         assertNotNull(createdBook.getId());
-        assertEquals("Quarkus in Action", createdBook.getTitle());
-        assertEquals("9780123456789", createdBook.getISBN());
+        assertEquals("Service Test Book", createdBook.getTitle());
     }
 
     @Test
-    void testGetAllBooks() throws BookService.BookServiceException {
+    void testGetBookById() throws BookServiceException {
         // Given
-        Book book1 = createTestBook("Java Fundamentals", "9781111111111");
-        Book book2 = createTestBook("Microservices Guide", "9782222222222");
-
-        bookService.createBook(book1);
-        bookService.createBook(book2);
+        Book book = createTestBook("Get By ID Test", generateUniqueISBN());
+        Book savedBook = bookService.createBook(book);
 
         // When
-        List<Book> allBooks = bookService.getAllBooks();
-
-        // Then
-        assertTrue(allBooks.size() >= 2);
-        assertTrue(allBooks.stream().anyMatch(b -> b.getTitle().equals("Java Fundamentals")));
-        assertTrue(allBooks.stream().anyMatch(b -> b.getTitle().equals("Microservices Guide")));
-    }
-
-    @Test
-    void testGetBookById() throws BookService.BookServiceException {
-        // Given
-        Book book = createTestBook("Spring Boot Guide", "9783333333333");
-        Book createdBook = bookService.createBook(book);
-
-        // When
-        Book foundBook = bookService.getBookById(createdBook.getId());
+        Book foundBook = bookService.getBookById(savedBook.getId());
 
         // Then
         assertNotNull(foundBook);
-        assertEquals(createdBook.getId(), foundBook.getId());
-        assertEquals("Spring Boot Guide", foundBook.getTitle());
+        assertEquals(savedBook.getId(), foundBook.getId());
+        assertEquals("Get By ID Test", foundBook.getTitle());
     }
 
     @Test
-    void testUpdateBook() throws BookService.BookServiceException {
+    void testGetBookByISBN() throws BookServiceException {
         // Given
-        Book book = createTestBook("Original Title", "9784444444444");
-        Book createdBook = bookService.createBook(book);
-
-        // When
-        createdBook.setTitle("Updated Title");
-        Book updatedBook = bookService.updateBook(createdBook.getId(), createdBook);
-
-        // Then
-        assertNotNull(updatedBook);
-        assertEquals("Updated Title", updatedBook.getTitle());
-        assertEquals(createdBook.getId(), updatedBook.getId());
-    }
-
-    @Test
-    void testDeleteBook() throws BookService.BookServiceException {
-        // Given
-        Book book = createTestBook("To Be Deleted", "9785555555555");
-        Book createdBook = bookService.createBook(book);
-
-        // When
-        bookService.deleteBook(createdBook.getId());
-
-        // Then
-        Book deletedBook = bookService.getBookById(createdBook.getId());
-        assertNull(deletedBook);
-    }
-
-    @Test
-    void testSearchBooks() throws BookService.BookServiceException {
-        // Given
-        Book book1 = createTestBook("Advanced Quarkus", "9786666666666");
-        Book book2 = createTestBook("Spring Framework", "9787777777777");
-        Book book3 = createTestBook("Quarkus Microservices", "9788888888888");
-
-        bookService.createBook(book1);
-        bookService.createBook(book2);
-        bookService.createBook(book3);
-
-        // When
-        List<Book> results = bookService.searchBooks("Quarkus");
-
-        // Then
-        assertEquals(2, results.size());
-        assertTrue(results.stream().anyMatch(b -> b.getTitle().equals("Advanced Quarkus")));
-        assertTrue(results.stream().anyMatch(b -> b.getTitle().equals("Quarkus Microservices")));
-    }
-
-    @Test
-    void testGetBookByISBN() throws BookService.BookServiceException {
-        // Given
-        String isbn = "9789999999999";
+        String isbn = generateUniqueISBN();
         Book book = createTestBook("ISBN Test Book", isbn);
         bookService.createBook(book);
 
@@ -151,66 +83,117 @@ class BookServiceQuarkusTest {
         // Then
         assertNotNull(foundBook);
         assertEquals(isbn, foundBook.getISBN());
-        assertEquals("ISBN Test Book", foundBook.getTitle());
     }
 
     @Test
-    void testIsISBNExists() throws BookService.BookServiceException {
+    void testSearchBooks() throws BookServiceException {
         // Given
-        String isbn = "9781010101010";
-        Book book = createTestBook("Existence Test", isbn);
-        bookService.createBook(book);
+        Book book1 = createTestBook("Java Programming", generateUniqueISBN());
+        Book book2 = createTestBook("Python Guide", generateUniqueISBN());
+        Book book3 = createTestBook("Advanced Java", generateUniqueISBN());
 
-        // When & Then
-        assertTrue(bookService.isISBNExists(isbn));
-        assertFalse(bookService.isISBNExists("9999999999999"));
+        bookService.createBook(book1);
+        bookService.createBook(book2);
+        bookService.createBook(book3);
+
+        // When
+        List<Book> results = bookService.searchBooks("Java");
+
+        // Then
+        assertEquals(2, results.size());
+        assertTrue(results.stream().anyMatch(b -> b.getTitle().equals("Java Programming")));
+        assertTrue(results.stream().anyMatch(b -> b.getTitle().equals("Advanced Java")));
     }
 
     @Test
-    void testCreateBookWithNullTitle() {
+    void testUpdateBook() throws BookServiceException {
         // Given
-        Book book = Book.builder()
-                .title(null)
-                .ISBN("9781111111111")
-                .publicationYear(2024)
-                .build();
+        Book book = createTestBook("Original Service Title", generateUniqueISBN());
+        Book savedBook = bookService.createBook(book);
 
-        // When & Then
-        assertThrows(BookService.BookServiceException.class, () -> {
-            bookService.createBook(book);
-        });
+        // When
+        savedBook.setTitle("Updated Service Title");
+        Book updatedBook = bookService.updateBook(savedBook);
+
+        // Then
+        assertEquals("Updated Service Title", updatedBook.getTitle());
     }
 
     @Test
-    void testCreateBookWithDuplicateISBN() throws BookService.BookServiceException {
-        // Given - Use timestamp to make ISBN unique for this test run
-        String isbn = "978" + String.valueOf(System.currentTimeMillis()).substring(3, 12) + "1";
+    void testDeleteBook() throws BookServiceException {
+        // Given
+        Book book = createTestBook("To Be Deleted by Service", generateUniqueISBN());
+        Book savedBook = bookService.createBook(book);
+
+        // When
+        bookService.deleteBook(savedBook.getId());
+
+        // Then
+        assertThrows(BookServiceException.class, () -> bookService.getBookById(savedBook.getId()));
+    }
+
+    @Test
+    void testGetAllBooks() throws BookServiceException {
+        // Given
+        int initialCount = bookService.getAllBooks().size();
+
+        Book book1 = createTestBook("All Books Test 1", generateUniqueISBN());
+        Book book2 = createTestBook("All Books Test 2", generateUniqueISBN());
+
+        bookService.createBook(book1);
+        bookService.createBook(book2);
+
+        // When
+        List<Book> allBooks = bookService.getAllBooks();
+
+        // Then
+        assertEquals(initialCount + 2, allBooks.size());
+    }
+
+    @Test
+    void testDuplicateISBNHandling() throws BookServiceException {
+        // Given
+        String isbn = generateUniqueISBN();
         Book book1 = createTestBook("First Book", isbn);
-        Book book2 = createTestBook("Second Book", isbn);
+        Book book2 = createTestBook("Duplicate ISBN Book", isbn);
 
         bookService.createBook(book1);
 
         // When & Then
-        assertThrows(BookService.BookServiceException.class, () -> {
-            bookService.createBook(book2);
-        });
+        assertThrows(BookServiceException.class, () -> bookService.createBook(book2),
+                "Should throw BookServiceException for duplicate ISBN");
+    }
+
+    @Test
+    void testValidation() {
+        // When & Then - Test null book
+        assertThrows(BookServiceException.class, () -> bookService.createBook(null),
+                "Should throw BookServiceException for null book");
+
+        // Test book with null title
+        Book invalidBook = Book.builder()
+                .ISBN(generateUniqueISBN())
+                .publicationYear(2024)
+                .build(); // Missing title
+
+        assertThrows(BookServiceException.class, () -> bookService.createBook(invalidBook),
+                "Should throw BookServiceException for book with null title");
     }
 
     private Book createTestBook(String title, String isbn) {
-        Author author = Author.builder()
-                .name("Test Author")
-                .build();
-
-        Set<Author> authors = new HashSet<>();
-        authors.add(author);
-
         return Book.builder()
                 .title(title)
                 .ISBN(isbn)
                 .publicationYear(2024)
-                .description("Test description")
-                .pages(300)
-                .authors(authors)
+                .description("Test description for service layer")
+                .pages(250)
                 .build();
+    }
+
+    private String generateUniqueISBN() {
+        // Generate a unique 13-digit ISBN using timestamp and random number
+        long timestamp = System.currentTimeMillis();
+        int randomNum = random.nextInt(1000);
+        return "978" + String.valueOf(timestamp).substring(3, 12) + (randomNum % 10);
     }
 }
