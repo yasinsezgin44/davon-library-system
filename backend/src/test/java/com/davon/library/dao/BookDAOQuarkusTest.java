@@ -72,9 +72,15 @@ class BookDAOQuarkusTest {
     void testSearchBooks() throws DAOException {
         // Given - Use unique ISBNs to avoid conflicts
         Book book1 = createUniqueTestBook("Quarkus Programming");
-        Thread.sleep(1); // Ensure different timestamps
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+        } // Ensure different timestamps
         Book book2 = createUniqueTestBook("Spring Boot Guide");
-        Thread.sleep(1); // Ensure different timestamps
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+        } // Ensure different timestamps
         Book book3 = createUniqueTestBook("Advanced Quarkus");
 
         bookDAO.save(book1);
