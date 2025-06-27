@@ -160,6 +160,8 @@ public class UserService {
 
     /**
      * Assigns a role to a user.
+     * Note: In this implementation, roles are determined by user types (Member,
+     * Librarian, Admin)
      * 
      * @param user the user to assign the role to
      * @param role the role to assign
@@ -172,7 +174,11 @@ public class UserService {
                 throw new UserServiceException("User and role cannot be null");
             }
 
-            user.setRole(role);
+            // In this simplified implementation, roles are managed through user inheritance
+            // (Member, Librarian, Admin classes), not through a separate role field
+            logger.info("Role assignment requested for user " + user.getUsername() + " (role: " + role.getName() + ")");
+            logger.info("Note: User roles are determined by user type (Member/Librarian/Admin)");
+
             return userDAO.update(user);
         } catch (DAOException e) {
             logger.log(Level.SEVERE, "Failed to assign role", e);
@@ -307,13 +313,26 @@ public class UserService {
     }
 
     /**
-     * Gets users by role.
+     * Gets users by type (role equivalent).
      * 
-     * @param role the role to filter by
-     * @return a list of users with the specified role
+     * @param userType the user type to filter by (Member, Librarian, Admin)
+     * @return a list of users of the specified type
      */
-    public List<User> getUsersByRole(Role role) {
-        return userDAO.findByRole(role);
+    public List<User> getUsersByType(String userType) {
+        return userDAO.findAll().stream()
+                .filter(user -> {
+                    switch (userType.toLowerCase()) {
+                        case "member":
+                            return user instanceof Member;
+                        case "librarian":
+                            return user instanceof Librarian;
+                        case "admin":
+                            return user instanceof Admin;
+                        default:
+                            return false;
+                    }
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     /**

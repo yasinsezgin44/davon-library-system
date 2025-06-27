@@ -46,7 +46,7 @@ public class BookController {
         try {
             Book createdBook = bookService.createBook(book);
             return Response.status(Response.Status.CREATED).entity(createdBook).build();
-        } catch (Exception e) {
+        } catch (BookService.BookServiceException e) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
@@ -58,7 +58,7 @@ public class BookController {
         try {
             Book updatedBook = bookService.updateBook(id, book);
             return Response.ok(updatedBook).build();
-        } catch (Exception e) {
+        } catch (BookService.BookServiceException e) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
@@ -67,12 +67,16 @@ public class BookController {
     @Path("/{id}")
     @Operation(summary = "Delete book", description = "Remove a book from the library")
     public Response deleteBook(@PathParam("id") Long id) {
-        Book book = bookService.getBookById(id);
-        if (book == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        try {
+            Book book = bookService.getBookById(id);
+            if (book == null) {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            bookService.deleteBook(id);
+            return Response.noContent().build();
+        } catch (BookService.BookServiceException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        bookService.deleteBook(id);
-        return Response.noContent().build();
     }
 
     @GET
