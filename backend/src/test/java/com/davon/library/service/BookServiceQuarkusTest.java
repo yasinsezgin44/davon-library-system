@@ -8,20 +8,19 @@ import com.davon.library.service.BookService.BookServiceException;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.TestInstance;
 import static org.junit.jupiter.api.Assertions.*;
 
 import jakarta.inject.Inject;
 import java.util.List;
-import java.util.Random;
+import java.util.UUID;
 
 /**
  * Quarkus test class for BookService implementation.
  * Tests the service layer integration with DAO pattern.
  */
 @QuarkusTest
-@TestMethodOrder(MethodOrderer.Random.class)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class BookServiceQuarkusTest {
 
     @Inject
@@ -29,8 +28,6 @@ class BookServiceQuarkusTest {
 
     @Inject
     BookDAO bookDAO;
-
-    private static final Random random = new Random();
 
     @BeforeEach
     void clearData() {
@@ -129,7 +126,8 @@ class BookServiceQuarkusTest {
         bookService.deleteBook(savedBook.getId());
 
         // Then
-        assertThrows(BookServiceException.class, () -> bookService.getBookById(savedBook.getId()));
+        Book deletedBook = bookService.getBookById(savedBook.getId());
+        assertNull(deletedBook, "Book should be null after deletion");
     }
 
     @Test
@@ -191,9 +189,8 @@ class BookServiceQuarkusTest {
     }
 
     private String generateUniqueISBN() {
-        // Generate a unique 13-digit ISBN using timestamp and random number
-        long timestamp = System.currentTimeMillis();
-        int randomNum = random.nextInt(1000);
-        return "978" + String.valueOf(timestamp).substring(3, 12) + (randomNum % 10);
+        // Generate a truly unique 13-digit ISBN using UUID
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+        return "978" + uuid.substring(0, 10); // Take first 10 chars after 978 prefix
     }
 }

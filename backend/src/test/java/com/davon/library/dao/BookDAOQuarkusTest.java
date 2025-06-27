@@ -5,10 +5,12 @@ import com.davon.library.model.Author;
 import com.davon.library.model.Category;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Order;
 import static org.junit.jupiter.api.Assertions.*;
 
 import jakarta.inject.Inject;
@@ -16,32 +18,43 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Random;
+import java.util.UUID;
+import java.util.Map;
 
 /**
  * Quarkus test class for BookDAO implementation.
  * Demonstrates that the new DAO pattern works correctly with Quarkus framework.
  */
 @QuarkusTest
-@TestMethodOrder(MethodOrderer.Random.class)
+@TestProfile(BookDAOQuarkusTest.TestProfileImpl.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BookDAOQuarkusTest {
 
     @Inject
     BookDAO bookDAO;
 
-    private static final Random random = new Random();
+    public static class TestProfileImpl implements QuarkusTestProfile {
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of(
+                    "quarkus.test.disable-maven-repository", "true");
+        }
+    }
 
     @BeforeEach
     void clearData() {
-        // Clear all books before each test to ensure isolation
+        // Force clear all books before each test to ensure total isolation
         try {
             bookDAO.clearAll();
+            // Double-check by verifying count is 0
+            assertEquals(0, bookDAO.count(), "DAO should be empty after clearAll()");
         } catch (DAOException e) {
-            // Ignore - clear may fail if not supported
+            fail("Failed to clear DAO: " + e.getMessage());
         }
     }
 
     @Test
+    @Order(1)
     void testSaveAndFindById() throws DAOException {
         // Given
         Book book = createTestBook("Quarkus Guide", generateUniqueISBN());
@@ -57,6 +70,7 @@ class BookDAOQuarkusTest {
     }
 
     @Test
+    @Order(2)
     void testFindByISBN() throws DAOException {
         // Given
         String isbn = generateUniqueISBN();
@@ -72,26 +86,32 @@ class BookDAOQuarkusTest {
     }
 
     @Test
+    @Order(3)
     void testSearchBooks() throws DAOException {
-        // Given - Use unique ISBNs to avoid conflicts
-        Book book1 = createTestBook("Quarkus Programming", generateUniqueISBN());
-        Book book2 = createTestBook("Spring Boot Guide", generateUniqueISBN());
-        Book book3 = createTestBook("Advanced Quarkus", generateUniqueISBN());
+        // Given - Start with empty DAO
+        assertEquals(0, bookDAO.count(), "Should start with empty DAO");
+
+        // Create unique test books
+        Book book1 = createTestBook("TestQuarkusBook1_" + System.nanoTime(), generateUniqueISBN());
+        Book book2 = createTestBook("TestSpringBook_" + System.nanoTime(), generateUniqueISBN());
+        Book book3 = createTestBook("TestQuarkusBook2_" + System.nanoTime(), generateUniqueISBN());
 
         bookDAO.save(book1);
         bookDAO.save(book2);
         bookDAO.save(book3);
 
         // When
-        List<Book> results = bookDAO.searchBooks("Quarkus");
+        List<Book> results = bookDAO.searchBooks("TestQuarkus");
 
-        // Then
-        assertEquals(2, results.size());
-        assertTrue(results.stream().anyMatch(b -> b.getTitle().equals("Quarkus Programming")));
-        assertTrue(results.stream().anyMatch(b -> b.getTitle().equals("Advanced Quarkus")));
+        // Then - Should find exactly our 2 Quarkus test books
+        assertEquals(2, results.size(), "Should find exactly 2 TestQuarkus books");
+        assertTrue(results.stream().anyMatch(b -> b.getTitle().startsWith("TestQuarkusBook1_")));
+        assertTrue(results.stream().anyMatch(b -> b.getTitle().startsWith("TestQuarkusBook2_")));
+        assertFalse(results.stream().anyMatch(b -> b.getTitle().contains("Spring")));
     }
 
     @Test
+    @Order(4)
     void testUpdateBook() throws DAOException {
         // Given
         Book book = createTestBook("Original Title", generateUniqueISBN());
@@ -109,6 +129,7 @@ class BookDAOQuarkusTest {
     }
 
     @Test
+    @Order(5)
     void testDeleteBook() throws DAOException {
         // Given
         Book book = createTestBook("To Be Deleted", generateUniqueISBN());
@@ -123,6 +144,7 @@ class BookDAOQuarkusTest {
     }
 
     @Test
+    @Order(6)
     void testExistsByISBN() throws DAOException {
         // Given
         String isbn = generateUniqueISBN();
@@ -135,6 +157,7 @@ class BookDAOQuarkusTest {
     }
 
     @Test
+    @Order(7)
     void testDuplicateISBNValidation() throws DAOException {
         // Given
         String isbn = generateUniqueISBN();
@@ -149,9 +172,10 @@ class BookDAOQuarkusTest {
     }
 
     @Test
+    @Order(8)
     void testFindAll() throws DAOException {
         // Given
-        int initialCount = bookDAO.findAll().size();
+        assertEquals(0, bookDAO.count(), "Should start with empty DAO");
 
         Book book1 = createTestBook("Book One", generateUniqueISBN());
         Book book2 = createTestBook("Book Two", generateUniqueISBN());
@@ -163,13 +187,14 @@ class BookDAOQuarkusTest {
         List<Book> allBooks = bookDAO.findAll();
 
         // Then
-        assertEquals(initialCount + 2, allBooks.size());
+        assertEquals(2, allBooks.size());
     }
 
     @Test
+    @Order(9)
     void testCount() throws DAOException {
         // Given
-        long initialCount = bookDAO.count();
+        assertEquals(0, bookDAO.count(), "Should start with 0 books");
 
         Book book = createTestBook("Count Test", generateUniqueISBN());
         bookDAO.save(book);
@@ -178,7 +203,7 @@ class BookDAOQuarkusTest {
         long newCount = bookDAO.count();
 
         // Then
-        assertEquals(initialCount + 1, newCount);
+        assertEquals(1, newCount);
     }
 
     private Book createTestBook(String title, String isbn) {
@@ -192,9 +217,9 @@ class BookDAOQuarkusTest {
     }
 
     private String generateUniqueISBN() {
-        // Generate a unique 13-digit ISBN using timestamp and random number
-        long timestamp = System.currentTimeMillis();
-        int randomNum = random.nextInt(1000);
-        return "978" + String.valueOf(timestamp).substring(3, 12) + (randomNum % 10);
+        // Generate a truly unique 13-digit ISBN using UUID and nanotime
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+        long nanoTime = System.nanoTime();
+        return "978" + uuid.substring(0, 7) + String.valueOf(nanoTime).substring(0, 3);
     }
 }
