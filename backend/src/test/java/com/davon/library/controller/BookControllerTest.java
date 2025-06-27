@@ -24,11 +24,13 @@ class BookControllerTest {
 
     @Test
     void testCreateAndGetBook() {
-        Book book = new Book();
-        book.setTitle("Test Book");
-        book.setISBN("9781234567890");
-        book.setPublicationYear(2023);
-        book.setDescription("A test book");
+        Book book = Book.builder()
+                .title("Test Book")
+                .ISBN("9781234567890")
+                .publicationYear(2023)
+                .description("A test book")
+                .pages(200)
+                .build();
 
         // Create a book
         given()
