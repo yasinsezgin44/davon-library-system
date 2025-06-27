@@ -2,7 +2,6 @@ package com.davon.library.controller;
 
 import com.davon.library.model.*;
 import com.davon.library.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -36,7 +35,7 @@ public class UserController {
         try {
             User newUser = userService.createUser(userData);
             return Response.status(Response.Status.CREATED).entity(newUser).build();
-        } catch (Exception e) {
+        } catch (UserService.UserServiceException e) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
