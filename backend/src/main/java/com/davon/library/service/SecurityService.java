@@ -1,19 +1,31 @@
 package com.davon.library.service;
 
+import com.davon.library.dao.UserDAO;
 import com.davon.library.model.*;
-import lombok.RequiredArgsConstructor;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
-@RequiredArgsConstructor
+/**
+ * Service for security operations.
+ * Uses DAO pattern following SOLID principles.
+ */
+@ApplicationScoped
 public class SecurityService {
-    private final UserRepository userRepository;
+
+    private static final Logger logger = Logger.getLogger(SecurityService.class.getName());
+
+    @Inject
+    private UserDAO userDAO;
 
     // For demo purposes - in production these would be in a database
     private final Map<String, Long> verificationTokens = new HashMap<>();
