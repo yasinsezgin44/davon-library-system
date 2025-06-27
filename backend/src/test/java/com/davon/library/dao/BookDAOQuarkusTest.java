@@ -187,4 +187,10 @@ class BookDAOQuarkusTest {
                 .pages(200)
                 .build();
     }
+
+    private Book createUniqueTestBook(String title) {
+        // Create a unique ISBN using timestamp
+        String isbn = "978" + String.valueOf(System.currentTimeMillis()).substring(3, 12) + "0";
+        return createTestBook(title, isbn);
+    }
 }

@@ -2,6 +2,8 @@ package com.davon.library.service;
 
 import com.davon.library.model.Book;
 import com.davon.library.model.Author;
+import com.davon.library.dao.BookDAO;
+import com.davon.library.dao.DAOException;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,16 +27,16 @@ class BookServiceQuarkusTest {
     @Inject
     BookService bookService;
 
+    @Inject
+    BookDAO bookDAO;
+
     @BeforeEach
     void clearData() {
         // Clear all books before each test to ensure isolation
         try {
-            List<Book> allBooks = bookService.getAllBooks();
-            for (Book book : allBooks) {
-                bookService.deleteBook(book.getId());
-            }
-        } catch (BookService.BookServiceException e) {
-            // Ignore - data may not exist
+            bookDAO.clearAll();
+        } catch (DAOException e) {
+            // Ignore - clear may fail if not supported
         }
     }
 
@@ -181,8 +183,8 @@ class BookServiceQuarkusTest {
 
     @Test
     void testCreateBookWithDuplicateISBN() throws BookService.BookServiceException {
-        // Given
-        String isbn = "9782020202020";
+        // Given - Use timestamp to make ISBN unique for this test run
+        String isbn = "978" + String.valueOf(System.currentTimeMillis()).substring(3, 12) + "1";
         Book book1 = createTestBook("First Book", isbn);
         Book book2 = createTestBook("Second Book", isbn);
 
