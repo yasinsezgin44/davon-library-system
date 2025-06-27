@@ -70,10 +70,12 @@ class BookDAOQuarkusTest {
 
     @Test
     void testSearchBooks() throws DAOException {
-        // Given
-        Book book1 = createTestBook("Quarkus Programming", "1111111111111");
-        Book book2 = createTestBook("Spring Boot Guide", "2222222222222");
-        Book book3 = createTestBook("Advanced Quarkus", "3333333333333");
+        // Given - Use unique ISBNs to avoid conflicts
+        Book book1 = createUniqueTestBook("Quarkus Programming");
+        Thread.sleep(1); // Ensure different timestamps
+        Book book2 = createUniqueTestBook("Spring Boot Guide");
+        Thread.sleep(1); // Ensure different timestamps
+        Book book3 = createUniqueTestBook("Advanced Quarkus");
 
         bookDAO.save(book1);
         bookDAO.save(book2);
