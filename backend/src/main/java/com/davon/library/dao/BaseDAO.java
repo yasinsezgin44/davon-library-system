@@ -76,4 +76,15 @@ public interface BaseDAO<T, ID> {
      * @return the total count of entities
      */
     long count();
+
+    /**
+     * Clears all entities from the data store.
+     * This method is primarily for testing purposes.
+     * 
+     * @throws DAOException if the clear operation fails
+     */
+    default void clearAll() throws DAOException {
+        // Default implementation - can be overridden by implementations
+        throw new UnsupportedOperationException("clearAll operation not supported by this DAO");
+    }
 }

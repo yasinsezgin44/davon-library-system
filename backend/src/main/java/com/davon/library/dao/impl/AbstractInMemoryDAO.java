@@ -161,4 +161,9 @@ public abstract class AbstractInMemoryDAO<T extends BaseEntity> implements BaseD
         storage.clear();
         idGenerator.set(1L);
     }
+
+    @Override
+    public void clearAll() throws DAOException {
+        clear();
+    }
 }
