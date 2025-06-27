@@ -4,6 +4,7 @@ import com.davon.library.model.Book;
 import com.davon.library.model.Author;
 
 import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,6 +24,19 @@ class BookServiceQuarkusTest {
 
     @Inject
     BookService bookService;
+
+    @BeforeEach
+    void clearData() {
+        // Clear all books before each test to ensure isolation
+        try {
+            List<Book> allBooks = bookService.getAllBooks();
+            for (Book book : allBooks) {
+                bookService.deleteBook(book.getId());
+            }
+        } catch (BookService.BookServiceException e) {
+            // Ignore - data may not exist
+        }
+    }
 
     @Test
     void testCreateBook() throws BookService.BookServiceException {
