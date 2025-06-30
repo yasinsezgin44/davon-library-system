@@ -250,7 +250,7 @@ public class LibrarianService {
                     + loan.getId());
             return loan;
 
-        } catch (BusinessException | UserService.UserServiceException e) {
+        } catch (BusinessException e) {
             logger.log(Level.SEVERE, "Failed to checkout book", e);
             throw new LibrarianServiceException("Failed to checkout book: " + e.getMessage(), e);
         }

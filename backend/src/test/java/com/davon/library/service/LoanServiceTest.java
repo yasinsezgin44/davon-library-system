@@ -1,0 +1,371 @@
+package com.davon.library.service;
+
+import com.davon.library.dao.*;
+import com.davon.library.model.*;
+import com.davon.library.exception.BusinessException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName("LoanService Tests")
+class LoanServiceTest {
+
+    @Mock
+    private LoanDAO loanDAO;
+
+    @Mock
+    private BookCopyDAO bookCopyDAO;
+
+    @Mock
+    private FineDAO fineDAO;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private BookService bookService;
+
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private ReceiptService receiptService;
+
+    private LoanService loanService;
+    private Member testMember;
+    private Book testBook;
+    private BookCopy testBookCopy;
+    private Loan testLoan;
+
+    @BeforeEach
+    void setUp() {
+        loanService = new LoanService(loanDAO, bookCopyDAO, fineDAO, userService,
+                bookService, notificationService, receiptService);
+
+        testMember = Member.builder()
+                .id(1L)
+                .email("test@library.com")
+                .fullName("John Doe")
+                .fineBalance(0.0)
+                .build();
+
+        testBook = Book.builder()
+                .id(1L)
+                .title("Test Book")
+                .ISBN("1234567890")
+                .build();
+
+        testBookCopy = BookCopy.builder()
+                .id(1L)
+                .book(testBook)
+                .status(BookCopy.CopyStatus.AVAILABLE)
+                .build();
+
+        testLoan = Loan.builder()
+                .id(1L)
+                .member(testMember)
+                .bookCopy(testBookCopy)
+                .checkoutDate(LocalDate.now())
+                .dueDate(LocalDate.now().plusDays(14))
+                .status(Loan.LoanStatus.ACTIVE)
+                .renewalCount(0)
+                .build();
+    }
+
+    @Test
+    @DisplayName("Should successfully checkout book when all conditions are met")
+    void testCheckoutBookSuccess() throws Exception {
+        // Arrange
+        when(userService.findById(1L)).thenReturn(testMember);
+        when(bookService.getBookById(1L)).thenReturn(testBook);
+        when(bookCopyDAO.findAvailableByBook(testBook)).thenReturn(Arrays.asList(testBookCopy));
+        when(loanDAO.countActiveLoansByMember(testMember)).thenReturn(2L);
+        when(loanDAO.save(any(Loan.class))).thenReturn(testLoan);
+        when(bookCopyDAO.update(any(BookCopy.class))).thenReturn(testBookCopy);
+
+        // Act
+        Loan result = loanService.checkoutBook(1L, 1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(testMember.getId(), result.getMember().getId());
+        assertEquals(testBookCopy.getId(), result.getBookCopy().getId());
+
+        verify(userService).findById(1L);
+        verify(bookService).getBookById(1L);
+        verify(bookCopyDAO).findAvailableByBook(testBook);
+        verify(loanDAO).save(any(Loan.class));
+        verify(bookCopyDAO).update(any(BookCopy.class));
+        verify(notificationService).sendCheckoutNotification(eq(testMember), any(Loan.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when member has outstanding fines")
+    void testCheckoutBookWithFines() {
+        // Arrange
+        testMember.setFineBalance(10.0);
+        when(userService.findById(1L)).thenReturn(testMember);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.checkoutBook(1L, 1L));
+
+        assertTrue(exception.getMessage().contains("outstanding fines"));
+        verify(userService).findById(1L);
+        verifyNoInteractions(bookService, loanDAO, bookCopyDAO);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when member not found")
+    void testCheckoutBookMemberNotFound() {
+        // Arrange
+        when(userService.findById(1L)).thenReturn(null);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.checkoutBook(1L, 1L));
+
+        assertTrue(exception.getMessage().contains("Member not found"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when user is not a member")
+    void testCheckoutBookUserNotMember() {
+        // Arrange
+        User nonMember = new User() {
+        }; // Anonymous subclass for testing
+        nonMember.setId(1L);
+        when(userService.findById(1L)).thenReturn(nonMember);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.checkoutBook(1L, 1L));
+
+        assertTrue(exception.getMessage().contains("not a member"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when book not found")
+    void testCheckoutBookNotFound() {
+        // Arrange
+        when(userService.findById(1L)).thenReturn(testMember);
+        when(bookService.getBookById(1L)).thenReturn(null);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.checkoutBook(1L, 1L));
+
+        assertTrue(exception.getMessage().contains("Book not found"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when no available copies")
+    void testCheckoutBookNoAvailableCopies() {
+        // Arrange
+        when(userService.findById(1L)).thenReturn(testMember);
+        when(bookService.getBookById(1L)).thenReturn(testBook);
+        when(bookCopyDAO.findAvailableByBook(testBook)).thenReturn(Arrays.asList());
+        when(loanDAO.countActiveLoansByMember(testMember)).thenReturn(2L);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.checkoutBook(1L, 1L));
+
+        assertTrue(exception.getMessage().contains("No available copies"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when member reaches loan limit")
+    void testCheckoutBookLoanLimitReached() {
+        // Arrange
+        when(userService.findById(1L)).thenReturn(testMember);
+        when(loanDAO.countActiveLoansByMember(testMember)).thenReturn(5L); // Max limit
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.checkoutBook(1L, 1L));
+
+        assertTrue(exception.getMessage().contains("maximum loan limit"));
+    }
+
+    @Test
+    @DisplayName("Should successfully return book without late fee")
+    void testReturnBookSuccess() throws Exception {
+        // Arrange
+        when(loanDAO.findById(1L)).thenReturn(Optional.of(testLoan));
+        when(loanDAO.update(any(Loan.class))).thenReturn(testLoan);
+        when(bookCopyDAO.update(any(BookCopy.class))).thenReturn(testBookCopy);
+        when(receiptService.generateReturnReceipt(any(Loan.class), any())).thenReturn(new Receipt());
+
+        // Act
+        Receipt result = loanService.returnBook(1L);
+
+        // Assert
+        assertNotNull(result);
+        verify(loanDAO).findById(1L);
+        verify(loanDAO).update(any(Loan.class));
+        verify(bookCopyDAO).update(any(BookCopy.class));
+        verify(receiptService).generateReturnReceipt(any(Loan.class), isNull());
+        verify(notificationService).sendReturnNotification(eq(testMember), any(Loan.class));
+        verifyNoInteractions(fineDAO); // No fine since not overdue
+    }
+
+    @Test
+    @DisplayName("Should successfully return overdue book with late fee")
+    void testReturnOverdueBookWithFine() throws Exception {
+        // Arrange
+        testLoan.setDueDate(LocalDate.now().minusDays(3)); // Overdue
+        Fine expectedFine = Fine.builder()
+                .member(testMember)
+                .amount(0.75) // 3 days * $0.25
+                .reason(Fine.FineReason.OVERDUE)
+                .status(Fine.FineStatus.PENDING)
+                .build();
+
+        when(loanDAO.findById(1L)).thenReturn(Optional.of(testLoan));
+        when(fineDAO.save(any(Fine.class))).thenReturn(expectedFine);
+        when(userService.updateUser(eq(1L), any(Member.class))).thenReturn(testMember);
+        when(loanDAO.update(any(Loan.class))).thenReturn(testLoan);
+        when(bookCopyDAO.update(any(BookCopy.class))).thenReturn(testBookCopy);
+        when(receiptService.generateReturnReceipt(any(Loan.class), any(Fine.class))).thenReturn(new Receipt());
+
+        // Act
+        Receipt result = loanService.returnBook(1L);
+
+        // Assert
+        assertNotNull(result);
+        verify(fineDAO).save(any(Fine.class));
+        verify(userService).updateUser(eq(1L), any(Member.class));
+        verify(receiptService).generateReturnReceipt(any(Loan.class), any(Fine.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when loan not found for return")
+    void testReturnBookLoanNotFound() {
+        // Arrange
+        when(loanDAO.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.returnBook(1L));
+
+        assertTrue(exception.getMessage().contains("Loan not found"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when trying to return non-active loan")
+    void testReturnBookNotActive() {
+        // Arrange
+        testLoan.setStatus(Loan.LoanStatus.RETURNED);
+        when(loanDAO.findById(1L)).thenReturn(Optional.of(testLoan));
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.returnBook(1L));
+
+        assertTrue(exception.getMessage().contains("Only active loans can be returned"));
+    }
+
+    @Test
+    @DisplayName("Should successfully renew loan when conditions are met")
+    void testRenewLoanSuccess() throws Exception {
+        // Arrange
+        when(loanDAO.findById(1L)).thenReturn(Optional.of(testLoan));
+        when(loanDAO.update(any(Loan.class))).thenReturn(testLoan);
+
+        // Act
+        Loan result = loanService.renewLoan(1L);
+
+        // Assert
+        assertNotNull(result);
+        verify(loanDAO).findById(1L);
+        verify(loanDAO).update(any(Loan.class));
+        verify(notificationService).sendRenewalNotification(eq(testMember), any(Loan.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when renewing loan with outstanding fines")
+    void testRenewLoanWithFines() {
+        // Arrange
+        testMember.setFineBalance(10.0);
+        when(loanDAO.findById(1L)).thenReturn(Optional.of(testLoan));
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.renewLoan(1L));
+
+        assertTrue(exception.getMessage().contains("outstanding fines"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when maximum renewals reached")
+    void testRenewLoanMaxRenewalsReached() {
+        // Arrange
+        testLoan.setRenewalCount(2); // Max renewals
+        when(loanDAO.findById(1L)).thenReturn(Optional.of(testLoan));
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> loanService.renewLoan(1L));
+
+        assertTrue(exception.getMessage().contains("Maximum renewals reached"));
+    }
+
+    @Test
+    @DisplayName("Should get member loans successfully")
+    void testGetMemberLoans() {
+        // Arrange
+        List<Loan> expectedLoans = Arrays.asList(testLoan);
+        when(loanDAO.findByMember(any(Member.class))).thenReturn(expectedLoans);
+
+        // Act
+        List<Loan> result = loanService.getMemberLoans(1L);
+
+        // Assert
+        assertEquals(1, result.size());
+        verify(loanDAO).findByMember(any(Member.class));
+    }
+
+    @Test
+    @DisplayName("Should get member active loans successfully")
+    void testGetMemberActiveLoans() {
+        // Arrange
+        List<Loan> expectedLoans = Arrays.asList(testLoan);
+        when(loanDAO.findActiveLoansByMember(any(Member.class))).thenReturn(expectedLoans);
+
+        // Act
+        List<Loan> result = loanService.getMemberActiveLoans(1L);
+
+        // Assert
+        assertEquals(1, result.size());
+        verify(loanDAO).findActiveLoansByMember(any(Member.class));
+    }
+
+    @Test
+    @DisplayName("Should get overdue loans successfully")
+    void testGetOverdueLoans() {
+        // Arrange
+        List<Loan> expectedLoans = Arrays.asList(testLoan);
+        when(loanDAO.findOverdueLoans(any(LocalDate.class))).thenReturn(expectedLoans);
+
+        // Act
+        List<Loan> result = loanService.getOverdueLoans();
+
+        // Assert
+        assertEquals(1, result.size());
+        verify(loanDAO).findOverdueLoans(any(LocalDate.class));
+    }
+}
