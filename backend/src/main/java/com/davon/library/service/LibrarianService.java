@@ -232,20 +232,22 @@ public class LibrarianService {
             throw new LibrarianServiceException("Member has outstanding fines of $" + member.getFineBalance());
         }
 
+        Loan loan = null;
         try {
             // 2. Create loan record using LoanService (which handles availability checking)
-            Loan loan = loanService.checkoutBook(bookId, memberId);
-
-            logger.info("Book checked out by librarian - Member: " + memberId + ", Book: " + bookId + ", Loan: "
-                    + loan.getId());
+            loan = loanService.checkoutBook(bookId, memberId);
             return loan;
-
         } catch (Exception e) {
             if (e instanceof LibrarianServiceException) {
                 throw (LibrarianServiceException) e;
             }
             logger.log(Level.SEVERE, "Failed to checkout book", e);
             throw new LibrarianServiceException("Failed to checkout book: " + e.getMessage(), e);
+        } finally {
+            if (loan != null) {
+                logger.info("Book checked out by librarian - Member: " + memberId + ", Book: " + bookId + ", Loan: "
+                        + loan.getId());
+            }
         }
     }
 
