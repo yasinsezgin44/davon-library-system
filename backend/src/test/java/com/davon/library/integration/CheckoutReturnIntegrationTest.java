@@ -48,32 +48,48 @@ class CheckoutReturnIntegrationTest {
     @Inject
     FineDAO fineDAO;
 
+    @Inject
+    UserDAO userDAO;
+
     private Member testMember;
     private Book testBook;
     private BookCopy testBookCopy;
+    private String testTimestamp;
 
     @BeforeEach
     @Transactional
     void setUp() throws Exception {
-        // Clear data before each test
+        // Generate unique timestamp for this test run
+        testTimestamp = String.valueOf(System.nanoTime());
+
+        // Clear data before each test to ensure test isolation
         try {
             loanDAO.clearAll();
             fineDAO.clearAll();
             bookCopyDAO.clearAll();
             bookDAO.clearAll();
-        } catch (DAOException e) {
-            // Ignore if clear methods are not available
+            userDAO.clearAll();
+        } catch (Exception e) {
+            // Ignore if clear methods are not available or fail
+            System.out.println("Warning: Could not clear all data: " + e.getMessage());
         }
 
+        // Reset member fine balance to 0 for each test
         setupTestData();
+
+        // Ensure test member has no fines
+        testMember.setFineBalance(0.0);
+        userService.updateUser(testMember.getId(), testMember);
     }
 
     @Transactional
     void setupTestData() throws Exception {
-        // Create test book
+        // Create test book with unique ISBN (use last 10 digits of timestamp for valid
+        // ISBN-10)
+        String validISBN = String.format("%010d", Long.parseLong(testTimestamp) % 10000000000L);
         testBook = Book.builder()
-                .title("Integration Test Book")
-                .ISBN("1234567890123")
+                .title("Integration Test Book " + testTimestamp)
+                .ISBN(validISBN)
                 .publicationYear(2023)
                 .description("A book for testing checkout and return")
                 .build();
@@ -84,17 +100,17 @@ class CheckoutReturnIntegrationTest {
                 .book(testBook)
                 .status(BookCopy.CopyStatus.AVAILABLE)
                 .condition("Good")
-                .location("Test-A1")
+                .location("Test-A1-" + testTimestamp)
                 .acquisitionDate(LocalDate.now().minusMonths(1))
                 .build();
         testBookCopy = bookCopyDAO.save(testBookCopy);
 
-        // Create test member
+        // Create test member with unique username and email
         testMember = Member.builder()
-                .username("integrationtest")
+                .username("testuser" + testTimestamp)
                 .passwordHash("hashedpassword123")
-                .email("integration.test@library.com")
-                .fullName("Integration Test")
+                .email("test" + testTimestamp + "@library.com")
+                .fullName("Integration Test User")
                 .membershipStartDate(LocalDate.now().minusMonths(1))
                 .membershipEndDate(LocalDate.now().plusMonths(11))
                 .fineBalance(0.0)
@@ -210,9 +226,9 @@ class CheckoutReturnIntegrationTest {
 
         // Step 2: Create another member
         Member anotherMember = Member.builder()
-                .username("anothermember")
+                .username("anothermember" + testTimestamp)
                 .passwordHash("hashedpassword456")
-                .email("another@library.com")
+                .email("another" + testTimestamp + "@library.com")
                 .fullName("Another Member")
                 .membershipStartDate(LocalDate.now().minusMonths(1))
                 .membershipEndDate(LocalDate.now().plusMonths(11))

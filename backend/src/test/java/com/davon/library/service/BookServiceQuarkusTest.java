@@ -189,8 +189,8 @@ class BookServiceQuarkusTest {
     }
 
     private String generateUniqueISBN() {
-        // Generate a truly unique 13-digit ISBN using UUID
-        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-        return "978" + uuid.substring(0, 10); // Take first 10 chars after 978 prefix
+        // Generate a truly unique 13-digit ISBN using timestamp + random digits
+        long timestamp = System.nanoTime();
+        return "978" + String.format("%010d", Math.abs(timestamp % 10000000000L));
     }
 }

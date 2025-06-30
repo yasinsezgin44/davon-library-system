@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,34 +40,19 @@ class LibrarianServiceTest {
     @Mock
     private TransactionManager transactionManager;
 
+    @InjectMocks
     private LibrarianService librarianService;
+
     private Member testMember;
+
+    @Mock
     private Book testBook;
+
     private Loan testLoan;
     private Receipt testReceipt;
 
     @BeforeEach
     void setUp() {
-        librarianService = new LibrarianService();
-
-        // Use reflection or setters to inject mocks if needed
-        // For now, assuming constructor injection or field injection works
-        try {
-            java.lang.reflect.Field userServiceField = LibrarianService.class.getDeclaredField("userService");
-            userServiceField.setAccessible(true);
-            userServiceField.set(librarianService, userService);
-
-            java.lang.reflect.Field bookServiceField = LibrarianService.class.getDeclaredField("bookService");
-            bookServiceField.setAccessible(true);
-            bookServiceField.set(librarianService, bookService);
-
-            java.lang.reflect.Field loanServiceField = LibrarianService.class.getDeclaredField("loanService");
-            loanServiceField.setAccessible(true);
-            loanServiceField.set(librarianService, loanService);
-        } catch (Exception e) {
-            // Handle reflection exceptions
-        }
-
         testMember = Member.builder()
                 .id(1L)
                 .username("johndoe")
@@ -75,12 +61,6 @@ class LibrarianServiceTest {
                 .fullName("John Doe")
                 .fineBalance(0.0)
                 .active(true)
-                .build();
-
-        testBook = Book.builder()
-                .id(1L)
-                .title("Test Book")
-                .ISBN("1234567890")
                 .build();
 
         testLoan = Loan.builder()
@@ -116,6 +96,7 @@ class LibrarianServiceTest {
 
         verify(userService).findById(1L);
         verify(bookService).getBookById(1L);
+        verify(testBook).isAvailable();
         verify(loanService).checkoutBook(1L, 1L);
     }
 
@@ -177,6 +158,7 @@ class LibrarianServiceTest {
         when(userService.findById(1L)).thenReturn(testMember);
         when(bookService.getBookById(1L)).thenReturn(testBook);
         when(testBook.isAvailable()).thenReturn(false);
+        when(testBook.getTitle()).thenReturn("Test Book");
 
         // Act & Assert
         LibrarianService.LibrarianServiceException exception = assertThrows(
@@ -186,6 +168,7 @@ class LibrarianServiceTest {
         assertTrue(exception.getMessage().contains("not available"));
         verify(userService).findById(1L);
         verify(bookService).getBookById(1L);
+        verify(testBook).isAvailable();
         verifyNoInteractions(loanService);
     }
 
@@ -204,6 +187,9 @@ class LibrarianServiceTest {
                 () -> librarianService.checkoutBook(1L, 1L));
 
         assertTrue(exception.getMessage().contains("Failed to checkout book"));
+        verify(userService).findById(1L);
+        verify(bookService).getBookById(1L);
+        verify(testBook).isAvailable();
         verify(loanService).checkoutBook(1L, 1L);
     }
 
