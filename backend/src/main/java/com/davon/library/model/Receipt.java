@@ -11,6 +11,8 @@ import java.time.LocalDate;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class Receipt extends BaseEntity {
     private long transactionId;
     private LocalDate issueDate;
