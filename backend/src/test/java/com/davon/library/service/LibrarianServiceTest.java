@@ -69,10 +69,12 @@ class LibrarianServiceTest {
 
         testMember = Member.builder()
                 .id(1L)
+                .username("johndoe")
+                .passwordHash("hashedpassword123")
                 .email("test@library.com")
-                .firstName("John")
-                .lastName("Doe")
+                .fullName("John Doe")
                 .fineBalance(0.0)
+                .active(true)
                 .build();
 
         testBook = Book.builder()

@@ -44,12 +44,14 @@ class LoanDAOTest {
         // Create test member
         testMember = Member.builder()
                 .id(1L)
+                .username("johndoe")
+                .passwordHash("hashedpassword123")
                 .email("test@library.com")
-                .firstName("John")
-                .lastName("Doe")
+                .fullName("John Doe")
                 .membershipStartDate(LocalDate.now().minusMonths(1))
                 .membershipEndDate(LocalDate.now().plusMonths(11))
                 .fineBalance(0.0)
+                .active(true)
                 .build();
     }
 

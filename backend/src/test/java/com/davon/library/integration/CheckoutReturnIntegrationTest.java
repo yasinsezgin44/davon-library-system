@@ -91,12 +91,14 @@ class CheckoutReturnIntegrationTest {
 
         // Create test member
         testMember = Member.builder()
+                .username("integrationtest")
+                .passwordHash("hashedpassword123")
                 .email("integration.test@library.com")
-                .firstName("Integration")
-                .lastName("Test")
+                .fullName("Integration Test")
                 .membershipStartDate(LocalDate.now().minusMonths(1))
                 .membershipEndDate(LocalDate.now().plusMonths(11))
                 .fineBalance(0.0)
+                .active(true)
                 .build();
         testMember = (Member) userService.createUser(testMember);
     }
@@ -208,18 +210,21 @@ class CheckoutReturnIntegrationTest {
 
         // Step 2: Create another member
         Member anotherMember = Member.builder()
+                .username("anothermember")
+                .passwordHash("hashedpassword456")
                 .email("another@library.com")
-                .firstName("Another")
-                .lastName("Member")
+                .fullName("Another Member")
                 .membershipStartDate(LocalDate.now().minusMonths(1))
                 .membershipEndDate(LocalDate.now().plusMonths(11))
                 .fineBalance(0.0)
+                .active(true)
                 .build();
         anotherMember = (Member) userService.createUser(anotherMember);
+        final Long anotherMemberId = anotherMember.getId();
 
         // Step 3: Attempt to checkout same book
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> loanService.checkoutBook(testBook.getId(), anotherMember.getId()));
+                () -> loanService.checkoutBook(testBook.getId(), anotherMemberId));
 
         assertTrue(exception.getMessage().contains("No available copies"));
     }
@@ -275,10 +280,11 @@ class CheckoutReturnIntegrationTest {
 
         loan = loanService.renewLoan(loan.getId());
         assertEquals(2, loan.getRenewalCount());
+        final Long loanId = loan.getId();
 
         // Step 3: Attempt third renewal
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> loanService.renewLoan(loan.getId()));
+                () -> loanService.renewLoan(loanId));
 
         assertTrue(exception.getMessage().contains("Maximum renewals reached"));
     }
