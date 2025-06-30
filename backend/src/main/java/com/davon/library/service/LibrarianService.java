@@ -222,17 +222,17 @@ public class LibrarianService {
      */
     @Transactional
     public Loan checkoutBook(Long bookId, Long memberId) throws LibrarianServiceException {
+        // 1. Validate member can borrow
+        Member member = (Member) userService.findById(memberId);
+        if (member == null) {
+            throw new LibrarianServiceException("Member not found with ID: " + memberId);
+        }
+
+        if (member.getFineBalance() > 0) {
+            throw new LibrarianServiceException("Member has outstanding fines of $" + member.getFineBalance());
+        }
+
         try {
-            // 1. Validate member can borrow
-            Member member = (Member) userService.findById(memberId);
-            if (member == null) {
-                throw new LibrarianServiceException("Member not found with ID: " + memberId);
-            }
-
-            if (member.getFineBalance() > 0) {
-                throw new LibrarianServiceException("Member has outstanding fines of $" + member.getFineBalance());
-            }
-
             // 2. Create loan record using LoanService (which handles availability checking)
             Loan loan = loanService.checkoutBook(bookId, memberId);
 
@@ -241,6 +241,9 @@ public class LibrarianService {
             return loan;
 
         } catch (Exception e) {
+            if (e instanceof LibrarianServiceException) {
+                throw (LibrarianServiceException) e;
+            }
             logger.log(Level.SEVERE, "Failed to checkout book", e);
             throw new LibrarianServiceException("Failed to checkout book: " + e.getMessage(), e);
         }
@@ -264,6 +267,9 @@ public class LibrarianService {
             return receipt;
 
         } catch (Exception e) {
+            if (e instanceof LibrarianServiceException) {
+                throw (LibrarianServiceException) e;
+            }
             logger.log(Level.SEVERE, "Failed to return book", e);
             throw new LibrarianServiceException("Failed to return book: " + e.getMessage(), e);
         }
@@ -279,6 +285,9 @@ public class LibrarianService {
         try {
             return loanService.getOverdueLoans();
         } catch (Exception e) {
+            if (e instanceof LibrarianServiceException) {
+                throw (LibrarianServiceException) e;
+            }
             logger.log(Level.SEVERE, "Failed to get overdue loans", e);
             throw new LibrarianServiceException("Failed to get overdue loans: " + e.getMessage(), e);
         }
@@ -300,6 +309,9 @@ public class LibrarianService {
             return loan;
 
         } catch (Exception e) {
+            if (e instanceof LibrarianServiceException) {
+                throw (LibrarianServiceException) e;
+            }
             logger.log(Level.SEVERE, "Failed to renew loan", e);
             throw new LibrarianServiceException("Failed to renew loan: " + e.getMessage(), e);
         }

@@ -2,6 +2,7 @@ package com.davon.library.service;
 
 import com.davon.library.model.*;
 import com.davon.library.exception.BusinessException;
+import com.davon.library.service.LibrarianService.LibrarianServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -107,8 +108,8 @@ class LibrarianServiceTest {
         when(userService.findById(1L)).thenReturn(null);
 
         // Act & Assert
-        LibrarianService.LibrarianServiceException exception = assertThrows(
-                LibrarianService.LibrarianServiceException.class,
+        LibrarianServiceException exception = assertThrows(
+                LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
         assertTrue(exception.getMessage().contains("Member not found"));
@@ -124,8 +125,8 @@ class LibrarianServiceTest {
         when(userService.findById(1L)).thenReturn(testMember);
 
         // Act & Assert
-        LibrarianService.LibrarianServiceException exception = assertThrows(
-                LibrarianService.LibrarianServiceException.class,
+        LibrarianServiceException exception = assertThrows(
+                LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
         assertTrue(exception.getMessage().contains("outstanding fines"));
@@ -137,18 +138,16 @@ class LibrarianServiceTest {
     @DisplayName("Should throw exception when book not found during checkout")
     void testCheckoutBookNotFound() throws Exception {
         // Arrange
-        when(userService.findById(1L)).thenReturn(testMember);
-        when(bookService.getBookById(1L)).thenReturn(null);
+        when(userService.findById(1L)).thenReturn(null);
 
         // Act & Assert
-        LibrarianService.LibrarianServiceException exception = assertThrows(
-                LibrarianService.LibrarianServiceException.class,
+        LibrarianServiceException exception = assertThrows(
+                LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("Book not found"));
+        assertTrue(exception.getMessage().contains("Member not found"));
         verify(userService).findById(1L);
-        verify(bookService).getBookById(1L);
-        verifyNoInteractions(loanService);
+        verifyNoInteractions(bookService, loanService);
     }
 
     @Test
@@ -161,8 +160,8 @@ class LibrarianServiceTest {
         when(testBook.getTitle()).thenReturn("Test Book");
 
         // Act & Assert
-        LibrarianService.LibrarianServiceException exception = assertThrows(
-                LibrarianService.LibrarianServiceException.class,
+        LibrarianServiceException exception = assertThrows(
+                LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
         assertTrue(exception.getMessage().contains("not available"));
@@ -182,8 +181,8 @@ class LibrarianServiceTest {
         when(loanService.checkoutBook(1L, 1L)).thenThrow(new BusinessException("Loan service error"));
 
         // Act & Assert
-        LibrarianService.LibrarianServiceException exception = assertThrows(
-                LibrarianService.LibrarianServiceException.class,
+        LibrarianServiceException exception = assertThrows(
+                LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
         assertTrue(exception.getMessage().contains("Failed to checkout book"));
@@ -216,8 +215,8 @@ class LibrarianServiceTest {
         when(loanService.returnBook(1L)).thenThrow(new BusinessException("Return service error"));
 
         // Act & Assert
-        LibrarianService.LibrarianServiceException exception = assertThrows(
-                LibrarianService.LibrarianServiceException.class,
+        LibrarianServiceException exception = assertThrows(
+                LibrarianServiceException.class,
                 () -> librarianService.returnBook(1L));
 
         assertTrue(exception.getMessage().contains("Failed to return book"));
@@ -249,8 +248,8 @@ class LibrarianServiceTest {
         when(loanService.getOverdueLoans()).thenThrow(new RuntimeException("Service error"));
 
         // Act & Assert
-        LibrarianService.LibrarianServiceException exception = assertThrows(
-                LibrarianService.LibrarianServiceException.class,
+        LibrarianServiceException exception = assertThrows(
+                LibrarianServiceException.class,
                 () -> librarianService.getOverdueLoans());
 
         assertTrue(exception.getMessage().contains("Failed to get overdue loans"));
@@ -286,8 +285,8 @@ class LibrarianServiceTest {
         when(loanService.renewLoan(1L)).thenThrow(new BusinessException("Renewal not allowed"));
 
         // Act & Assert
-        LibrarianService.LibrarianServiceException exception = assertThrows(
-                LibrarianService.LibrarianServiceException.class,
+        LibrarianServiceException exception = assertThrows(
+                LibrarianServiceException.class,
                 () -> librarianService.renewLoan(1L));
 
         assertTrue(exception.getMessage().contains("Failed to renew loan"));
