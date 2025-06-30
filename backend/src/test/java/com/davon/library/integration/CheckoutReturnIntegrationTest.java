@@ -173,15 +173,21 @@ class CheckoutReturnIntegrationTest {
         assertNotNull(loan);
 
         // Step 2: Simulate overdue by setting due date in the past
-        loan.setDueDate(LocalDate.now().minusDays(3));
-        loanDAO.update(loan);
+        LocalDate overdueDueDate = LocalDate.now().minusDays(5); // 5 days ago to be safe
+        loan.setDueDate(overdueDueDate);
+        loan = loanDAO.update(loan);
+
+        // Verify the loan was updated correctly
+        Loan reloadedLoan = loanDAO.findById(loan.getId()).orElse(null);
+        assertNotNull(reloadedLoan);
+        assertEquals(overdueDueDate, reloadedLoan.getDueDate());
 
         // Step 3: Return overdue book
         Receipt receipt = loanService.returnBook(loan.getId());
 
         assertNotNull(receipt);
         assertTrue(receipt.getTotal() > 0); // Should have fine
-        assertEquals(0.75, receipt.getTotal(), 0.01); // 3 days * $0.25
+        assertEquals(1.25, receipt.getTotal(), 0.01); // 5 days * $0.25
 
         // Verify fine was created
         List<Fine> memberFines = fineDAO.findByMember(testMember);
@@ -189,12 +195,12 @@ class CheckoutReturnIntegrationTest {
 
         Fine fine = memberFines.get(0);
         assertEquals(Fine.FineReason.OVERDUE, fine.getReason());
-        assertEquals(0.75, fine.getAmount(), 0.01);
+        assertEquals(1.25, fine.getAmount(), 0.01);
         assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
 
         // Verify member's fine balance was updated
         Member updatedMember = (Member) userService.findById(testMember.getId());
-        assertEquals(0.75, updatedMember.getFineBalance(), 0.01);
+        assertEquals(1.25, updatedMember.getFineBalance(), 0.01);
     }
 
     @Test

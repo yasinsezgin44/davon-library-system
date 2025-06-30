@@ -33,7 +33,10 @@ public class ReceiptService {
 
     public Receipt generateReturnReceipt(Loan loan, Fine fine) {
         String description = "Book Return: " + loan.getBookCopy().getBook().getTitle();
+        System.out.println("DEBUG Receipt: Fine object = " + fine);
+        System.out.println("DEBUG Receipt: Fine amount = " + (fine != null ? fine.getAmount() : "NULL"));
         double amount = fine != null ? fine.getAmount() : 0.0;
+        System.out.println("DEBUG Receipt: Setting receipt total to = " + amount);
 
         if (fine != null) {
             description += " (Late Fee: $" + fine.getAmount() + ")";
