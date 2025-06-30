@@ -12,7 +12,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, exclude = { "member" })
 public class Fine extends BaseEntity {
+    private Member member;
     private double amount;
     private FineReason reason;
     private LocalDate issueDate;

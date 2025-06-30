@@ -1,9 +1,11 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
+import com.davon.library.exception.BusinessException;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,12 @@ public class LibrarianService {
 
     @Inject
     private TransactionManager transactionManager;
+
+    @Inject
+    private LoanService loanService;
+
+    @Inject
+    private BookService bookService;
 
     // Catalog Management (High Priority)
     /**
@@ -200,6 +208,111 @@ public class LibrarianService {
         // Implementation to check if staff has financial access
         // This would typically check roles/permissions in a real system
         return true; // Placeholder
+    }
+
+    // Book Checkout and Return Process (High Priority)
+    /**
+     * Checks out a book to a member.
+     * Validates member eligibility and book availability before creating loan.
+     * 
+     * @param bookId   the ID of the book to checkout
+     * @param memberId the ID of the member
+     * @return the created loan
+     * @throws LibrarianServiceException if checkout is not allowed
+     */
+    @Transactional
+    public Loan checkoutBook(Long bookId, Long memberId) throws LibrarianServiceException {
+        try {
+            // 1. Validate member can borrow
+            Member member = (Member) userService.findById(memberId);
+            if (member == null) {
+                throw new LibrarianServiceException("Member not found with ID: " + memberId);
+            }
+
+            if (member.getFineBalance() > 0) {
+                throw new LibrarianServiceException("Member has outstanding fines of $" + member.getFineBalance());
+            }
+
+            // 2. Check book availability
+            Book book = bookService.getBookById(bookId);
+            if (book == null) {
+                throw new LibrarianServiceException("Book not found with ID: " + bookId);
+            }
+
+            if (!book.isAvailable()) {
+                throw new LibrarianServiceException("Book not available: " + book.getTitle());
+            }
+
+            // 3. Create loan record using LoanService
+            Loan loan = loanService.checkoutBook(bookId, memberId);
+
+            logger.info("Book checked out by librarian - Member: " + memberId + ", Book: " + bookId + ", Loan: "
+                    + loan.getId());
+            return loan;
+
+        } catch (BusinessException | UserService.UserServiceException e) {
+            logger.log(Level.SEVERE, "Failed to checkout book", e);
+            throw new LibrarianServiceException("Failed to checkout book: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Processes book return and calculates any late fees.
+     * Updates loan status and generates receipt.
+     * 
+     * @param loanId the ID of the loan to return
+     * @return the receipt for the return transaction
+     * @throws LibrarianServiceException if return processing fails
+     */
+    @Transactional
+    public Receipt returnBook(Long loanId) throws LibrarianServiceException {
+        try {
+            // Use LoanService to handle the return process
+            Receipt receipt = loanService.returnBook(loanId);
+
+            logger.info("Book returned by librarian - Loan: " + loanId);
+            return receipt;
+
+        } catch (BusinessException e) {
+            logger.log(Level.SEVERE, "Failed to return book", e);
+            throw new LibrarianServiceException("Failed to return book: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Gets all overdue loans for follow-up.
+     * 
+     * @return list of overdue loans
+     * @throws LibrarianServiceException if retrieval fails
+     */
+    public List<Loan> getOverdueLoans() throws LibrarianServiceException {
+        try {
+            return loanService.getOverdueLoans();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get overdue loans", e);
+            throw new LibrarianServiceException("Failed to get overdue loans: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Renews a loan for a member.
+     * 
+     * @param loanId the ID of the loan to renew
+     * @return the renewed loan
+     * @throws LibrarianServiceException if renewal fails
+     */
+    @Transactional
+    public Loan renewLoan(Long loanId) throws LibrarianServiceException {
+        try {
+            Loan loan = loanService.renewLoan(loanId);
+
+            logger.info("Loan renewed by librarian - Loan: " + loanId);
+            return loan;
+
+        } catch (BusinessException e) {
+            logger.log(Level.SEVERE, "Failed to renew loan", e);
+            throw new LibrarianServiceException("Failed to renew loan: " + e.getMessage(), e);
+        }
     }
 
     /**

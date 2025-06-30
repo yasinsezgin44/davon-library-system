@@ -30,4 +30,26 @@ public class ReceiptService {
         // Logic to print receipt
         System.out.println("Printing receipt " + receipt.getTransactionId());
     }
+
+    public Receipt generateReturnReceipt(Loan loan, Fine fine) {
+        String description = "Book Return: " + loan.getBookCopy().getBook().getTitle();
+        double amount = fine != null ? fine.getAmount() : 0.0;
+
+        if (fine != null) {
+            description += " (Late Fee: $" + fine.getAmount() + ")";
+        }
+
+        Receipt.ReceiptItem[] items = {
+                new Receipt.ReceiptItem(description, amount, 1)
+        };
+
+        Receipt receipt = Receipt.builder()
+                .transactionId(loan.getId()) // Using loan ID as transaction ID
+                .issueDate(LocalDate.now())
+                .items(items)
+                .total(amount)
+                .build();
+
+        return receipt;
+    }
 }
