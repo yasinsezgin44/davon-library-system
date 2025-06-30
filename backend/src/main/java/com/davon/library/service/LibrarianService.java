@@ -240,7 +240,7 @@ public class LibrarianService {
                     + loan.getId());
             return loan;
 
-        } catch (BusinessException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to checkout book", e);
             throw new LibrarianServiceException("Failed to checkout book: " + e.getMessage(), e);
         }
@@ -263,7 +263,7 @@ public class LibrarianService {
             logger.info("Book returned by librarian - Loan: " + loanId);
             return receipt;
 
-        } catch (BusinessException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to return book", e);
             throw new LibrarianServiceException("Failed to return book: " + e.getMessage(), e);
         }
@@ -299,7 +299,7 @@ public class LibrarianService {
             logger.info("Loan renewed by librarian - Loan: " + loanId);
             return loan;
 
-        } catch (BusinessException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to renew loan", e);
             throw new LibrarianServiceException("Failed to renew loan: " + e.getMessage(), e);
         }

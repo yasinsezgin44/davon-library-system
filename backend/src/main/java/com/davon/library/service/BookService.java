@@ -64,11 +64,26 @@ public class BookService {
      */
     public Book createBook(Book book) throws BookServiceException {
         try {
+            // 1. Validate common book metadata rules
             validateBookForCreation(book);
+
+            // 2. Prevent duplicate ISBNs at the service layer before hitting the DAO
+            if (book != null && book.getISBN() != null && isISBNExists(book.getISBN())) {
+                throw new BookServiceException("Book with ISBN " + book.getISBN() + " already exists");
+            }
+
+            // 3. Persist the new book
             return bookDAO.save(book);
         } catch (DAOException e) {
+            // Convert DAO layer exceptions to service layer exceptions so that callers
+            // never need to depend on DAO specific types.
             logger.log(Level.SEVERE, "Failed to create book", e);
             throw new BookServiceException("Failed to create book: " + e.getMessage(), e);
+        } catch (Exception e) {
+            // Defensive catch-all to guarantee the contract of throwing only
+            // BookServiceException out of this method.
+            logger.log(Level.SEVERE, "Unexpected error while creating book", e);
+            throw new BookServiceException("Failed to create book due to unexpected error: " + e.getMessage(), e);
         }
     }
 
