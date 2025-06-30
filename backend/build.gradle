@@ -43,12 +43,6 @@ dependencies {
     // Logging is provided by Quarkus
 }
 
-// Add Java version
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 test {
     useJUnitPlatform()
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
