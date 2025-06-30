@@ -233,17 +233,7 @@ public class LibrarianService {
                 throw new LibrarianServiceException("Member has outstanding fines of $" + member.getFineBalance());
             }
 
-            // 2. Check book availability
-            Book book = bookService.getBookById(bookId);
-            if (book == null) {
-                throw new LibrarianServiceException("Book not found with ID: " + bookId);
-            }
-
-            if (!book.isAvailable()) {
-                throw new LibrarianServiceException("Book not available: " + book.getTitle());
-            }
-
-            // 3. Create loan record using LoanService
+            // 2. Create loan record using LoanService (which handles availability checking)
             Loan loan = loanService.checkoutBook(bookId, memberId);
 
             logger.info("Book checked out by librarian - Member: " + memberId + ", Book: " + bookId + ", Loan: "

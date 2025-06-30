@@ -74,12 +74,8 @@ class CheckoutReturnIntegrationTest {
             System.out.println("Warning: Could not clear all data: " + e.getMessage());
         }
 
-        // Reset member fine balance to 0 for each test
+        // Setup fresh test data for each test
         setupTestData();
-
-        // Ensure test member has no fines
-        testMember.setFineBalance(0.0);
-        userService.updateUser(testMember.getId(), testMember);
     }
 
     @Transactional
