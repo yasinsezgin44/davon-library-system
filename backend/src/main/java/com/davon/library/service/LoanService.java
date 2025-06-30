@@ -286,10 +286,7 @@ public class LoanService {
 
     private Fine calculateAndCreateLateFine(Loan loan) {
         int overdueDays = loan.getOverdueDays();
-        System.out.println("DEBUG: Overdue days = " + overdueDays);
-        System.out.println("DEBUG: Daily fine rate = " + DAILY_FINE_RATE);
         double fineAmount = overdueDays * DAILY_FINE_RATE;
-        System.out.println("DEBUG: Calculated fine amount = " + fineAmount);
 
         return Fine.builder()
                 .member(loan.getMember())
