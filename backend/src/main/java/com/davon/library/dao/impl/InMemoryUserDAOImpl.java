@@ -43,6 +43,10 @@ public class InMemoryUserDAOImpl extends AbstractInMemoryDAO<User> implements Us
                     .address(member.getAddress())
                     .membershipStartDate(member.getMembershipStartDate())
                     .membershipEndDate(member.getMembershipEndDate())
+                    .fineBalance(member.getFineBalance())
+                    .loans(new java.util.HashSet<>(member.getLoans()))
+                    .reservations(new java.util.HashSet<>(member.getReservations()))
+                    .fines(new java.util.HashSet<>(member.getFines()))
                     .build();
         } else if (user instanceof Librarian) {
             Librarian librarian = (Librarian) user;
