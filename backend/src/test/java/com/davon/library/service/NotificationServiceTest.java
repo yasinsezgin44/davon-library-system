@@ -67,8 +67,7 @@ class NotificationServiceTest {
                 .id(1L)
                 .member(member)
                 .book(book)
-                .reservationDate(LocalDate.now().minusDays(3))
-                .expirationDate(LocalDate.now().plusDays(4))
+                .reservationTime(LocalDate.now().minusDays(3).atStartOfDay())
                 .status(Reservation.ReservationStatus.PENDING)
                 .build();
     }
