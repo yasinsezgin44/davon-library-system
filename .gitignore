@@ -48,3 +48,6 @@ out/
 # Do not ignore .gitkeep (used to keep empty dirs)
 !**/.gitkeep
 .Rhistory
+
+# Project deliverables
+/deliverables/
