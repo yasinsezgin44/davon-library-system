@@ -3,8 +3,6 @@ package com.davon.library.service;
 import com.davon.library.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.ArrayList;
 
 @ApplicationScoped
 public class NotificationService {
@@ -65,19 +63,5 @@ public class NotificationService {
 
         // Send notification logic
         System.out.println("Renewal Notification to " + member.getEmail() + ": " + message);
-    }
-
-    public void sendBatchOverdueNotices(List<Loan> overdueLoans) {
-        for (Loan loan : overdueLoans) {
-            Member member = loan.getMember();
-            BookCopy bookCopy = loan.getBookCopy();
-
-            String memberEmail = member.getEmail();
-
-            String notification = String.format("Overdue Notice to %s: The book '%s' is overdue.",
-                    memberEmail, bookCopy.getBook().getTitle());
-
-            System.out.println(notification);
-        }
     }
 }
