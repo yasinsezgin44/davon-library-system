@@ -15,7 +15,11 @@ public class FineService {
             return null;
         }
 
-        int overdueDays = loan.getOverdueDays();
+        LocalDate dueDate = loan.getDueDate();
+        LocalDate currentDate = LocalDate.now();
+
+        int overdueDays = currentDate.getDayOfYear() - dueDate.getDayOfYear();
+
         double amount = Math.min(overdueDays * DAILY_RATE, MAX_FINE);
 
         return Fine.builder()

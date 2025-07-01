@@ -120,4 +120,26 @@ class FineServiceTest {
         // 100 days * $0.50 = $50, but max is $25
         assertEquals(25.00, fine.getAmount());
     }
+
+    @Test
+    void testOverdueFineAcrossMonths() {
+        // Create a loan that spans across months with different lengths
+        LocalDate checkoutDate = LocalDate.now().minusDays(51);
+        LocalDate dueDate = LocalDate.now().minusDays(36);
+
+        Loan crossMonthLoan = Loan.builder()
+                .id(3L)
+                .member(member)
+                .bookCopy(bookCopy)
+                .checkoutDate(checkoutDate)
+                .dueDate(dueDate)
+                .status(Loan.LoanStatus.OVERDUE)
+                .build();
+
+        Fine fine = fineService.calculateOverdueFine(crossMonthLoan);
+
+        assertNotNull(fine);
+        assertEquals(18.00, fine.getAmount(),
+                "Fine should be $18.00 for 36 days overdue, but got $" + fine.getAmount());
+    }
 }
