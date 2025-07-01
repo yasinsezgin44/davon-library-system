@@ -15,6 +15,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -207,9 +208,20 @@ class CheckoutReturnIntegrationTest {
     @DisplayName("Should prevent checkout when member has outstanding fines")
     @org.junit.jupiter.api.Order(3)
     void testCheckoutPreventedByOutstandingFines() throws Exception {
-        // Step 1: Add fine to member
-        testMember.addFine(5.0);
-        userService.updateUser(testMember.getId(), testMember);
+        // Step 1: Create and persist a fine
+        Fine fine = Fine.builder()
+                .member(testMember)
+                .amount(5.0)
+                .reason(Fine.FineReason.OVERDUE)
+                .status(Fine.FineStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .issueDate(LocalDate.now())
+                .build();
+        fineDAO.save(fine);
+
+        // Verify member's fine balance is updated
+        Member updatedMember = (Member) userService.findById(testMember.getId());
+        assertEquals(5.0, updatedMember.getFineBalance(), 0.01);
 
         // Step 2: Attempt to checkout book
         BusinessException exception = assertThrows(BusinessException.class,
