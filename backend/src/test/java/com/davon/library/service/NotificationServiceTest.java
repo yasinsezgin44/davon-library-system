@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -114,5 +115,55 @@ class NotificationServiceTest {
         assertTrue(output.contains("Reservation Notice to member@test.com"));
         assertTrue(output.contains("The book 'Test Book' you reserved is now available"));
         assertTrue(output.contains("Please pick it up within 3 days"));
+    }
+
+    @Test
+    void testBatchOverdueNotifications() {
+        Member member2 = Member.builder()
+                .id(2L)
+                .fullName("Jane Doe")
+                .email("jane.doe@example.com")
+                .active(true)
+                .build();
+
+        Member member3 = Member.builder()
+                .id(3L)
+                .fullName("Bob Smith")
+                .email("bob.smith@company.org")
+                .active(true)
+                .build();
+
+        Loan loan2 = Loan.builder()
+                .id(2L)
+                .member(member2)
+                .bookCopy(bookCopy)
+                .checkoutDate(LocalDate.now().minusDays(25))
+                .dueDate(LocalDate.now().minusDays(8))
+                .status(Loan.LoanStatus.OVERDUE)
+                .build();
+
+        Loan loan3 = Loan.builder()
+                .id(3L)
+                .member(member3)
+                .bookCopy(bookCopy)
+                .checkoutDate(LocalDate.now().minusDays(30))
+                .dueDate(LocalDate.now().minusDays(12))
+                .status(Loan.LoanStatus.OVERDUE)
+                .build();
+
+        List<Loan> overdueLoans = List.of(loan, loan2, loan3);
+
+        outContent.reset();
+
+        notificationService.sendBatchOverdueNotices(overdueLoans);
+
+        String output = outContent.toString();
+
+        assertTrue(output.contains("member@test.com"),
+                "Should contain member email");
+        assertTrue(output.contains("jane.doe@example.com"),
+                "Should contain Jane's email ");
+        assertTrue(output.contains("bob.smith@company.org"),
+                "Should contain Bob's email");
     }
 }
