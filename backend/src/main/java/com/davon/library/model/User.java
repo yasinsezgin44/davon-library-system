@@ -28,7 +28,7 @@ public abstract class User extends BaseEntity {
     private String email;
     private String phoneNumber;
     private boolean active;
-    private String status;
+    private UserStatus status;
     private LocalDate lastLogin;
     private LocalDateTime createdAt;
     private LocalDateTime lastModifiedAt;

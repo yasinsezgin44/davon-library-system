@@ -18,7 +18,7 @@ public class LoanHistory extends BaseEntity {
     private Loan loan;
     private Book book;
     private LocalDate actionDate;
-    private String action; // CHECKOUT, RETURN, RENEWAL
+    private LoanAction action;
 
     public List<Loan> getActiveLoans() {
         // This would be implemented in LoanHistoryRepository
