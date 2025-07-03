@@ -75,9 +75,9 @@ public class DatabaseConnectionManager {
     public String getDatabaseInfo() {
         try (Connection connection = getConnection()) {
             var metaData = connection.getMetaData();
-            return String.format("%s %s",
-                    metaData.getDatabaseProductName(),
-                    metaData.getDatabaseProductVersion());
+            return String.format("%s %s", 
+                metaData.getDatabaseProductName(), 
+                metaData.getDatabaseProductVersion());
         } catch (SQLException e) {
             logger.error("Failed to get database info", e);
             return "Unknown";
