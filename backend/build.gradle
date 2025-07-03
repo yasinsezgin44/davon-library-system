@@ -23,6 +23,11 @@ dependencies {
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-config-yaml'
     
+    // Database dependencies
+    implementation 'io.quarkus:quarkus-agroal'
+    implementation 'io.quarkus:quarkus-jdbc-mssql'
+    implementation 'com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11'
+    
     // JUnit Jupiter for testing
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
