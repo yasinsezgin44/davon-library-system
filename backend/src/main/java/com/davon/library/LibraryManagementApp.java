@@ -1,5 +1,6 @@
 package com.davon.library;
 
+import com.davon.library.database.DatabaseConnectionManager;
 import com.davon.library.model.Book;
 import com.davon.library.service.BookService;
 import io.quarkus.runtime.Quarkus;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Main entry point for the Library Management System.
+ * Enhanced with MSSQL database connectivity demonstration.
  */
 @QuarkusMain
 public class LibraryManagementApp implements QuarkusApplication {
@@ -19,13 +21,24 @@ public class LibraryManagementApp implements QuarkusApplication {
     @Inject
     BookService bookService;
 
+    @Inject
+    DatabaseConnectionManager databaseConnectionManager;
+
     public static void main(String[] args) {
         Quarkus.run(LibraryManagementApp.class, args);
     }
 
     @Override
     public int run(String... args) throws Exception {
-        logger.info("Starting Library Management System");
+        logger.info("Starting Library Management System with MSSQL Database");
+
+        // Test database connectivity
+        if (databaseConnectionManager.isDatabaseAccessible()) {
+            logger.info("Database connection successful: {}", databaseConnectionManager.getDatabaseInfo());
+        } else {
+            logger.error("Database connection failed!");
+            return 1;
+        }
 
         // Add some sample data
         Book book = new Book();
@@ -34,10 +47,17 @@ public class LibraryManagementApp implements QuarkusApplication {
         book.setPublicationYear(2008);
         book.setDescription("A handbook of agile software craftsmanship");
 
-        bookService.createBook(book);
+        try {
+            bookService.createBook(book);
+            logger.info("Successfully added sample book: {}", book.getTitle());
+        } catch (Exception e) {
+            logger.error("Failed to add sample book", e);
+        }
 
-        logger.info("Added sample book: {}", book.getTitle());
         logger.info("Library Management System started successfully");
+        logger.info("API available at: http://localhost:8080");
+        logger.info("Swagger UI available at: http://localhost:8080/q/swagger-ui");
+        logger.info("Database status endpoint: http://localhost:8080/api/database/status");
 
         Quarkus.waitForExit();
         return 0;

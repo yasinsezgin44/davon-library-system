@@ -21,20 +21,14 @@ public class DatabaseHealthCheck implements HealthCheck {
         try {
             boolean isAccessible = connectionManager.isDatabaseAccessible();
             String databaseInfo = connectionManager.getDatabaseInfo();
-            
+
             if (isAccessible) {
-                return HealthCheckResponse.up("Database")
-                    .withData("database", databaseInfo)
-                    .build();
+                return HealthCheckResponse.up("Database").build();
             } else {
-                return HealthCheckResponse.down("Database")
-                    .withData("error", "Database is not accessible")
-                    .build();
+                return HealthCheckResponse.down("Database").build();
             }
         } catch (Exception e) {
-            return HealthCheckResponse.down("Database")
-                .withData("error", e.getMessage())
-                .build();
+            return HealthCheckResponse.down("Database").build();
         }
     }
 }
