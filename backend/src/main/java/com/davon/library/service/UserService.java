@@ -297,12 +297,12 @@ public class UserService {
             }
 
             User user = userOpt.get();
-            String oldStatus = user.getStatus();
-            user.setStatus(newStatus);
+            UserStatus oldStatus = user.getStatus();
+            user.setStatus(UserStatus.valueOf(newStatus.toUpperCase()));
             userDAO.update(user);
 
             // Notify listeners
-            notifyStatusChange(user, oldStatus, newStatus);
+            notifyStatusChange(user, oldStatus.name(), newStatus);
             return true;
         } catch (DAOException e) {
             logger.log(Level.SEVERE, "Failed to update user status", e);

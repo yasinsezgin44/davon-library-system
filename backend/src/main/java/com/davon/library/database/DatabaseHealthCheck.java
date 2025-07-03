@@ -20,15 +20,14 @@ public class DatabaseHealthCheck implements HealthCheck {
     public HealthCheckResponse call() {
         try {
             boolean isAccessible = connectionManager.isDatabaseAccessible();
-            String databaseInfo = connectionManager.getDatabaseInfo();
 
             if (isAccessible) {
-                return HealthCheckResponse.up("Database").build();
+                return HealthCheckResponse.up("Database");
             } else {
-                return HealthCheckResponse.down("Database").build();
+                return HealthCheckResponse.down("Database");
             }
         } catch (Exception e) {
-            return HealthCheckResponse.down("Database").build();
+            return HealthCheckResponse.down("Database");
         }
     }
 }
