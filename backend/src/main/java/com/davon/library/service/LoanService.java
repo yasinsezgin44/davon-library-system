@@ -165,7 +165,12 @@ public class LoanService {
      * @return list of overdue loans
      */
     public List<Loan> getOverdueLoans() {
-        return loanDAO.findOverdueLoans(LocalDate.now());
+        try {
+            return loanDAO.findOverdueLoans(LocalDate.now());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error getting overdue loans", e);
+            throw new RuntimeException("Service error");
+        }
     }
 
     /**

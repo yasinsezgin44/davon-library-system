@@ -11,18 +11,24 @@ public class FineService {
     private static final double MAX_FINE = 25.00; // Maximum fine amount
 
     public Fine calculateOverdueFine(Loan loan) {
-        if (loan.getStatus() != Loan.LoanStatus.OVERDUE) {
+        if (loan.getStatus() != Loan.LoanStatus.OVERDUE && loan.getStatus() != Loan.LoanStatus.ACTIVE) {
             return null;
         }
 
         LocalDate dueDate = loan.getDueDate();
         LocalDate currentDate = LocalDate.now();
 
-        int overdueDays = currentDate.getDayOfYear() - dueDate.getDayOfYear();
+        // If not actually overdue, return null
+        if (!currentDate.isAfter(dueDate)) {
+            return null;
+        }
+
+        int overdueDays = (int) ChronoUnit.DAYS.between(dueDate, currentDate);
 
         double amount = Math.min(overdueDays * DAILY_RATE, MAX_FINE);
 
         return Fine.builder()
+                .member(loan.getMember())
                 .amount(amount)
                 .reason(Fine.FineReason.OVERDUE)
                 .issueDate(LocalDate.now())
