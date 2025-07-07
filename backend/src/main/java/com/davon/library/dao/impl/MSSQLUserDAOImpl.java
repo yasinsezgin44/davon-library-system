@@ -28,42 +28,66 @@ public class MSSQLUserDAOImpl implements UserDAO {
 
     @Override
     public User save(User entity) throws DAOException {
-        String sql = "INSERT INTO users (username, password_hash, full_name, email, phone_number, active, status, last_login, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, password_hash, email, full_name, phone_number, address, active, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             LocalDateTime now = LocalDateTime.now();
             entity.setCreatedAt(now);
-            entity.setLastModifiedAt(now);
+            entity.setUpdatedAt(now);
 
             stmt.setString(1, entity.getUsername());
             stmt.setString(2, entity.getPasswordHash());
-            stmt.setString(3, entity.getFullName());
-            stmt.setString(4, entity.getEmail());
+            stmt.setString(3, entity.getEmail());
+            stmt.setString(4, entity.getFullName());
             stmt.setString(5, entity.getPhoneNumber());
-            stmt.setBoolean(6, entity.isActive());
-            stmt.setString(7, entity.getStatus() != null ? entity.getStatus().name() : "ACTIVE");
-            stmt.setDate(8, entity.getLastLogin() != null ? Date.valueOf(entity.getLastLogin()) : null);
+            stmt.setString(6, entity.getAddress());
+            stmt.setBoolean(7, entity.isActive());
+            stmt.setString(8,
+                    entity.getStatus() != null ? entity.getStatus().toString() : UserStatus.ACTIVE.toString());
             stmt.setTimestamp(9, Timestamp.valueOf(now));
             stmt.setTimestamp(10, Timestamp.valueOf(now));
 
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new DAOException("Creating user failed, no rows affected.");
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Creating user failed, no rows affected.");
             }
 
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     entity.setId(generatedKeys.getLong(1));
+                } else {
+                    throw new SQLException("Creating user failed, no ID obtained.");
                 }
             }
 
-            return entity;
+            // If this is a Member, also insert into members table
+            if (entity instanceof Member) {
+                insertMemberRecord((Member) entity, conn);
+            }
 
+            return entity;
         } catch (SQLException e) {
-            logger.error("Error saving user", e);
+            logger.error("Error saving user with username: {}", entity.getUsername(), e);
             throw new DAOException("Failed to save user", e);
+        }
+    }
+
+    private void insertMemberRecord(Member member, Connection conn) throws SQLException {
+        String memberSql = "INSERT INTO members (user_id, membership_start_date, membership_end_date, address, fine_balance) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement memberStmt = conn.prepareStatement(memberSql)) {
+            memberStmt.setLong(1, member.getId());
+            memberStmt.setDate(2,
+                    member.getMembershipStartDate() != null ? Date.valueOf(member.getMembershipStartDate())
+                            : Date.valueOf(LocalDate.now()));
+            memberStmt.setDate(3,
+                    member.getMembershipEndDate() != null ? Date.valueOf(member.getMembershipEndDate()) : null);
+            memberStmt.setString(4, member.getAddress());
+            memberStmt.setDouble(5, member.getFineBalance() != null ? member.getFineBalance() : 0.0);
+
+            memberStmt.executeUpdate();
+            logger.debug("Successfully inserted member record for user ID: {}", member.getId());
         }
     }
 
