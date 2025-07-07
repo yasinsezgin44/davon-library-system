@@ -85,4 +85,14 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
     public List<Loan> findAll() {
         return List.of();
     }
+
+    @Override
+    public void delete(Loan loan) {
+        // No-op for now
+    }
+
+    @Override
+    public void clearAll() {
+        // No-op for now
+    }
 }

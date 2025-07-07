@@ -78,4 +78,9 @@ public class MSSQLBookCopyDAOImpl implements BookCopyDAO {
     public void delete(BookCopy bookCopy) {
         // No-op for now
     }
+
+    @Override
+    public void clearAll() {
+        // No-op for now
+    }
 }
