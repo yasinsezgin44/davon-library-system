@@ -63,18 +63,18 @@ public class MSSQLBookCopyDAOImpl implements BookCopyDAO {
 
     @Override
     public BookCopy update(BookCopy bookCopy) throws DAOException {
-        String sql = "UPDATE book_copies SET book_id = ?, barcode = ?, location = ?, status = ?, condition_notes = ?, updated_at = ? WHERE id = ?";
+        String sql = "UPDATE book_copies SET book_id = ?, location = ?, status = ?, condition = ?, acquisition_date = ?, updated_at = ? WHERE id = ?";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             bookCopy.setUpdatedAt(LocalDateTime.now());
 
-            stmt.setLong(1, bookCopy.getBookId());
-            stmt.setString(2, bookCopy.getBarcode());
-            stmt.setString(3, bookCopy.getLocation());
-            stmt.setString(4, bookCopy.getStatus().name());
-            stmt.setString(5, bookCopy.getConditionNotes());
+            stmt.setLong(1, bookCopy.getBook() != null ? bookCopy.getBook().getId() : null);
+            stmt.setString(2, bookCopy.getLocation());
+            stmt.setString(3, bookCopy.getStatus().name());
+            stmt.setString(4, bookCopy.getCondition());
+            stmt.setDate(5, bookCopy.getAcquisitionDate() != null ? Date.valueOf(bookCopy.getAcquisitionDate()) : null);
             stmt.setTimestamp(6, Timestamp.valueOf(bookCopy.getUpdatedAt()));
             stmt.setLong(7, bookCopy.getId());
 
@@ -268,25 +268,11 @@ public class MSSQLBookCopyDAOImpl implements BookCopyDAO {
 
     @Override
     public Optional<BookCopy> findByBarcode(String barcode) {
-        String sql = "SELECT * FROM book_copies WHERE barcode = ?";
-
-        try (Connection conn = connectionManager.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, barcode);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(mapResultSetToBookCopy(rs));
-                }
-            }
-
-            return Optional.empty();
-
-        } catch (SQLException e) {
-            logger.error("Error finding book copy by barcode {}", barcode, e);
-            return Optional.empty();
-        }
+        // Note: BookCopy model doesn't have barcode field in this implementation
+        // This method returns empty for now - consider adding barcode field to model if
+        // needed
+        logger.warn("findByBarcode called but BookCopy model doesn't have barcode field");
+        return Optional.empty();
     }
 
     @Override

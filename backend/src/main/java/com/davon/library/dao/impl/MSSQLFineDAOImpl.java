@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,7 +51,7 @@ public class MSSQLFineDAOImpl implements FineDAO {
 
     @Override
     public Fine save(Fine fine) throws DAOException {
-        String sql = "INSERT INTO fines (member_id, loan_id, amount, reason, status, due_date, paid_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO fines (member_id, amount, reason, issue_date, due_date, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -59,15 +60,14 @@ public class MSSQLFineDAOImpl implements FineDAO {
             fine.setCreatedAt(now);
             fine.setUpdatedAt(now);
 
-            stmt.setLong(1, fine.getMemberId());
-            stmt.setObject(2, fine.getLoanId()); // May be null
-            stmt.setBigDecimal(3, fine.getAmount());
-            stmt.setString(4, fine.getReason().name());
-            stmt.setString(5, fine.getStatus().name());
-            stmt.setDate(6, fine.getDueDate() != null ? Date.valueOf(fine.getDueDate()) : null);
-            stmt.setDate(7, fine.getPaidDate() != null ? Date.valueOf(fine.getPaidDate()) : null);
+            stmt.setLong(1, fine.getMember() != null ? fine.getMember().getId() : null);
+            stmt.setBigDecimal(2, BigDecimal.valueOf(fine.getAmount()));
+            stmt.setString(3, fine.getReason().name());
+            stmt.setDate(4, fine.getIssueDate() != null ? Date.valueOf(fine.getIssueDate()) : null);
+            stmt.setDate(5, fine.getDueDate() != null ? Date.valueOf(fine.getDueDate()) : null);
+            stmt.setString(6, fine.getStatus().name());
+            stmt.setTimestamp(7, Timestamp.valueOf(now));
             stmt.setTimestamp(8, Timestamp.valueOf(now));
-            stmt.setTimestamp(9, Timestamp.valueOf(now));
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -113,7 +113,7 @@ public class MSSQLFineDAOImpl implements FineDAO {
 
     @Override
     public List<Fine> findUnpaidFinesByMember(Member member) {
-        String sql = "SELECT * FROM fines WHERE member_id = ? AND status = 'UNPAID'";
+        String sql = "SELECT * FROM fines WHERE member_id = ? AND status = 'PENDING'";
         List<Fine> fines = new ArrayList<>();
 
         try (Connection conn = connectionManager.getConnection();
@@ -136,7 +136,7 @@ public class MSSQLFineDAOImpl implements FineDAO {
 
     @Override
     public double getTotalUnpaidAmount(Member member) {
-        String sql = "SELECT SUM(amount) FROM fines WHERE member_id = ? AND status = 'UNPAID'";
+        String sql = "SELECT SUM(amount) FROM fines WHERE member_id = ? AND status = 'PENDING'";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -158,22 +158,21 @@ public class MSSQLFineDAOImpl implements FineDAO {
 
     @Override
     public Fine update(Fine fine) throws DAOException {
-        String sql = "UPDATE fines SET member_id = ?, loan_id = ?, amount = ?, reason = ?, status = ?, due_date = ?, paid_date = ?, updated_at = ? WHERE id = ?";
+        String sql = "UPDATE fines SET member_id = ?, amount = ?, reason = ?, issue_date = ?, due_date = ?, status = ?, updated_at = ? WHERE id = ?";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             fine.setUpdatedAt(LocalDateTime.now());
 
-            stmt.setLong(1, fine.getMemberId());
-            stmt.setObject(2, fine.getLoanId()); // May be null
-            stmt.setBigDecimal(3, fine.getAmount());
-            stmt.setString(4, fine.getReason().name());
-            stmt.setString(5, fine.getStatus().name());
-            stmt.setDate(6, fine.getDueDate() != null ? Date.valueOf(fine.getDueDate()) : null);
-            stmt.setDate(7, fine.getPaidDate() != null ? Date.valueOf(fine.getPaidDate()) : null);
-            stmt.setTimestamp(8, Timestamp.valueOf(fine.getUpdatedAt()));
-            stmt.setLong(9, fine.getId());
+            stmt.setLong(1, fine.getMember() != null ? fine.getMember().getId() : null);
+            stmt.setBigDecimal(2, BigDecimal.valueOf(fine.getAmount()));
+            stmt.setString(3, fine.getReason().name());
+            stmt.setDate(4, fine.getIssueDate() != null ? Date.valueOf(fine.getIssueDate()) : null);
+            stmt.setDate(5, fine.getDueDate() != null ? Date.valueOf(fine.getDueDate()) : null);
+            stmt.setString(6, fine.getStatus().name());
+            stmt.setTimestamp(7, Timestamp.valueOf(fine.getUpdatedAt()));
+            stmt.setLong(8, fine.getId());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -215,7 +214,7 @@ public class MSSQLFineDAOImpl implements FineDAO {
 
     @Override
     public List<Fine> findOverdueFines(LocalDate date) {
-        String sql = "SELECT * FROM fines WHERE due_date < ? AND status = 'UNPAID'";
+        String sql = "SELECT * FROM fines WHERE due_date < ? AND status = 'PENDING'";
         List<Fine> fines = new ArrayList<>();
 
         try (Connection conn = connectionManager.getConnection();
@@ -358,25 +357,25 @@ public class MSSQLFineDAOImpl implements FineDAO {
     private Fine mapResultSetToFine(ResultSet rs) throws SQLException {
         Fine fine = new Fine();
         fine.setId(rs.getLong("id"));
-        fine.setMemberId(rs.getLong("member_id"));
 
-        Long loanId = rs.getLong("loan_id");
-        if (!rs.wasNull()) {
-            fine.setLoanId(loanId);
-        }
+        // Create stub Member object with just ID
+        // In a full implementation, you might want to load this via MemberDAO
+        Member member = new Member();
+        member.setId(rs.getLong("member_id"));
+        fine.setMember(member);
 
-        fine.setAmount(rs.getBigDecimal("amount"));
+        fine.setAmount(rs.getBigDecimal("amount").doubleValue());
         fine.setReason(Fine.FineReason.valueOf(rs.getString("reason")));
         fine.setStatus(Fine.FineStatus.valueOf(rs.getString("status")));
+
+        Date issueDate = rs.getDate("issue_date");
+        if (issueDate != null) {
+            fine.setIssueDate(issueDate.toLocalDate());
+        }
 
         Date dueDate = rs.getDate("due_date");
         if (dueDate != null) {
             fine.setDueDate(dueDate.toLocalDate());
-        }
-
-        Date paidDate = rs.getDate("paid_date");
-        if (paidDate != null) {
-            fine.setPaidDate(paidDate.toLocalDate());
         }
 
         Timestamp createdAt = rs.getTimestamp("created_at");
