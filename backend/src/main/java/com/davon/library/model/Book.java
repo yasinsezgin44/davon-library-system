@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.util.HashSet;
@@ -8,12 +9,14 @@ import java.util.Set;
 /**
  * Represents a book in the library system.
  */
+@Entity
+@Table(name = "books")
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = { "authors" })
-@ToString(callSuper = true, exclude = { "authors" })
+@EqualsAndHashCode(callSuper = true, exclude = { "authors", "copies" })
+@ToString(callSuper = true, exclude = { "authors", "copies" })
 public class Book extends BaseEntity {
     @jakarta.validation.constraints.NotBlank
     private String title;
@@ -23,6 +26,7 @@ public class Book extends BaseEntity {
      * simplicity.
      */
     @jakarta.validation.constraints.Pattern(regexp = "\\d{10}|\\d{13}", message = "ISBN must be 10 or 13 digits")
+    @Column(unique = true, nullable = false)
     private String ISBN;
 
     @jakarta.validation.constraints.Min(value = 1, message = "Publication year must be positive")
@@ -30,10 +34,22 @@ public class Book extends BaseEntity {
     private String description;
     private String coverImage;
     private int pages;
+
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(name = "book_authors", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "author_id"))
     @lombok.Builder.Default
     private Set<Author> authors = new HashSet<>();
+
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinColumn(name = "publisher_id")
     private Publisher publisher;
+
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinColumn(name = "category_id")
     private Category category;
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<BookCopy> copies = new HashSet<>();
 
     // Methods from diagram
     public int getAvailableCopies() {

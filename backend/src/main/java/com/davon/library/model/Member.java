@@ -1,5 +1,9 @@
 package com.davon.library.model;
 
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.time.LocalDate;
@@ -10,22 +14,31 @@ import java.util.List;
 /**
  * Represents a library member who can borrow books and make reservations.
  */
+@Entity
+@DiscriminatorValue("member")
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = { "loans", "reservations", "fines" })
 @ToString(callSuper = true, exclude = { "loans", "reservations", "fines" })
 public class Member extends User {
     private LocalDate membershipStartDate;
     private LocalDate membershipEndDate;
     private String address;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @lombok.Builder.Default
     private Set<Loan> loans = new HashSet<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @lombok.Builder.Default
     private Set<Reservation> reservations = new HashSet<>();
+
     @lombok.Builder.Default
     private double fineBalance = 0.0;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @lombok.Builder.Default
     private Set<Fine> fines = new HashSet<>();
 
