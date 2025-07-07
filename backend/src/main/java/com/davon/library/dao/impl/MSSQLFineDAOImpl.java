@@ -27,7 +27,7 @@ public class MSSQLFineDAOImpl implements FineDAO {
     }
 
     @Override
-    public List<Fine> findUnpaidFines(Member member) {
+    public List<Fine> findUnpaidFinesByMember(Member member) {
         return List.of();
     }
 
@@ -57,7 +57,7 @@ public class MSSQLFineDAOImpl implements FineDAO {
     }
 
     @Override
-    public List<Fine> findByReason(FineReason reason) {
+    public List<Fine> findByReason(Fine.FineReason reason) {
         return List.of();
     }
 
@@ -73,6 +73,16 @@ public class MSSQLFineDAOImpl implements FineDAO {
 
     @Override
     public void delete(Fine fine) {
+        // No-op for now
+    }
+
+    @Override
+    public List<Fine> findByStatus(Fine.FineStatus status) {
+        return List.of();
+    }
+
+    @Override
+    public void clearAll() {
         // No-op for now
     }
 }
