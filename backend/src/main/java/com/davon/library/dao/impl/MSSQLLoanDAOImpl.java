@@ -6,6 +6,7 @@ import com.davon.library.database.DatabaseConnectionManager;
 import com.davon.library.model.Loan;
 import com.davon.library.model.Member;
 import com.davon.library.model.BookCopy;
+import com.davon.library.dao.BookCopyDAO;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
@@ -24,6 +25,9 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
 
     @Inject
     DatabaseConnectionManager connectionManager;
+
+    @Inject
+    BookCopyDAO bookCopyDAO;
 
     @Override
     public Loan save(Loan loan) throws DAOException {
@@ -405,16 +409,30 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
         Loan loan = new Loan();
         loan.setId(rs.getLong("id"));
 
-        // Create stub Member and BookCopy objects with just IDs
-        // In a full implementation, you might want to load these via their respective
-        // DAOs
+        // Create stub Member object with just ID for now
+        // In a full implementation, you might want to load this via MemberDAO as well
         Member member = new Member();
         member.setId(rs.getLong("member_id"));
         loan.setMember(member);
 
-        BookCopy bookCopy = new BookCopy();
-        bookCopy.setId(rs.getLong("book_copy_id"));
-        loan.setBookCopy(bookCopy);
+        // Load the full BookCopy object with its book reference
+        Long bookCopyId = rs.getLong("book_copy_id");
+        try {
+            BookCopy bookCopy = bookCopyDAO.findById(bookCopyId).orElse(null);
+            if (bookCopy == null) {
+                // Fallback to stub if not found
+                bookCopy = new BookCopy();
+                bookCopy.setId(bookCopyId);
+                logger.warn("BookCopy with ID {} not found, using stub", bookCopyId);
+            }
+            loan.setBookCopy(bookCopy);
+        } catch (Exception e) {
+            // Fallback to stub on error
+            logger.warn("Error loading BookCopy with ID {}, using stub: {}", bookCopyId, e.getMessage());
+            BookCopy bookCopy = new BookCopy();
+            bookCopy.setId(bookCopyId);
+            loan.setBookCopy(bookCopy);
+        }
 
         loan.setCheckoutDate(rs.getDate("checkout_date").toLocalDate());
         loan.setDueDate(rs.getDate("due_date").toLocalDate());
