@@ -7,6 +7,7 @@ import com.davon.library.model.Loan;
 import com.davon.library.model.Member;
 import com.davon.library.model.BookCopy;
 import com.davon.library.dao.BookCopyDAO;
+import com.davon.library.dao.UserDAO;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
@@ -28,6 +29,9 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
 
     @Inject
     BookCopyDAO bookCopyDAO;
+
+    @Inject
+    UserDAO userDAO;
 
     @Override
     public Loan save(Loan loan) throws DAOException {
@@ -409,11 +413,24 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
         Loan loan = new Loan();
         loan.setId(rs.getLong("id"));
 
-        // Create stub Member object with just ID for now
-        // In a full implementation, you might want to load this via MemberDAO as well
-        Member member = new Member();
-        member.setId(rs.getLong("member_id"));
-        loan.setMember(member);
+        // Load the full Member object instead of creating a stub
+        Long memberId = rs.getLong("member_id");
+        try {
+            Member member = (Member) userDAO.findById(memberId).orElse(null);
+            if (member == null) {
+                // Fallback to stub if not found
+                member = new Member();
+                member.setId(memberId);
+                logger.warn("Member with ID {} not found, using stub", memberId);
+            }
+            loan.setMember(member);
+        } catch (Exception e) {
+            // Fallback to stub on error
+            logger.warn("Error loading Member with ID {}, using stub: {}", memberId, e.getMessage());
+            Member member = new Member();
+            member.setId(memberId);
+            loan.setMember(member);
+        }
 
         // Load the full BookCopy object with its book reference
         Long bookCopyId = rs.getLong("book_copy_id");
