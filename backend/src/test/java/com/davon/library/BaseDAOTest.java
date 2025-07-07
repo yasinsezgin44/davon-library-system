@@ -59,6 +59,12 @@ public abstract class BaseDAOTest {
                 stmt.executeUpdate();
             }
 
+            // Clean up book_copies first
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "DELETE FROM book_copies WHERE book_id IN (SELECT id FROM books WHERE isbn LIKE 'TEST%' OR isbn LIKE '978-0123%' OR isbn LIKE '978-0111%' OR isbn LIKE '978-0222%' OR isbn LIKE '978-0333%')")) {
+                stmt.executeUpdate();
+            }
+
             // Clean up books with test ISBNs
             try (PreparedStatement stmt = conn.prepareStatement(
                     "DELETE FROM books WHERE isbn LIKE 'TEST%' OR isbn LIKE '978-0123%' OR isbn LIKE '978-0111%' OR isbn LIKE '978-0222%' OR isbn LIKE '978-0333%'")) {
@@ -78,10 +84,11 @@ public abstract class BaseDAOTest {
     }
 
     protected void createTestEntities() {
-        // Create test book with all required fields
+        // Create test book with all required fields and unique ISBN
+        String uniqueISBN = "TEST" + System.currentTimeMillis();
         testBook = Book.builder()
                 .title("Test Book")
-                .ISBN("TEST123456789")
+                .ISBN(uniqueISBN)
                 .publicationYear(2024)
                 .description("A test book for DAO testing")
                 .pages(250)
