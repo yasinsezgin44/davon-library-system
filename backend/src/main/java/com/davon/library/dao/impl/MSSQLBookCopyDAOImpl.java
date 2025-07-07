@@ -25,7 +25,7 @@ public class MSSQLBookCopyDAOImpl implements BookCopyDAO {
 
     @Override
     public BookCopy save(BookCopy bookCopy) throws DAOException {
-        String sql = "INSERT INTO book_copies (book_id, barcode, location, status, condition_notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO book_copies (book_id, location, status, condition, acquisition_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -34,11 +34,11 @@ public class MSSQLBookCopyDAOImpl implements BookCopyDAO {
             bookCopy.setCreatedAt(now);
             bookCopy.setUpdatedAt(now);
 
-            stmt.setLong(1, bookCopy.getBookId());
-            stmt.setString(2, bookCopy.getBarcode());
-            stmt.setString(3, bookCopy.getLocation());
-            stmt.setString(4, bookCopy.getStatus().name());
-            stmt.setString(5, bookCopy.getConditionNotes());
+            stmt.setLong(1, bookCopy.getBook() != null ? bookCopy.getBook().getId() : null);
+            stmt.setString(2, bookCopy.getLocation());
+            stmt.setString(3, bookCopy.getStatus().name());
+            stmt.setString(4, bookCopy.getCondition());
+            stmt.setDate(5, bookCopy.getAcquisitionDate() != null ? Date.valueOf(bookCopy.getAcquisitionDate()) : null);
             stmt.setTimestamp(6, Timestamp.valueOf(now));
             stmt.setTimestamp(7, Timestamp.valueOf(now));
 
@@ -352,11 +352,21 @@ public class MSSQLBookCopyDAOImpl implements BookCopyDAO {
     private BookCopy mapResultSetToBookCopy(ResultSet rs) throws SQLException {
         BookCopy bookCopy = new BookCopy();
         bookCopy.setId(rs.getLong("id"));
-        bookCopy.setBookId(rs.getLong("book_id"));
-        bookCopy.setBarcode(rs.getString("barcode"));
+
+        // Create stub Book object with just ID
+        // In a full implementation, you might want to load this via BookDAO
+        Book book = new Book();
+        book.setId(rs.getLong("book_id"));
+        bookCopy.setBook(book);
+
         bookCopy.setLocation(rs.getString("location"));
         bookCopy.setStatus(BookCopy.CopyStatus.valueOf(rs.getString("status")));
-        bookCopy.setConditionNotes(rs.getString("condition_notes"));
+        bookCopy.setCondition(rs.getString("condition"));
+
+        Date acquisitionDate = rs.getDate("acquisition_date");
+        if (acquisitionDate != null) {
+            bookCopy.setAcquisitionDate(acquisitionDate.toLocalDate());
+        }
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {

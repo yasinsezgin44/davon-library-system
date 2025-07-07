@@ -27,7 +27,7 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
 
     @Override
     public Loan save(Loan loan) throws DAOException {
-        String sql = "INSERT INTO loans (member_id, book_copy_id, loan_date, due_date, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO loans (member_id, book_copy_id, checkout_date, due_date, status, renewal_count, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -36,13 +36,14 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
             loan.setCreatedAt(now);
             loan.setUpdatedAt(now);
 
-            stmt.setLong(1, loan.getMemberId());
-            stmt.setLong(2, loan.getBookCopyId());
-            stmt.setDate(3, Date.valueOf(loan.getLoanDate()));
+            stmt.setLong(1, loan.getMember() != null ? loan.getMember().getId() : null);
+            stmt.setLong(2, loan.getBookCopy() != null ? loan.getBookCopy().getId() : null);
+            stmt.setDate(3, Date.valueOf(loan.getCheckoutDate()));
             stmt.setDate(4, Date.valueOf(loan.getDueDate()));
             stmt.setString(5, loan.getStatus().name());
-            stmt.setTimestamp(6, Timestamp.valueOf(now));
+            stmt.setInt(6, loan.getRenewalCount());
             stmt.setTimestamp(7, Timestamp.valueOf(now));
+            stmt.setTimestamp(8, Timestamp.valueOf(now));
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -65,21 +66,22 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
 
     @Override
     public Loan update(Loan loan) throws DAOException {
-        String sql = "UPDATE loans SET member_id = ?, book_copy_id = ?, loan_date = ?, due_date = ?, return_date = ?, status = ?, updated_at = ? WHERE id = ?";
+        String sql = "UPDATE loans SET member_id = ?, book_copy_id = ?, checkout_date = ?, due_date = ?, return_date = ?, status = ?, renewal_count = ?, updated_at = ? WHERE id = ?";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             loan.setUpdatedAt(LocalDateTime.now());
 
-            stmt.setLong(1, loan.getMemberId());
-            stmt.setLong(2, loan.getBookCopyId());
-            stmt.setDate(3, Date.valueOf(loan.getLoanDate()));
+            stmt.setLong(1, loan.getMember() != null ? loan.getMember().getId() : null);
+            stmt.setLong(2, loan.getBookCopy() != null ? loan.getBookCopy().getId() : null);
+            stmt.setDate(3, Date.valueOf(loan.getCheckoutDate()));
             stmt.setDate(4, Date.valueOf(loan.getDueDate()));
             stmt.setDate(5, loan.getReturnDate() != null ? Date.valueOf(loan.getReturnDate()) : null);
             stmt.setString(6, loan.getStatus().name());
-            stmt.setTimestamp(7, Timestamp.valueOf(loan.getUpdatedAt()));
-            stmt.setLong(8, loan.getId());
+            stmt.setInt(7, loan.getRenewalCount());
+            stmt.setTimestamp(8, Timestamp.valueOf(loan.getUpdatedAt()));
+            stmt.setLong(9, loan.getId());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -402,9 +404,19 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
     private Loan mapResultSetToLoan(ResultSet rs) throws SQLException {
         Loan loan = new Loan();
         loan.setId(rs.getLong("id"));
-        loan.setMemberId(rs.getLong("member_id"));
-        loan.setBookCopyId(rs.getLong("book_copy_id"));
-        loan.setLoanDate(rs.getDate("loan_date").toLocalDate());
+
+        // Create stub Member and BookCopy objects with just IDs
+        // In a full implementation, you might want to load these via their respective
+        // DAOs
+        Member member = new Member();
+        member.setId(rs.getLong("member_id"));
+        loan.setMember(member);
+
+        BookCopy bookCopy = new BookCopy();
+        bookCopy.setId(rs.getLong("book_copy_id"));
+        loan.setBookCopy(bookCopy);
+
+        loan.setCheckoutDate(rs.getDate("checkout_date").toLocalDate());
         loan.setDueDate(rs.getDate("due_date").toLocalDate());
 
         Date returnDate = rs.getDate("return_date");
@@ -413,6 +425,7 @@ public class MSSQLLoanDAOImpl implements LoanDAO {
         }
 
         loan.setStatus(Loan.LoanStatus.valueOf(rs.getString("status")));
+        loan.setRenewalCount(rs.getInt("renewal_count"));
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
