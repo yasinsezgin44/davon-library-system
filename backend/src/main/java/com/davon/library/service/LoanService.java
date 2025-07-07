@@ -101,16 +101,23 @@ public class LoanService {
             // 1. Find active loan
             Loan loan = validateLoanForReturn(loanId);
 
+            logger.info("DEBUG: Returning loan ID: " + loanId + ", Due Date: " + loan.getDueDate() + ", Today: "
+                    + LocalDate.now());
+
             // 2. Calculate any fines
             Fine fine = null;
             if (loan.getDueDate().isBefore(LocalDate.now())) {
+                logger.info("DEBUG: Loan is overdue, calculating fine");
                 fine = calculateAndCreateLateFine(loan);
+                logger.info("DEBUG: Fine created with amount: " + fine.getAmount());
                 fineDAO.save(fine);
 
                 // Update member's fine balance
                 Member member = loan.getMember();
                 member.addFine(fine.getAmount());
                 userService.updateUser(member.getId(), member);
+            } else {
+                logger.info("DEBUG: Loan is not overdue, no fine calculated");
             }
 
             // 3. Update loan status
