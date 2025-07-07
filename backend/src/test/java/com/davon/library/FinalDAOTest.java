@@ -127,7 +127,9 @@ public class FinalDAOTest {
     @Test
     @Order(3)
     void testBookDAOCRUDOperations() throws DAOException {
-        String uniqueISBN = TEST_PREFIX + System.currentTimeMillis();
+        // Create a valid ISBN-13 format: 978 + 10 digits
+        String timestamp = String.valueOf(System.currentTimeMillis() % 1000000000L); // Last 9 digits
+        String uniqueISBN = "978" + String.format("%010d", Long.parseLong(timestamp)); // Ensure exactly 13 digits
 
         // Create test book with proper required fields
         Book testBook = Book.builder()
