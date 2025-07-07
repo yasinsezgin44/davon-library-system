@@ -3,9 +3,12 @@ package com.davon.library.service;
 import com.davon.library.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.LocalDate;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class ReceiptService {
+    private static final Logger logger = Logger.getLogger(ReceiptService.class.getName());
+
     public Receipt createReceipt(Transaction transaction) {
         Receipt.ReceiptItem[] items = {
                 new Receipt.ReceiptItem(transaction.getDescription(), transaction.getAmount(), 1)
@@ -32,7 +35,21 @@ public class ReceiptService {
     }
 
     public Receipt generateReturnReceipt(Loan loan, Fine fine) {
-        String description = "Book Return: " + loan.getBookCopy().getBook().getTitle();
+        logger.info("DEBUG: generateReturnReceipt called - fine: " + (fine != null ? fine.getAmount() : "null"));
+
+        String bookTitle = "Unknown";
+        try {
+            if (loan != null && loan.getBookCopy() != null && loan.getBookCopy().getBook() != null) {
+                bookTitle = loan.getBookCopy().getBook().getTitle();
+                if (bookTitle == null)
+                    bookTitle = "Unknown";
+            }
+        } catch (Exception e) {
+            logger.warning("Error getting book title: " + e.getMessage());
+            bookTitle = "Unknown";
+        }
+
+        String description = "Book Return: " + bookTitle;
         double amount = fine != null ? fine.getAmount() : 0.0;
 
         if (fine != null) {
@@ -50,6 +67,7 @@ public class ReceiptService {
                 .total(amount)
                 .build();
 
+        logger.info("DEBUG: Receipt generated - Total: " + receipt.getTotal() + ", Description: " + description);
         return receipt;
     }
 }

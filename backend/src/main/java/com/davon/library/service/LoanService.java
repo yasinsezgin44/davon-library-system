@@ -110,12 +110,16 @@ public class LoanService {
                 logger.info("DEBUG: Loan is overdue, calculating fine");
                 fine = calculateAndCreateLateFine(loan);
                 logger.info("DEBUG: Fine created with amount: " + fine.getAmount());
-                fineDAO.save(fine);
+                fine = fineDAO.save(fine);
+                logger.info("DEBUG: Fine saved with ID: " + fine.getId());
 
                 // Update member's fine balance
                 Member member = loan.getMember();
+                logger.info("DEBUG: Member fine balance before addFine: " + member.getFineBalance());
                 member.addFine(fine.getAmount());
+                logger.info("DEBUG: Member fine balance after addFine: " + member.getFineBalance());
                 userService.updateUser(member.getId(), member);
+                logger.info("DEBUG: Called userService.updateUser");
             } else {
                 logger.info("DEBUG: Loan is not overdue, no fine calculated");
             }

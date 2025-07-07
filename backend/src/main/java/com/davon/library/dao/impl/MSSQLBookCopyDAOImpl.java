@@ -5,6 +5,7 @@ import com.davon.library.dao.DAOException;
 import com.davon.library.database.DatabaseConnectionManager;
 import com.davon.library.model.Book;
 import com.davon.library.model.BookCopy;
+import com.davon.library.dao.BookDAO;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
@@ -22,6 +23,9 @@ public class MSSQLBookCopyDAOImpl implements BookCopyDAO {
 
     @Inject
     DatabaseConnectionManager connectionManager;
+
+    @Inject
+    BookDAO bookDAO;
 
     @Override
     public BookCopy save(BookCopy bookCopy) throws DAOException {
@@ -343,11 +347,24 @@ public class MSSQLBookCopyDAOImpl implements BookCopyDAO {
         BookCopy bookCopy = new BookCopy();
         bookCopy.setId(rs.getLong("id"));
 
-        // Create stub Book object with just ID
-        // In a full implementation, you might want to load this via BookDAO
-        Book book = new Book();
-        book.setId(rs.getLong("book_id"));
-        bookCopy.setBook(book);
+        // Load the full Book object instead of creating a stub
+        Long bookId = rs.getLong("book_id");
+        try {
+            Book book = bookDAO.findById(bookId).orElse(null);
+            if (book == null) {
+                // Fallback to stub if not found
+                book = new Book();
+                book.setId(bookId);
+                logger.warn("Book with ID {} not found, using stub", bookId);
+            }
+            bookCopy.setBook(book);
+        } catch (Exception e) {
+            // Fallback to stub on error
+            logger.warn("Error loading Book with ID {}, using stub: {}", bookId, e.getMessage());
+            Book book = new Book();
+            book.setId(bookId);
+            bookCopy.setBook(book);
+        }
 
         bookCopy.setLocation(rs.getString("location"));
         bookCopy.setStatus(BookCopy.CopyStatus.valueOf(rs.getString("status")));

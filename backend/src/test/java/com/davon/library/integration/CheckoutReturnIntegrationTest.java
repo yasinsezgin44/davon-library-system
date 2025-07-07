@@ -256,20 +256,25 @@ class CheckoutReturnIntegrationTest {
         Receipt receipt = loanService.returnBook(loan.getId());
 
         assertNotNull(receipt);
+        System.out.println("🔍 DEBUG: Test received receipt with total: " + receipt.getTotal());
         assertTrue(receipt.getTotal() > 0); // Should have fine
         assertEquals(1.25, receipt.getTotal(), 0.01); // 5 days * $0.25
 
         // Verify fine was created
         List<Fine> memberFines = fineDAO.findByMember(testMember);
+        System.out.println("🔍 DEBUG: Found " + memberFines.size() + " fines for member " + testMember.getId());
         assertEquals(1, memberFines.size());
 
         Fine fine = memberFines.get(0);
+        System.out.println("🔍 DEBUG: Fine reason: " + fine.getReason() + ", amount: " + fine.getAmount() + ", status: "
+                + fine.getStatus());
         assertEquals(Fine.FineReason.OVERDUE, fine.getReason());
         assertEquals(1.25, fine.getAmount(), 0.01);
         assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
 
         // Verify member's fine balance was updated
         Member updatedMember = (Member) userService.findById(testMember.getId());
+        System.out.println("🔍 DEBUG: Member fine balance: " + updatedMember.getFineBalance());
         assertEquals(1.25, updatedMember.getFineBalance(), 0.01);
     }
 

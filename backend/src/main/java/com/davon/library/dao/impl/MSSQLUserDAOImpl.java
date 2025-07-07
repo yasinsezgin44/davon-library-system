@@ -115,11 +115,36 @@ public class MSSQLUserDAOImpl implements UserDAO {
                 throw new DAOException("Updating user failed, no rows affected.");
             }
 
+            // If it's a Member, also update the members table
+            if (entity instanceof Member) {
+                updateMemberRecord((Member) entity, conn);
+            }
+
             return entity;
 
         } catch (SQLException e) {
             logger.error("Error updating user", e);
             throw new DAOException("Failed to update user", e);
+        }
+    }
+
+    private void updateMemberRecord(Member member, Connection conn) throws SQLException {
+        String memberSql = "UPDATE members SET address = ?, membership_start_date = ?, membership_end_date = ?, fine_balance = ? WHERE user_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(memberSql)) {
+            stmt.setString(1, member.getAddress());
+            stmt.setDate(2,
+                    member.getMembershipStartDate() != null ? Date.valueOf(member.getMembershipStartDate()) : null);
+            stmt.setDate(3, member.getMembershipEndDate() != null ? Date.valueOf(member.getMembershipEndDate()) : null);
+            stmt.setDouble(4, member.getFineBalance());
+            stmt.setLong(5, member.getId());
+
+            int memberRowsAffected = stmt.executeUpdate();
+            if (memberRowsAffected == 0) {
+                logger.warn("No member record found to update for user ID: {}", member.getId());
+            } else {
+                logger.debug("Successfully updated member record for user ID: {}", member.getId());
+            }
         }
     }
 
