@@ -79,7 +79,9 @@ public class MSSQLBookDAOImpl implements BookDAO {
             return entity;
 
         } catch (SQLException e) {
-            logger.error("Error saving book", e);
+            logger.error("Error saving book with title: {}, ISBN: {}", entity.getTitle(), entity.getISBN(), e);
+            logger.error("SQL State: {}, Error Code: {}, Message: {}", e.getSQLState(), e.getErrorCode(),
+                    e.getMessage());
             throw new DAOException("Failed to save book", e);
         }
     }

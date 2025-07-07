@@ -93,6 +93,39 @@ public class FinalDAOTest {
 
     @Test
     @Order(2)
+    void testSimpleBookCreation() throws DAOException {
+        // Create a very simple book with minimal data
+        String uniqueISBN = "9781234567890"; // Fixed valid ISBN-13
+        Book testBook = Book.builder()
+                .title("Simple Test Book")
+                .ISBN(uniqueISBN)
+                .publicationYear(2024)
+                .description("Simple test")
+                .pages(100)
+                .build();
+
+        try {
+            System.out.println("Attempting to save book with ISBN: " + uniqueISBN);
+            Book savedBook = bookDAO.save(testBook);
+            System.out.println("✅ Successfully saved book with ID: " + savedBook.getId());
+
+            // Clean up
+            bookDAO.delete(savedBook);
+            System.out.println("✅ Successfully deleted test book");
+        } catch (Exception e) {
+            System.err.println("❌ Failed to save book: " + e.getMessage());
+            if (e.getCause() instanceof SQLException) {
+                SQLException sqlE = (SQLException) e.getCause();
+                System.err.println("SQL State: " + sqlE.getSQLState());
+                System.err.println("Error Code: " + sqlE.getErrorCode());
+                System.err.println("SQL Message: " + sqlE.getMessage());
+            }
+            throw e;
+        }
+    }
+
+    @Test
+    @Order(3)
     void testBookDAOCRUDOperations() throws DAOException {
         String uniqueISBN = TEST_PREFIX + System.currentTimeMillis();
 
@@ -147,7 +180,7 @@ public class FinalDAOTest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     void testBookDAOSearchOperations() throws DAOException {
         // Create multiple test books with proper ISBNs
         String isbn1 = TEST_PREFIX + "SEARCH1_" + System.currentTimeMillis();
@@ -189,7 +222,7 @@ public class FinalDAOTest {
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     void testUserDAOOperations() throws DAOException {
         String uniqueId = TEST_PREFIX + System.currentTimeMillis();
 
@@ -240,7 +273,7 @@ public class FinalDAOTest {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     void testBookCopyDAOWithSavedBook() throws DAOException {
         // First create a book to associate with the book copy
         String uniqueISBN = TEST_PREFIX + "COPY_" + System.currentTimeMillis();
@@ -306,7 +339,7 @@ public class FinalDAOTest {
     }
 
     @Test
-    @Order(6)
+    @Order(7)
     void testFineDAOWithExistingMember() throws DAOException {
         // Use existing member (id=1) if available
         Optional<User> existingUser = userDAO.findById(1L);
@@ -361,7 +394,7 @@ public class FinalDAOTest {
     }
 
     @Test
-    @Order(7)
+    @Order(8)
     void testEntityBehaviorMethods() {
         // Test Book entity validation
         Book book = Book.builder()
@@ -420,7 +453,7 @@ public class FinalDAOTest {
     }
 
     @Test
-    @Order(8)
+    @Order(9)
     void testFinalSummary() {
         System.out.println("\n" + "=".repeat(60));
         System.out.println("🎉 FINAL MSSQL DAO INTEGRATION TEST SUMMARY");
