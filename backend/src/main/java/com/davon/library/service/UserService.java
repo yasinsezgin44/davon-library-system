@@ -1,12 +1,12 @@
 package com.davon.library.service;
 
-import com.davon.library.dao.UserDAO;
-import com.davon.library.dao.DAOException;
+import com.davon.library.repository.UserRepository;
 import com.davon.library.model.*;
 import com.davon.library.event.UserStatusListener;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -15,7 +15,8 @@ import lombok.Data;
 
 /**
  * Service for managing users (Member, Librarian, Admin).
- * This service follows SOLID principles by depending on abstractions (UserDAO)
+ * This service follows SOLID principles by depending on abstractions
+ * (UserRepository)
  * and focusing only on business logic, not data access.
  */
 @ApplicationScoped
@@ -23,7 +24,7 @@ public class UserService {
 
     private static final Logger logger = Logger.getLogger(UserService.class.getName());
 
-    private final UserDAO userDAO;
+    private final UserRepository userRepository;
 
     private final List<UserStatusListener> statusListeners = new ArrayList<>();
 
@@ -31,8 +32,8 @@ public class UserService {
      * Constructor-based injection preferred for immutability and unit-testing.
      */
     @Inject
-    public UserService(UserDAO userDAO) {
-        this.userDAO = userDAO;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     /**
@@ -42,11 +43,13 @@ public class UserService {
      * @return the created user with assigned ID
      * @throws UserServiceException if the user creation fails
      */
+    @Transactional
     public User createUser(User user) throws UserServiceException {
         try {
             validateUserForCreation(user);
-            return userDAO.save(user);
-        } catch (DAOException e) {
+            userRepository.persist(user);
+            return user;
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to create user", e);
             throw new UserServiceException("Failed to create user: " + e.getMessage(), e);
         }
@@ -60,20 +63,22 @@ public class UserService {
      * @return the updated user
      * @throws UserServiceException if the user update fails
      */
+    @Transactional
     public User updateUser(Long userId, User updatedUser) throws UserServiceException {
         try {
             if (userId == null) {
                 throw new UserServiceException("User ID cannot be null");
             }
 
-            if (!userDAO.existsById(userId)) {
+            User existingUser = userRepository.findById(userId);
+            if (existingUser == null) {
                 throw new UserServiceException("User not found with ID: " + userId);
             }
 
             updatedUser.setId(userId);
             validateUserForUpdate(updatedUser);
-            return userDAO.update(updatedUser);
-        } catch (DAOException e) {
+            return userRepository.getEntityManager().merge(updatedUser);
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to update user", e);
             throw new UserServiceException("Failed to update user: " + e.getMessage(), e);
         }
@@ -86,18 +91,18 @@ public class UserService {
      * @return true if the user was successfully deactivated, false otherwise
      * @throws UserServiceException if the operation fails
      */
+    @Transactional
     public boolean deactivateUser(Long userId) throws UserServiceException {
         try {
-            Optional<User> userOpt = userDAO.findById(userId);
-            if (userOpt.isEmpty()) {
+            User user = userRepository.findById(userId);
+            if (user == null) {
                 return false;
             }
 
-            User user = userOpt.get();
             user.setActive(false);
-            userDAO.update(user);
+            userRepository.getEntityManager().merge(user);
             return true;
-        } catch (DAOException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to deactivate user", e);
             throw new UserServiceException("Failed to deactivate user: " + e.getMessage(), e);
         }
@@ -110,18 +115,18 @@ public class UserService {
      * @return true if the user was successfully activated, false otherwise
      * @throws UserServiceException if the operation fails
      */
+    @Transactional
     public boolean activateUser(Long userId) throws UserServiceException {
         try {
-            Optional<User> userOpt = userDAO.findById(userId);
-            if (userOpt.isEmpty()) {
+            User user = userRepository.findById(userId);
+            if (user == null) {
                 return false;
             }
 
-            User user = userOpt.get();
             user.setActive(true);
-            userDAO.update(user);
+            userRepository.getEntityManager().merge(user);
             return true;
-        } catch (DAOException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to activate user", e);
             throw new UserServiceException("Failed to activate user: " + e.getMessage(), e);
         }
@@ -137,7 +142,7 @@ public class UserService {
         if (query == null || query.trim().isEmpty()) {
             return List.of();
         }
-        return userDAO.searchUsers(query.trim());
+        return userRepository.searchUsers(query.trim());
     }
 
     /**
@@ -152,7 +157,7 @@ public class UserService {
             return null;
         }
 
-        Optional<User> userOpt = userDAO.findByUsername(username);
+        Optional<User> userOpt = userRepository.findByUsername(username);
         if (userOpt.isEmpty()) {
             return null;
         }
@@ -175,6 +180,7 @@ public class UserService {
      * @return the updated user
      * @throws UserServiceException if the operation fails
      */
+    @Transactional
     public User assignRole(User user, Role role) throws UserServiceException {
         try {
             if (user == null || role == null) {
@@ -186,8 +192,8 @@ public class UserService {
             logger.info("Role assignment requested for user " + user.getUsername() + " (role: " + role.getName() + ")");
             logger.info("Note: User roles are determined by user type (Member/Librarian/Admin)");
 
-            return userDAO.update(user);
-        } catch (DAOException e) {
+            return userRepository.getEntityManager().merge(user);
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to assign role", e);
             throw new UserServiceException("Failed to assign role: " + e.getMessage(), e);
         }
@@ -198,8 +204,8 @@ public class UserService {
      * 
      * @return a list of all users
      */
-    public List<User> getUsers() {
-        return userDAO.findAll();
+    public List<User> getAllUsers() {
+        return userRepository.listAll();
     }
 
     /**
@@ -212,7 +218,7 @@ public class UserService {
         if (email == null || email.trim().isEmpty()) {
             return null;
         }
-        return userDAO.findByEmail(email.trim()).orElse(null);
+        return userRepository.findByEmail(email.trim()).orElse(null);
     }
 
     /**
@@ -225,7 +231,7 @@ public class UserService {
         if (id == null) {
             return null;
         }
-        return userDAO.findById(id).orElse(null);
+        return userRepository.findById(id).orElse(null);
     }
 
     /**
@@ -236,14 +242,14 @@ public class UserService {
      * @return true if the profile was successfully updated, false otherwise
      * @throws UserServiceException if the operation fails
      */
+    @Transactional
     public boolean updateProfile(Long userId, UserProfile profile) throws UserServiceException {
         try {
-            Optional<User> userOpt = userDAO.findById(userId);
-            if (userOpt.isEmpty()) {
+            User user = userRepository.findById(userId);
+            if (user == null) {
                 return false;
             }
 
-            User user = userOpt.get();
             user.setFullName(profile.getFullName());
             user.setEmail(profile.getEmail());
             user.setPhoneNumber(profile.getPhoneNumber());
@@ -253,9 +259,9 @@ public class UserService {
                 member.setAddress(profile.getAddress());
             }
 
-            userDAO.update(user);
+            userRepository.getEntityManager().merge(user);
             return true;
-        } catch (DAOException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to update user profile", e);
             throw new UserServiceException("Failed to update user profile: " + e.getMessage(), e);
         }
@@ -289,22 +295,22 @@ public class UserService {
      * @return true if the status was successfully updated, false otherwise
      * @throws UserServiceException if the operation fails
      */
+    @Transactional
     public boolean updateUserStatus(Long userId, String newStatus) throws UserServiceException {
         try {
-            Optional<User> userOpt = userDAO.findById(userId);
-            if (userOpt.isEmpty()) {
+            User user = userRepository.findById(userId);
+            if (user == null) {
                 return false;
             }
 
-            User user = userOpt.get();
             UserStatus oldStatus = user.getStatus();
             user.setStatus(UserStatus.valueOf(newStatus.toUpperCase()));
-            userDAO.update(user);
+            userRepository.getEntityManager().merge(user);
 
             // Notify listeners
             notifyStatusChange(user, oldStatus.name(), newStatus);
             return true;
-        } catch (DAOException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to update user status", e);
             throw new UserServiceException("Failed to update user status: " + e.getMessage(), e);
         }
@@ -316,7 +322,7 @@ public class UserService {
      * @return a list of active users
      */
     public List<User> getActiveUsers() {
-        return userDAO.findActiveUsers();
+        return userRepository.findActiveUsers();
     }
 
     /**
@@ -326,7 +332,7 @@ public class UserService {
      * @return a list of users of the specified type
      */
     public List<User> getUsersByType(String userType) {
-        return userDAO.findAll().stream()
+        return userRepository.listAll().stream()
                 .filter(user -> {
                     switch (userType.toLowerCase()) {
                         case "member":
@@ -349,7 +355,7 @@ public class UserService {
      * @return true if the username is available, false otherwise
      */
     public boolean isUsernameAvailable(String username) {
-        return !userDAO.existsByUsername(username);
+        return !userRepository.existsByUsername(username);
     }
 
     /**
@@ -359,7 +365,7 @@ public class UserService {
      * @return true if the email is available, false otherwise
      */
     public boolean isEmailAvailable(String email) {
-        return !userDAO.existsByEmail(email);
+        return !userRepository.existsByEmail(email);
     }
 
     /**

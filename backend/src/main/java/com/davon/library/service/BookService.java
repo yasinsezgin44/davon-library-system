@@ -1,13 +1,13 @@
 package com.davon.library.service;
 
-import com.davon.library.dao.BookDAO;
-import com.davon.library.dao.DAOException;
+import com.davon.library.repository.BookRepository;
 import com.davon.library.model.Book;
 import com.davon.library.model.Author;
 import com.davon.library.model.Category;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -15,7 +15,8 @@ import java.util.logging.Level;
 
 /**
  * Service for managing books.
- * This service follows SOLID principles by depending on abstractions (BookDAO)
+ * This service follows SOLID principles by depending on abstractions
+ * (BookRepository)
  * and focusing only on business logic, not data access.
  */
 @ApplicationScoped
@@ -23,14 +24,14 @@ public class BookService {
 
     private static final Logger logger = Logger.getLogger(BookService.class.getName());
 
-    private final BookDAO bookDAO;
+    private final BookRepository bookRepository;
 
     /**
      * Constructor-based injection preferred for immutability and testability.
      */
     @Inject
-    public BookService(BookDAO bookDAO) {
-        this.bookDAO = bookDAO;
+    public BookService(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
     }
 
     /**
@@ -39,7 +40,7 @@ public class BookService {
      * @return a list of all books
      */
     public List<Book> getAllBooks() {
-        return bookDAO.findAll();
+        return bookRepository.listAll();
     }
 
     /**
@@ -52,7 +53,7 @@ public class BookService {
         if (id == null) {
             return null;
         }
-        return bookDAO.findById(id).orElse(null);
+        return bookRepository.findById(id);
     }
 
     /**
@@ -62,28 +63,25 @@ public class BookService {
      * @return the created book with assigned ID
      * @throws BookServiceException if the book creation fails
      */
+    @Transactional
     public Book createBook(Book book) throws BookServiceException {
         try {
             // 1. Validate common book metadata rules
             validateBookForCreation(book);
 
-            // 2. Prevent duplicate ISBNs at the service layer before hitting the DAO
+            // 2. Prevent duplicate ISBNs at the service layer before hitting the repository
             if (book != null && book.getISBN() != null && isISBNExists(book.getISBN())) {
                 throw new BookServiceException("Book with ISBN " + book.getISBN() + " already exists");
             }
 
             // 3. Persist the new book
-            return bookDAO.save(book);
-        } catch (DAOException e) {
-            // Convert DAO layer exceptions to service layer exceptions so that callers
-            // never need to depend on DAO specific types.
+            bookRepository.persist(book);
+            return book;
+        } catch (Exception e) {
+            // Convert any exceptions to service layer exceptions so that callers
+            // never need to depend on repository specific types.
             logger.log(Level.SEVERE, "Failed to create book", e);
             throw new BookServiceException("Failed to create book: " + e.getMessage(), e);
-        } catch (Exception e) {
-            // Defensive catch-all to guarantee the contract of throwing only
-            // BookServiceException out of this method.
-            logger.log(Level.SEVERE, "Unexpected error while creating book", e);
-            throw new BookServiceException("Failed to create book due to unexpected error: " + e.getMessage(), e);
         }
     }
 
@@ -95,20 +93,22 @@ public class BookService {
      * @return the updated book
      * @throws BookServiceException if the book update fails
      */
+    @Transactional
     public Book updateBook(Long id, Book updatedBook) throws BookServiceException {
         try {
             if (id == null) {
                 throw new BookServiceException("Book ID cannot be null");
             }
 
-            if (!bookDAO.existsById(id)) {
+            Book existingBook = bookRepository.findById(id);
+            if (existingBook == null) {
                 throw new BookServiceException("Book not found with ID: " + id);
             }
 
             updatedBook.setId(id);
             validateBookForUpdate(updatedBook);
-            return bookDAO.update(updatedBook);
-        } catch (DAOException e) {
+            return bookRepository.getEntityManager().merge(updatedBook);
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to update book", e);
             throw new BookServiceException("Failed to update book: " + e.getMessage(), e);
         }
@@ -120,18 +120,18 @@ public class BookService {
      * @param id the ID of the book to delete
      * @throws BookServiceException if the book deletion fails
      */
+    @Transactional
     public void deleteBook(Long id) throws BookServiceException {
         try {
             if (id == null) {
                 throw new BookServiceException("Book ID cannot be null");
             }
 
-            if (!bookDAO.existsById(id)) {
+            boolean deleted = bookRepository.deleteById(id);
+            if (!deleted) {
                 throw new BookServiceException("Book not found with ID: " + id);
             }
-
-            bookDAO.deleteById(id);
-        } catch (DAOException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to delete book", e);
             throw new BookServiceException("Failed to delete book: " + e.getMessage(), e);
         }
@@ -147,7 +147,7 @@ public class BookService {
         if (query == null || query.trim().isEmpty()) {
             return List.of();
         }
-        return bookDAO.searchBooks(query.trim());
+        return bookRepository.searchBooks(query.trim());
     }
 
     /**
@@ -157,7 +157,7 @@ public class BookService {
      * @return a list of books in the specified category
      */
     public List<Book> getBooksByCategory(Category category) {
-        return bookDAO.findByCategory(category);
+        return bookRepository.findByCategory(category);
     }
 
     /**
@@ -167,7 +167,7 @@ public class BookService {
      * @return a list of books by the specified author
      */
     public List<Book> getBooksByAuthor(Author author) {
-        return bookDAO.findByAuthor(author);
+        return bookRepository.findByAuthor(author);
     }
 
     /**
@@ -177,7 +177,7 @@ public class BookService {
      * @return the book if found, null otherwise
      */
     public Book getBookByISBN(String isbn) {
-        return bookDAO.findByISBN(isbn).orElse(null);
+        return bookRepository.findByISBN(isbn).orElse(null);
     }
 
     /**
@@ -186,7 +186,7 @@ public class BookService {
      * @return a list of available books
      */
     public List<Book> getAvailableBooks() {
-        return bookDAO.findAvailableBooks();
+        return bookRepository.findAvailableBooks();
     }
 
     /**
@@ -196,7 +196,7 @@ public class BookService {
      * @return true if a book with this ISBN exists, false otherwise
      */
     public boolean isISBNExists(String isbn) {
-        return bookDAO.existsByISBN(isbn);
+        return bookRepository.existsByISBN(isbn);
     }
 
     /**
