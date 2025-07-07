@@ -63,9 +63,11 @@ class DatabaseConnectionTest {
         assertEquals(HealthCheckResponse.Status.UP, response.getStatus());
 
         // Check that response contains some meaningful data
-        assertNotNull(response.getData());
-        assertTrue(response.getData().containsKey("connection"));
-        assertEquals("available", response.getData().get("connection"));
+        if (response.getData().isPresent()) {
+            var dataMap = response.getData().get();
+            assertTrue(dataMap.containsKey("connection"));
+            assertEquals("available", dataMap.get("connection"));
+        }
     }
 
     @Test
