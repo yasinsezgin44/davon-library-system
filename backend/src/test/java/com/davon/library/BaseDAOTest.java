@@ -113,7 +113,7 @@ public abstract class BaseDAOTest {
         testLoan = Loan.builder()
                 .member(testMember)
                 .bookCopy(testBookCopy)
-                .loanDate(LocalDate.now())
+                .checkoutDate(LocalDate.now())
                 .dueDate(LocalDate.now().plusDays(14))
                 .status(Loan.LoanStatus.ACTIVE)
                 .renewalCount(0)
