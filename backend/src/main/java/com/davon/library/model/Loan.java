@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.time.LocalDate;
@@ -7,19 +8,37 @@ import java.time.LocalDate;
 /**
  * Represents a loan (borrowing transaction) in the library system.
  */
+@Entity
+@Table(name = "loans")
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = { "member", "bookCopy" })
 @ToString(callSuper = true, exclude = { "member", "bookCopy" })
 public class Loan extends BaseEntity {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_copy_id", nullable = false)
     private BookCopy bookCopy;
+
+    @Column(name = "checkout_date", nullable = false)
     private LocalDate checkoutDate;
+
+    @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
+
+    @Column(name = "return_date")
     private LocalDate returnDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     private LoanStatus status;
+
+    @Column(name = "renewal_count")
     private int renewalCount;
 
     private static final double DAILY_FINE_RATE = 0.25; // $0.25 per day

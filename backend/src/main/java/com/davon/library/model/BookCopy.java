@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.time.LocalDate;
@@ -7,16 +8,30 @@ import java.time.LocalDate;
 /**
  * Represents a physical copy of a book in the library system.
  */
+@Entity
+@Table(name = "book_copies")
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = { "book" })
+@ToString(callSuper = true, exclude = { "book" })
 public class BookCopy extends BaseEntity {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", nullable = false)
     private Book book;
+
+    @Column(name = "acquisition_date")
     private LocalDate acquisitionDate;
+
+    @Column(name = "condition")
     private String condition;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     private CopyStatus status;
+
+    @Column(name = "location")
     private String location;
 
     public boolean isAvailable() {
