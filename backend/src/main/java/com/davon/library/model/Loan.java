@@ -22,14 +22,41 @@ public class Loan extends BaseEntity {
     private LoanStatus status;
     private int renewalCount;
 
+    private static final double DAILY_FINE_RATE = 0.25; // $0.25 per day
+    private static final int MAX_RENEWAL_COUNT = 2;
+
     public double calculateLateFees() {
-        // Placeholder: implement fee calculation logic
-        return 0.0;
+        int overdueDays = getOverdueDays();
+        if (overdueDays <= 0) {
+            return 0.0;
+        }
+        return overdueDays * DAILY_FINE_RATE;
     }
 
     public boolean renew() {
-        // Placeholder: implement renewal logic
-        return false;
+        // Check if renewal is allowed
+        if (this.status != LoanStatus.ACTIVE) {
+            return false; // Only active loans can be renewed
+        }
+
+        if (this.renewalCount >= MAX_RENEWAL_COUNT) {
+            return false; // Maximum renewals reached
+        }
+
+        if (this.member != null && this.member.getFineBalance() > 0) {
+            return false; // Cannot renew with outstanding fines
+        }
+
+        // Check if the loan is not overdue
+        if (LocalDate.now().isAfter(this.dueDate)) {
+            return false; // Cannot renew overdue loans
+        }
+
+        // Perform renewal
+        this.dueDate = this.dueDate.plusDays(14); // Extend by 14 days
+        this.renewalCount++;
+
+        return true;
     }
 
     public void returnBook() {
