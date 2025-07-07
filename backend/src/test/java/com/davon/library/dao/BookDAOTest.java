@@ -1,10 +1,11 @@
 package com.davon.library.dao;
 
-import com.davon.library.dao.impl.InMemoryBookDAOImpl;
+import com.davon.library.dao.impl.MSSQLBookDAOImpl;
 import com.davon.library.model.Book;
 import com.davon.library.model.Author;
 import com.davon.library.model.Category;
-
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,13 +20,15 @@ import java.util.Set;
  * Demonstrates that the new DAO pattern works correctly and follows SOLID
  * principles.
  */
-class BookDAOTest {
+@QuarkusTest
+public class BookDAOTest {
 
-    private BookDAO bookDAO;
+    @Inject
+    BookDAO bookDAO;
 
     @BeforeEach
     void setUp() {
-        bookDAO = new InMemoryBookDAOImpl();
+        // This method is empty as the DAO is injected
     }
 
     @Test
