@@ -403,7 +403,7 @@ public class FinalDAOTest {
         // Test Book entity validation
         Book book = Book.builder()
                 .title("Entity Test Book")
-                .ISBN("978-0123456789")
+                .ISBN("9780123456789") // Valid ISBN-13 without hyphens
                 .publicationYear(2024)
                 .description("Testing entity behavior")
                 .pages(200)
