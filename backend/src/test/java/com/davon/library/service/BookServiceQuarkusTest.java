@@ -1,7 +1,6 @@
 package com.davon.library.service;
 
-import com.davon.library.dao.BookDAO;
-import com.davon.library.dao.DAOException;
+import com.davon.library.repository.BookRepository;
 import com.davon.library.model.Book;
 import com.davon.library.service.BookService.BookServiceException;
 
@@ -12,12 +11,13 @@ import org.junit.jupiter.api.TestInstance;
 import static org.junit.jupiter.api.Assertions.*;
 
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 
 /**
  * Quarkus test class for BookService implementation.
- * Tests the service layer integration with DAO pattern.
+ * Tests the service layer integration with repository pattern.
  */
 @QuarkusTest
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
@@ -27,16 +27,13 @@ class BookServiceQuarkusTest {
     BookService bookService;
 
     @Inject
-    BookDAO bookDAO;
+    BookRepository bookRepository;
 
     @BeforeEach
+    @Transactional
     void clearData() {
         // Clear all books before each test to ensure isolation
-        try {
-            bookDAO.clearAll();
-        } catch (DAOException e) {
-            // Ignore - clear may fail if not supported
-        }
+        bookRepository.deleteAll();
     }
 
     @Test

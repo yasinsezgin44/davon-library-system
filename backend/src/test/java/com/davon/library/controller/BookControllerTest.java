@@ -2,14 +2,14 @@ package com.davon.library.controller;
 
 import com.davon.library.model.Book;
 import com.davon.library.service.BookService;
-import com.davon.library.dao.BookDAO;
-import com.davon.library.dao.DAOException;
+import com.davon.library.repository.BookRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -23,16 +23,13 @@ class BookControllerTest {
     BookService bookService;
 
     @Inject
-    BookDAO bookDAO;
+    BookRepository bookRepository;
 
     @BeforeEach
+    @Transactional
     void clearData() {
         // Clear all books before each test to ensure isolation
-        try {
-            bookDAO.clearAll();
-        } catch (DAOException e) {
-            // Ignore - clear may fail if not supported
-        }
+        bookRepository.deleteAll();
     }
 
     @Test
