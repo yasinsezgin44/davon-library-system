@@ -279,7 +279,8 @@ public class FinalDAOTest {
     @Order(6)
     void testBookCopyDAOWithSavedBook() throws DAOException {
         // First create a book to associate with the book copy
-        String uniqueISBN = TEST_PREFIX + "COPY_" + System.currentTimeMillis();
+        long timestamp = System.currentTimeMillis() % 1000000000L; // Last 9 digits
+        String uniqueISBN = "978" + String.format("%010d", timestamp); // ISBN-13 format
         Book testBook = Book.builder()
                 .title("Book Copy Test Book")
                 .ISBN(uniqueISBN)
