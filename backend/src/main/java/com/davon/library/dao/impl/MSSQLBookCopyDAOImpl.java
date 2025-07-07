@@ -70,7 +70,11 @@ public class MSSQLBookCopyDAOImpl implements BookCopyDAO {
 
             bookCopy.setUpdatedAt(LocalDateTime.now());
 
-            stmt.setLong(1, bookCopy.getBook() != null ? bookCopy.getBook().getId() : null);
+            if (bookCopy.getBook() != null && bookCopy.getBook().getId() != null) {
+                stmt.setLong(1, bookCopy.getBook().getId());
+            } else {
+                stmt.setNull(1, Types.BIGINT);
+            }
             stmt.setString(2, bookCopy.getLocation());
             stmt.setString(3, bookCopy.getStatus().name());
             stmt.setString(4, bookCopy.getCondition());
