@@ -42,9 +42,8 @@ public class MSSQLFineDAOImplTest {
         // Set up test member (assuming it exists in DB with id=1)
         testMember = Member.builder()
                 .id(1L)
-                .membershipNumber("TEST001")
-                .membershipType("REGULAR")
-                .membershipDate(LocalDate.now().minusDays(30))
+                .membershipStartDate(LocalDate.now().minusDays(30))
+                .membershipEndDate(LocalDate.now().plusDays(335))
                 .build();
 
         // Set up test fine

@@ -42,7 +42,7 @@ public class MSSQLBookCopyDAOImplTest {
         testBook = Book.builder()
                 .id(1L)
                 .title("Test Book")
-                .isbn("978-0134685991")
+                .ISBN("978-0134685991")
                 .publicationYear(2023)
                 .build();
 
