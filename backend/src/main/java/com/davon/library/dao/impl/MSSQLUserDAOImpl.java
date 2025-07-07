@@ -28,7 +28,7 @@ public class MSSQLUserDAOImpl implements UserDAO {
 
     @Override
     public User save(User entity) throws DAOException {
-        String sql = "INSERT INTO users (username, password_hash, email, full_name, phone_number, address, active, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, password_hash, email, full_name, phone_number, active, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -42,12 +42,11 @@ public class MSSQLUserDAOImpl implements UserDAO {
             stmt.setString(3, entity.getEmail());
             stmt.setString(4, entity.getFullName());
             stmt.setString(5, entity.getPhoneNumber());
-            stmt.setString(6, entity.getAddress());
-            stmt.setBoolean(7, entity.isActive());
-            stmt.setString(8,
+            stmt.setBoolean(6, entity.isActive());
+            stmt.setString(7,
                     entity.getStatus() != null ? entity.getStatus().toString() : UserStatus.ACTIVE.toString());
+            stmt.setTimestamp(8, Timestamp.valueOf(now));
             stmt.setTimestamp(9, Timestamp.valueOf(now));
-            stmt.setTimestamp(10, Timestamp.valueOf(now));
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -84,7 +83,7 @@ public class MSSQLUserDAOImpl implements UserDAO {
             memberStmt.setDate(3,
                     member.getMembershipEndDate() != null ? Date.valueOf(member.getMembershipEndDate()) : null);
             memberStmt.setString(4, member.getAddress());
-            memberStmt.setDouble(5, member.getFineBalance() != null ? member.getFineBalance() : 0.0);
+            memberStmt.setDouble(5, member.getFineBalance());
 
             memberStmt.executeUpdate();
             logger.debug("Successfully inserted member record for user ID: {}", member.getId());
