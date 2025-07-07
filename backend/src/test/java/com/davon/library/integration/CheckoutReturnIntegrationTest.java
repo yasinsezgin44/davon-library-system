@@ -164,49 +164,74 @@ class CheckoutReturnIntegrationTest {
     @DisplayName("Complete checkout and return flow - happy path")
     @org.junit.jupiter.api.Order(1)
     void testCompleteCheckoutReturnFlow() throws Exception {
+        // Debug: Verify test data is set up correctly
+        System.out.println("🔍 Debug: testMember ID: " + (testMember != null ? testMember.getId() : "NULL"));
+        System.out.println("🔍 Debug: testBook ID: " + (testBook != null ? testBook.getId() : "NULL"));
+        System.out.println("🔍 Debug: testBookCopy ID: " + (testBookCopy != null ? testBookCopy.getId() : "NULL"));
+
+        assertNotNull(testMember, "Test member should not be null");
+        assertNotNull(testBook, "Test book should not be null");
+        assertNotNull(testBookCopy, "Test book copy should not be null");
+
         // Step 1: Checkout book
-        Loan loan = loanService.checkoutBook(testBook.getId(), testMember.getId());
+        try {
+            System.out.println("🔍 Debug: Attempting checkout for book ID " + testBook.getId() + " by member ID "
+                    + testMember.getId());
+            Loan loan = loanService.checkoutBook(testBook.getId(), testMember.getId());
 
-        assertNotNull(loan);
-        assertNotNull(loan.getId());
-        assertEquals(testMember.getId(), loan.getMember().getId());
-        assertEquals(testBookCopy.getId(), loan.getBookCopy().getId());
-        assertEquals(Loan.LoanStatus.ACTIVE, loan.getStatus());
-        assertEquals(LocalDate.now(), loan.getCheckoutDate());
-        assertEquals(LocalDate.now().plusDays(14), loan.getDueDate());
-        assertEquals(0, loan.getRenewalCount());
+            System.out.println(
+                    "🔍 Debug: Checkout result: " + (loan != null ? "SUCCESS (ID: " + loan.getId() + ")" : "NULL"));
 
-        // Verify book copy status changed
-        BookCopy updatedCopy = bookCopyDAO.findById(testBookCopy.getId()).orElse(null);
-        assertNotNull(updatedCopy);
-        assertEquals(BookCopy.CopyStatus.CHECKED_OUT, updatedCopy.getStatus());
+            if (loan == null) {
+                throw new AssertionError("Checkout returned null loan");
+            }
 
-        // Step 2: Verify loan appears in member's active loans
-        List<Loan> memberLoans = loanService.getMemberActiveLoans(testMember.getId());
-        assertEquals(1, memberLoans.size());
-        assertEquals(loan.getId(), memberLoans.get(0).getId());
+            assertNotNull(loan);
+            assertNotNull(loan.getId());
+            assertEquals(testMember.getId(), loan.getMember().getId());
+            assertEquals(testBookCopy.getId(), loan.getBookCopy().getId());
+            assertEquals(Loan.LoanStatus.ACTIVE, loan.getStatus());
+            assertEquals(LocalDate.now(), loan.getCheckoutDate());
+            assertEquals(LocalDate.now().plusDays(14), loan.getDueDate());
+            assertEquals(0, loan.getRenewalCount());
 
-        // Step 3: Return book on time (no fine)
-        Receipt receipt = loanService.returnBook(loan.getId());
+            // Verify book copy status changed
+            BookCopy updatedCopy = bookCopyDAO.findById(testBookCopy.getId()).orElse(null);
+            assertNotNull(updatedCopy);
+            assertEquals(BookCopy.CopyStatus.CHECKED_OUT, updatedCopy.getStatus());
 
-        assertNotNull(receipt);
-        assertEquals(loan.getId(), receipt.getTransactionId());
-        assertEquals(0.0, receipt.getTotal()); // No fine
+            // Step 2: Verify loan appears in member's active loans
+            List<Loan> memberLoans = loanService.getMemberActiveLoans(testMember.getId());
+            assertEquals(1, memberLoans.size());
+            assertEquals(loan.getId(), memberLoans.get(0).getId());
 
-        // Verify loan status changed
-        Loan returnedLoan = loanDAO.findById(loan.getId()).orElse(null);
-        assertNotNull(returnedLoan);
-        assertEquals(Loan.LoanStatus.RETURNED, returnedLoan.getStatus());
-        assertEquals(LocalDate.now(), returnedLoan.getReturnDate());
+            // Step 3: Return book on time (no fine)
+            Receipt receipt = loanService.returnBook(loan.getId());
 
-        // Verify book copy is available again
-        BookCopy availableCopy = bookCopyDAO.findById(testBookCopy.getId()).orElse(null);
-        assertNotNull(availableCopy);
-        assertEquals(BookCopy.CopyStatus.AVAILABLE, availableCopy.getStatus());
+            assertNotNull(receipt);
+            assertEquals(loan.getId(), receipt.getTransactionId());
+            assertEquals(0.0, receipt.getTotal()); // No fine
 
-        // Verify no active loans for member
-        List<Loan> activeLoans = loanService.getMemberActiveLoans(testMember.getId());
-        assertEquals(0, activeLoans.size());
+            // Verify loan status changed
+            Loan returnedLoan = loanDAO.findById(loan.getId()).orElse(null);
+            assertNotNull(returnedLoan);
+            assertEquals(Loan.LoanStatus.RETURNED, returnedLoan.getStatus());
+            assertEquals(LocalDate.now(), returnedLoan.getReturnDate());
+
+            // Verify book copy is available again
+            BookCopy availableCopy = bookCopyDAO.findById(testBookCopy.getId()).orElse(null);
+            assertNotNull(availableCopy);
+            assertEquals(BookCopy.CopyStatus.AVAILABLE, availableCopy.getStatus());
+
+            // Verify no active loans for member
+            List<Loan> activeLoans = loanService.getMemberActiveLoans(testMember.getId());
+            assertEquals(0, activeLoans.size());
+
+        } catch (Exception e) {
+            System.err.println("🚨 Debug: Exception during checkout test: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Test
