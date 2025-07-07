@@ -2,12 +2,16 @@ package com.davon.library.dao.impl;
 
 import com.davon.library.dao.BookDAO;
 import com.davon.library.dao.DAOException;
+import com.davon.library.database.DatabaseConnectionManager;
 import com.davon.library.model.Book;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +25,16 @@ class MSSQLBookDAOImplTest {
     @Inject
     BookDAO bookDAO;
 
+    @Inject
+    DatabaseConnectionManager connectionManager;
+
     private Book testBook;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws SQLException {
+        // Clean up test data
+        cleanUpTestData();
+
         testBook = Book.builder()
                 .title("Test Book Title")
                 .ISBN("978-0123456789")
@@ -33,6 +43,18 @@ class MSSQLBookDAOImplTest {
                 .pages(250)
                 .coverImage("test-cover.jpg")
                 .build();
+    }
+
+    private void cleanUpTestData() throws SQLException {
+        try (Connection conn = connectionManager.getConnection()) {
+            // Clean up books table for testing
+            try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM books WHERE isbn LIKE '978-0123%'")) {
+                stmt.executeUpdate();
+            }
+        } catch (Exception e) {
+            // Log but don't fail - test database might not be ready
+            System.out.println("Warning: Could not clean up test data: " + e.getMessage());
+        }
     }
 
     @Test
