@@ -24,6 +24,7 @@ frontend/build/
 
 # Environment files
 .env*
+**/application.yml
 
 # History files
 .Rhistory
