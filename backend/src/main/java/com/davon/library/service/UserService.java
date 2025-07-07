@@ -231,7 +231,7 @@ public class UserService {
         if (id == null) {
             return null;
         }
-        return userRepository.findById(id).orElse(null);
+        return userRepository.findById(id);
     }
 
     /**

@@ -49,6 +49,7 @@ public class Book extends BaseEntity {
     private Category category;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @lombok.Builder.Default
     private Set<BookCopy> copies = new HashSet<>();
 
     // Methods from diagram

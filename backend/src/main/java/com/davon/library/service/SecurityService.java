@@ -122,7 +122,7 @@ public class SecurityService {
      * @param password the plain text password
      * @return the hashed password
      */
-    private String hashPassword(String password) {
+    public String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
@@ -140,6 +140,17 @@ public class SecurityService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm not available", e);
         }
+    }
+
+    /**
+     * Verifies a password against a stored hash.
+     *
+     * @param password   the plain text password
+     * @param storedHash the stored hash
+     * @return true if password matches
+     */
+    public boolean verifyPassword(String password, String storedHash) {
+        return hashPassword(password).equals(storedHash);
     }
 
     public String generateVerificationToken(Long userId) {

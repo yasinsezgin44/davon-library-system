@@ -49,8 +49,8 @@ public class LibrarianService {
      */
     public Book addBookToCatalog(Book book) throws LibrarianServiceException {
         try {
-            return catalogingService.catalogNewBook(book);
-        } catch (CatalogingService.CatalogingException e) {
+            return catalogingService.addBookToCatalog(book);
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to catalog book", e);
             throw new LibrarianServiceException("Failed to catalog book: " + e.getMessage(), e);
         }

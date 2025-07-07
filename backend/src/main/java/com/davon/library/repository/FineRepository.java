@@ -71,10 +71,8 @@ public class FineRepository implements PanacheRepository<Fine> {
      * @return total outstanding amount
      */
     public Double getTotalOutstandingAmount(Member member) {
-        return find("member = ?1 AND status = ?2", member, Fine.FineStatus.PENDING)
-                .project(Double.class)
-                .select("sum(amount)")
-                .singleResult();
+        List<Fine> pendingFines = find("member = ?1 AND status = ?2", member, Fine.FineStatus.PENDING).list();
+        return pendingFines.stream().mapToDouble(Fine::getAmount).sum();
     }
 
     /**
