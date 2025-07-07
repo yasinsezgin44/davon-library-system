@@ -6,6 +6,7 @@ import com.davon.library.database.DatabaseHealthCheck;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.health.HealthCheckResponse;
+import org.eclipse.microprofile.health.Readiness;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
@@ -21,6 +22,7 @@ class DatabaseIntegrationTest {
     DatabaseConnectionManager connectionManager;
 
     @Inject
+    @Readiness
     DatabaseHealthCheck healthCheck;
 
     @Inject
