@@ -27,26 +27,24 @@ public class MSSQLBookDAOImpl implements BookDAO {
 
     @Override
     public Book save(Book entity) throws DAOException {
-        String sql = "INSERT INTO books (title, isbn, publication_year, description, cover_image, pages, publisher_id, category_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+        String sql = "INSERT INTO books (title, isbn, publication_year, description, cover_image, pages, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = connectionManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             LocalDateTime now = LocalDateTime.now();
             entity.setCreatedAt(now);
             entity.setUpdatedAt(now);
-            
+
             stmt.setString(1, entity.getTitle());
             stmt.setString(2, entity.getISBN());
             stmt.setInt(3, entity.getPublicationYear());
             stmt.setString(4, entity.getDescription());
             stmt.setString(5, entity.getCoverImage());
             stmt.setInt(6, entity.getPages());
-            stmt.setObject(7, null); // publisher_id - to be implemented
-            stmt.setObject(8, null); // category_id - to be implemented
-            stmt.setTimestamp(9, Timestamp.valueOf(now));
-            stmt.setTimestamp(10, Timestamp.valueOf(now));
-            
+            stmt.setTimestamp(7, Timestamp.valueOf(now));
+            stmt.setTimestamp(8, Timestamp.valueOf(now));
+
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
                 throw new DAOException("Creating book failed, no rows affected.");
@@ -57,9 +55,9 @@ public class MSSQLBookDAOImpl implements BookDAO {
                     entity.setId(generatedKeys.getLong(1));
                 }
             }
-            
+
             return entity;
-            
+
         } catch (SQLException e) {
             logger.error("Error saving book", e);
             throw new DAOException("Failed to save book", e);
@@ -67,22 +65,78 @@ public class MSSQLBookDAOImpl implements BookDAO {
     }
 
     @Override
+    public Book update(Book entity) throws DAOException {
+        String sql = "UPDATE books SET title = ?, isbn = ?, publication_year = ?, description = ?, cover_image = ?, pages = ?, updated_at = ? WHERE id = ?";
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            entity.setUpdatedAt(LocalDateTime.now());
+
+            stmt.setString(1, entity.getTitle());
+            stmt.setString(2, entity.getISBN());
+            stmt.setInt(3, entity.getPublicationYear());
+            stmt.setString(4, entity.getDescription());
+            stmt.setString(5, entity.getCoverImage());
+            stmt.setInt(6, entity.getPages());
+            stmt.setTimestamp(7, Timestamp.valueOf(entity.getUpdatedAt()));
+            stmt.setLong(8, entity.getId());
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new DAOException("Updating book failed, no rows affected.");
+            }
+
+            return entity;
+
+        } catch (SQLException e) {
+            logger.error("Error updating book", e);
+            throw new DAOException("Failed to update book", e);
+        }
+    }
+
+    @Override
+    public void delete(Book entity) throws DAOException {
+        deleteById(entity.getId());
+    }
+
+    @Override
+    public void deleteById(Long id) throws DAOException {
+        String sql = "DELETE FROM books WHERE id = ?";
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, id);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new DAOException("Deleting book failed, no rows affected.");
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error deleting book with id {}", id, e);
+            throw new DAOException("Failed to delete book", e);
+        }
+    }
+
+    @Override
     public Optional<Book> findById(Long id) {
         String sql = "SELECT * FROM books WHERE id = ?";
-        
+
         try (Connection conn = connectionManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setLong(1, id);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSetToBook(rs));
                 }
             }
-            
+
             return Optional.empty();
-            
+
         } catch (SQLException e) {
             logger.error("Error finding book with id {}", id, e);
             return Optional.empty();
@@ -90,22 +144,80 @@ public class MSSQLBookDAOImpl implements BookDAO {
     }
 
     @Override
+    public List<Book> findAll() {
+        String sql = "SELECT * FROM books ORDER BY id";
+        List<Book> books = new ArrayList<>();
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                books.add(mapResultSetToBook(rs));
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error finding all books", e);
+        }
+
+        return books;
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        String sql = "SELECT 1 FROM books WHERE id = ?";
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error checking if book exists with id {}", id, e);
+            return false;
+        }
+    }
+
+    @Override
+    public long count() {
+        String sql = "SELECT COUNT(*) FROM books";
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getLong(1);
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error counting books", e);
+        }
+
+        return 0;
+    }
+
+    @Override
     public Optional<Book> findByISBN(String isbn) {
         String sql = "SELECT * FROM books WHERE isbn = ?";
-        
+
         try (Connection conn = connectionManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, isbn);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSetToBook(rs));
                 }
             }
-            
+
             return Optional.empty();
-            
+
         } catch (SQLException e) {
             logger.error("Error finding book by ISBN {}", isbn, e);
             return Optional.empty();
@@ -116,42 +228,22 @@ public class MSSQLBookDAOImpl implements BookDAO {
     public List<Book> findByTitleContaining(String title) {
         String sql = "SELECT * FROM books WHERE title LIKE ?";
         List<Book> books = new ArrayList<>();
-        
+
         try (Connection conn = connectionManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, "%" + title + "%");
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     books.add(mapResultSetToBook(rs));
                 }
             }
-            
+
         } catch (SQLException e) {
             logger.error("Error finding books by title {}", title, e);
         }
-        
-        return books;
-    }
 
-    @Override
-    public List<Book> findAll() {
-        String sql = "SELECT * FROM books ORDER BY id";
-        List<Book> books = new ArrayList<>();
-        
-        try (Connection conn = connectionManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            
-            while (rs.next()) {
-                books.add(mapResultSetToBook(rs));
-            }
-            
-        } catch (SQLException e) {
-            logger.error("Error finding all books", e);
-        }
-        
         return books;
     }
 
@@ -160,25 +252,184 @@ public class MSSQLBookDAOImpl implements BookDAO {
         String sql = "SELECT * FROM books WHERE title LIKE ? OR isbn LIKE ? OR description LIKE ?";
         List<Book> books = new ArrayList<>();
         String likePattern = "%" + searchTerm + "%";
-        
+
         try (Connection conn = connectionManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, likePattern);
             stmt.setString(2, likePattern);
             stmt.setString(3, likePattern);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     books.add(mapResultSetToBook(rs));
                 }
             }
-            
+
         } catch (SQLException e) {
             logger.error("Error searching books with term {}", searchTerm, e);
         }
-        
+
         return books;
+    }
+
+    @Override
+    public List<Book> findByAuthor(Author author) {
+        // This would require a join with book_authors table
+        // For now, return empty list as implementation is complex
+        logger.warn("findByAuthor not yet implemented");
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<Book> findByCategory(Category category) {
+        String sql = "SELECT * FROM books WHERE category_id = ?";
+        List<Book> books = new ArrayList<>();
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, category.getId());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    books.add(mapResultSetToBook(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error finding books by category {}", category.getId(), e);
+        }
+
+        return books;
+    }
+
+    @Override
+    public List<Book> findByPublisher(Publisher publisher) {
+        String sql = "SELECT * FROM books WHERE publisher_id = ?";
+        List<Book> books = new ArrayList<>();
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, publisher.getId());
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    books.add(mapResultSetToBook(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error finding books by publisher {}", publisher.getId(), e);
+        }
+
+        return books;
+    }
+
+    @Override
+    public List<Book> findByPublicationYear(int year) {
+        String sql = "SELECT * FROM books WHERE publication_year = ?";
+        List<Book> books = new ArrayList<>();
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, year);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    books.add(mapResultSetToBook(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error finding books by publication year {}", year, e);
+        }
+
+        return books;
+    }
+
+    @Override
+    public List<Book> findByPublicationYearBetween(int startYear, int endYear) {
+        String sql = "SELECT * FROM books WHERE publication_year BETWEEN ? AND ?";
+        List<Book> books = new ArrayList<>();
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, startYear);
+            stmt.setInt(2, endYear);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    books.add(mapResultSetToBook(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error finding books by publication year between {} and {}", startYear, endYear, e);
+        }
+
+        return books;
+    }
+
+    @Override
+    public List<Book> findAvailableBooks() {
+        String sql = """
+                SELECT DISTINCT b.* FROM books b
+                JOIN book_copies bc ON b.id = bc.book_id
+                WHERE bc.status = 'AVAILABLE'
+                """;
+        List<Book> books = new ArrayList<>();
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                books.add(mapResultSetToBook(rs));
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error finding available books", e);
+        }
+
+        return books;
+    }
+
+    @Override
+    public boolean existsByISBN(String isbn) {
+        String sql = "SELECT 1 FROM books WHERE isbn = ?";
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, isbn);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error checking if book exists with ISBN {}", isbn, e);
+            return false;
+        }
+    }
+
+    @Override
+    public void clearAll() throws DAOException {
+        String sql = "DELETE FROM books";
+
+        try (Connection conn = connectionManager.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            logger.error("Error clearing all books", e);
+            throw new DAOException("Failed to clear all books", e);
+        }
     }
 
     private Book mapResultSetToBook(ResultSet rs) throws SQLException {
@@ -190,22 +441,10 @@ public class MSSQLBookDAOImpl implements BookDAO {
                 .description(rs.getString("description"))
                 .coverImage(rs.getString("cover_image"))
                 .pages(rs.getInt("pages"))
-                .createdAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null)
-                .updatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
+                .createdAt(
+                        rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null)
+                .updatedAt(
+                        rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null)
                 .build();
     }
-
-    // Simplified implementations for remaining required methods
-    @Override public Book update(Book entity) throws DAOException { throw new UnsupportedOperationException("To be implemented"); }
-    @Override public void delete(Book entity) throws DAOException { deleteById(entity.getId()); }
-    @Override public void deleteById(Long id) throws DAOException { /* Implementation */ }
-    @Override public boolean existsById(Long id) { return false; }
-    @Override public long count() { return 0; }
-    @Override public List<Book> findByAuthor(Author author) { return new ArrayList<>(); }
-    @Override public List<Book> findByCategory(Category category) { return new ArrayList<>(); }
-    @Override public List<Book> findByPublisher(Publisher publisher) { return new ArrayList<>(); }
-    @Override public List<Book> findByPublicationYear(int year) { return new ArrayList<>(); }
-    @Override public List<Book> findByPublicationYearBetween(int startYear, int endYear) { return new ArrayList<>(); }
-    @Override public List<Book> findAvailableBooks() { return new ArrayList<>(); }
-    @Override public boolean existsByISBN(String isbn) { return false; }
 }
