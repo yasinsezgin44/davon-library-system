@@ -63,15 +63,12 @@ class CheckoutReturnIntegrationTest {
         // Generate unique timestamp for this test run
         testTimestamp = String.valueOf(System.nanoTime());
 
-        // Clear data before each test to ensure test isolation
+        // Clear data in proper order to handle foreign key constraints
         try {
-            loanDAO.clearAll();
-            fineDAO.clearAll();
-            bookCopyDAO.clearAll();
-            bookDAO.clearAll();
-            userDAO.clearAll();
+            // Clear in order of dependencies: fines -> loans -> book_copies -> books ->
+            // users
+            clearDataWithConstraints();
         } catch (Exception e) {
-            // Ignore if clear methods are not available or fail
             System.out.println("Warning: Could not clear all data: " + e.getMessage());
         }
 
@@ -79,16 +76,53 @@ class CheckoutReturnIntegrationTest {
         setupTestData();
     }
 
+    private void clearDataWithConstraints() throws Exception {
+        // Clear fines first (references members)
+        try {
+            fineDAO.clearAll();
+        } catch (Exception e) {
+            System.out.println("Warning: Could not clear fines: " + e.getMessage());
+        }
+
+        // Clear loans next (references members and book copies)
+        try {
+            loanDAO.clearAll();
+        } catch (Exception e) {
+            System.out.println("Warning: Could not clear loans: " + e.getMessage());
+        }
+
+        // Clear book copies (references books)
+        try {
+            bookCopyDAO.clearAll();
+        } catch (Exception e) {
+            System.out.println("Warning: Could not clear book copies: " + e.getMessage());
+        }
+
+        // Clear books
+        try {
+            bookDAO.clearAll();
+        } catch (Exception e) {
+            System.out.println("Warning: Could not clear books: " + e.getMessage());
+        }
+
+        // Clear users last (no dependencies)
+        try {
+            userDAO.clearAll();
+        } catch (Exception e) {
+            System.out.println("Warning: Could not clear users: " + e.getMessage());
+        }
+    }
+
     @Transactional
     void setupTestData() throws Exception {
-        // Create test book with unique ISBN (use last 10 digits of timestamp for valid
-        // ISBN-10)
-        String validISBN = String.format("%010d", Long.parseLong(testTimestamp) % 10000000000L);
+        // Create test book with unique ISBN (use timestamp for valid ISBN-13)
+        String validISBN = String.format("978%010d", Long.parseLong(testTimestamp) % 1000000000L);
         testBook = Book.builder()
                 .title("Integration Test Book " + testTimestamp)
                 .ISBN(validISBN)
                 .publicationYear(2023)
                 .description("A book for testing checkout and return")
+                .pages(300)
                 .build();
         testBook = bookService.createBook(testBook);
 
@@ -112,7 +146,17 @@ class CheckoutReturnIntegrationTest {
                 .membershipEndDate(LocalDate.now().plusMonths(11))
                 .fineBalance(0.0)
                 .active(true)
+                .status(UserStatus.ACTIVE)
                 .build();
+
+        // Validate that email and username don't already exist
+        if (userDAO.existsByEmail(testMember.getEmail())) {
+            testMember.setEmail("test" + testTimestamp + "_" + System.currentTimeMillis() + "@library.com");
+        }
+        if (userDAO.existsByUsername(testMember.getUsername())) {
+            testMember.setUsername("testuser" + testTimestamp + "_" + System.currentTimeMillis());
+        }
+
         testMember = (Member) userService.createUser(testMember);
     }
 

@@ -27,7 +27,7 @@ public class MSSQLBookDAOImpl implements BookDAO {
 
     @Override
     public Book save(Book entity) throws DAOException {
-        String sql = "INSERT INTO books (title, isbn, publication_year, description, cover_image, pages, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO books (title, isbn, publication_year, description, cover_image, pages, publisher_id, category_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -38,12 +38,32 @@ public class MSSQLBookDAOImpl implements BookDAO {
 
             stmt.setString(1, entity.getTitle());
             stmt.setString(2, entity.getISBN());
-            stmt.setInt(3, entity.getPublicationYear());
+            if (entity.getPublicationYear() > 0) {
+                stmt.setInt(3, entity.getPublicationYear());
+            } else {
+                stmt.setNull(3, java.sql.Types.INTEGER);
+            }
             stmt.setString(4, entity.getDescription());
             stmt.setString(5, entity.getCoverImage());
-            stmt.setInt(6, entity.getPages());
-            stmt.setTimestamp(7, Timestamp.valueOf(now));
-            stmt.setTimestamp(8, Timestamp.valueOf(now));
+            if (entity.getPages() > 0) {
+                stmt.setInt(6, entity.getPages());
+            } else {
+                stmt.setNull(6, java.sql.Types.INTEGER);
+            }
+            // Handle foreign keys - set to null for now since Publisher and Category
+            // objects may not be fully implemented
+            if (entity.getPublisher() != null && entity.getPublisher().getId() != null) {
+                stmt.setLong(7, entity.getPublisher().getId());
+            } else {
+                stmt.setNull(7, java.sql.Types.BIGINT);
+            }
+            if (entity.getCategory() != null && entity.getCategory().getId() != null) {
+                stmt.setLong(8, entity.getCategory().getId());
+            } else {
+                stmt.setNull(8, java.sql.Types.BIGINT);
+            }
+            stmt.setTimestamp(9, Timestamp.valueOf(now));
+            stmt.setTimestamp(10, Timestamp.valueOf(now));
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -66,7 +86,7 @@ public class MSSQLBookDAOImpl implements BookDAO {
 
     @Override
     public Book update(Book entity) throws DAOException {
-        String sql = "UPDATE books SET title = ?, isbn = ?, publication_year = ?, description = ?, cover_image = ?, pages = ?, updated_at = ? WHERE id = ?";
+        String sql = "UPDATE books SET title = ?, isbn = ?, publication_year = ?, description = ?, cover_image = ?, pages = ?, publisher_id = ?, category_id = ?, updated_at = ? WHERE id = ?";
 
         try (Connection conn = connectionManager.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -75,12 +95,31 @@ public class MSSQLBookDAOImpl implements BookDAO {
 
             stmt.setString(1, entity.getTitle());
             stmt.setString(2, entity.getISBN());
-            stmt.setInt(3, entity.getPublicationYear());
+            if (entity.getPublicationYear() > 0) {
+                stmt.setInt(3, entity.getPublicationYear());
+            } else {
+                stmt.setNull(3, java.sql.Types.INTEGER);
+            }
             stmt.setString(4, entity.getDescription());
             stmt.setString(5, entity.getCoverImage());
-            stmt.setInt(6, entity.getPages());
-            stmt.setTimestamp(7, Timestamp.valueOf(entity.getUpdatedAt()));
-            stmt.setLong(8, entity.getId());
+            if (entity.getPages() > 0) {
+                stmt.setInt(6, entity.getPages());
+            } else {
+                stmt.setNull(6, java.sql.Types.INTEGER);
+            }
+            // Handle foreign keys
+            if (entity.getPublisher() != null && entity.getPublisher().getId() != null) {
+                stmt.setLong(7, entity.getPublisher().getId());
+            } else {
+                stmt.setNull(7, java.sql.Types.BIGINT);
+            }
+            if (entity.getCategory() != null && entity.getCategory().getId() != null) {
+                stmt.setLong(8, entity.getCategory().getId());
+            } else {
+                stmt.setNull(8, java.sql.Types.BIGINT);
+            }
+            stmt.setTimestamp(9, Timestamp.valueOf(entity.getUpdatedAt()));
+            stmt.setLong(10, entity.getId());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected == 0) {
@@ -441,6 +480,12 @@ public class MSSQLBookDAOImpl implements BookDAO {
                 .description(rs.getString("description"))
                 .coverImage(rs.getString("cover_image"))
                 .pages(rs.getInt("pages"))
+                // Handle foreign keys - for now just set objects to null since we don't have
+                // full publisher/category lookup implemented
+                .publisher(rs.getLong("publisher_id") != 0 ? Publisher.builder().id(rs.getLong("publisher_id")).build()
+                        : null)
+                .category(rs.getLong("category_id") != 0 ? Category.builder().id(rs.getLong("category_id")).build()
+                        : null)
                 .createdAt(
                         rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null)
                 .updatedAt(

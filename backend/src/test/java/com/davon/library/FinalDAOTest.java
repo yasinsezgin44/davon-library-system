@@ -96,7 +96,7 @@ public class FinalDAOTest {
     void testBookDAOCRUDOperations() throws DAOException {
         String uniqueISBN = TEST_PREFIX + System.currentTimeMillis();
 
-        // Create test book
+        // Create test book with proper required fields
         Book testBook = Book.builder()
                 .title("Final Test Book")
                 .ISBN(uniqueISBN)
@@ -149,9 +149,9 @@ public class FinalDAOTest {
     @Test
     @Order(3)
     void testBookDAOSearchOperations() throws DAOException {
-        // Create multiple test books
-        String isbn1 = TEST_PREFIX + "SEARCH1";
-        String isbn2 = TEST_PREFIX + "SEARCH2";
+        // Create multiple test books with proper ISBNs
+        String isbn1 = TEST_PREFIX + "SEARCH1_" + System.currentTimeMillis();
+        String isbn2 = TEST_PREFIX + "SEARCH2_" + System.currentTimeMillis();
 
         Book book1 = Book.builder()
                 .title("Java Programming Guide")
@@ -191,75 +191,118 @@ public class FinalDAOTest {
     @Test
     @Order(4)
     void testUserDAOOperations() throws DAOException {
-        // Check if we can access existing users
-        Optional<User> existingUser = userDAO.findById(1L);
-        if (existingUser.isPresent()) {
-            assertEquals(1L, existingUser.get().getId());
-            System.out.println("✅ UserDAO findById works with existing user");
-        }
+        String uniqueId = TEST_PREFIX + System.currentTimeMillis();
 
-        // Test user count
-        long userCount = userDAO.count();
-        assertTrue(userCount >= 0);
-        System.out.println("✅ UserDAO count operation works: " + userCount);
+        // Create a test user with unique credentials
+        Member testMember = Member.builder()
+                .username(uniqueId + "_user")
+                .passwordHash("hashedpassword123")
+                .email(uniqueId + "@test.com")
+                .fullName("Test User " + uniqueId)
+                .active(true)
+                .status(UserStatus.ACTIVE)
+                .build();
 
-        // Test findAll
-        List<User> allUsers = userDAO.findAll();
-        assertNotNull(allUsers);
-        System.out.println("✅ UserDAO findAll works: " + allUsers.size() + " users");
+        // Test CREATE
+        User savedUser = userDAO.save(testMember);
+        assertNotNull(savedUser.getId());
+        assertEquals(uniqueId + "_user", savedUser.getUsername());
+        assertEquals(uniqueId + "@test.com", savedUser.getEmail());
+        System.out.println("✅ UserDAO save operation works");
+
+        // Test READ by ID
+        Optional<User> foundUser = userDAO.findById(savedUser.getId());
+        assertTrue(foundUser.isPresent());
+        assertEquals(savedUser.getUsername(), foundUser.get().getUsername());
+        System.out.println("✅ UserDAO findById works");
+
+        // Test existence checks
+        assertTrue(userDAO.existsById(savedUser.getId()));
+        assertTrue(userDAO.existsByUsername(uniqueId + "_user"));
+        assertTrue(userDAO.existsByEmail(uniqueId + "@test.com"));
+        System.out.println("✅ UserDAO existence checks work");
+
+        // Test UPDATE
+        savedUser.setFullName("Updated Test User");
+        User updatedUser = userDAO.update(savedUser);
+        assertEquals("Updated Test User", updatedUser.getFullName());
+        System.out.println("✅ UserDAO update operation works");
+
+        // Test count
+        long count = userDAO.count();
+        assertTrue(count > 0);
+        System.out.println("✅ UserDAO count operation works: " + count);
+
+        // Test DELETE
+        userDAO.delete(savedUser);
+        assertFalse(userDAO.existsById(savedUser.getId()));
+        System.out.println("✅ UserDAO delete operation works");
     }
 
     @Test
     @Order(5)
     void testBookCopyDAOWithSavedBook() throws DAOException {
-        // First create a book
-        String uniqueISBN = TEST_PREFIX + "COPY_TEST";
+        // First create a book to associate with the book copy
+        String uniqueISBN = TEST_PREFIX + "COPY_" + System.currentTimeMillis();
         Book testBook = Book.builder()
                 .title("Book Copy Test Book")
                 .ISBN(uniqueISBN)
                 .publicationYear(2024)
-                .description("For testing book copies")
+                .description("A book for testing book copies")
                 .pages(250)
                 .build();
-
         Book savedBook = bookDAO.save(testBook);
 
-        // Now create a book copy
-        BookCopy testCopy = BookCopy.builder()
+        // Create test book copy
+        BookCopy testBookCopy = BookCopy.builder()
                 .book(savedBook)
-                .acquisitionDate(LocalDate.now())
-                .condition("Excellent")
                 .status(BookCopy.CopyStatus.AVAILABLE)
-                .location("A1-01")
+                .condition("Good")
+                .location("Test-Section-A1")
+                .acquisitionDate(LocalDate.now().minusMonths(1))
                 .build();
 
-        // Test save
-        BookCopy savedCopy = bookCopyDAO.save(testCopy);
+        // Test CREATE
+        BookCopy savedCopy = bookCopyDAO.save(testBookCopy);
         assertNotNull(savedCopy.getId());
-        assertEquals("Excellent", savedCopy.getCondition());
         assertEquals(BookCopy.CopyStatus.AVAILABLE, savedCopy.getStatus());
+        assertEquals("Good", savedCopy.getCondition());
+        assertEquals(savedBook.getId(), savedCopy.getBook().getId());
         System.out.println("✅ BookCopyDAO save operation works");
 
-        // Test find by ID
+        // Test READ by ID
         Optional<BookCopy> foundCopy = bookCopyDAO.findById(savedCopy.getId());
         assertTrue(foundCopy.isPresent());
-        assertEquals("Excellent", foundCopy.get().getCondition());
-        System.out.println("✅ BookCopyDAO findById operation works");
+        assertEquals(savedCopy.getId(), foundCopy.get().getId());
+        System.out.println("✅ BookCopyDAO findById works");
 
-        // Test find by book
-        List<BookCopy> bookCopies = bookCopyDAO.findByBook(savedBook);
-        assertTrue(bookCopies.stream().anyMatch(bc -> bc.getId().equals(savedCopy.getId())));
-        System.out.println("✅ BookCopyDAO findByBook operation works");
+        // Test status operations
+        assertTrue(savedCopy.isAvailable());
+        savedCopy.checkOut();
+        assertEquals(BookCopy.CopyStatus.CHECKED_OUT, savedCopy.getStatus());
 
-        // Test find by status
-        List<BookCopy> availableCopies = bookCopyDAO.findByStatus(BookCopy.CopyStatus.AVAILABLE);
-        assertTrue(availableCopies.stream().anyMatch(bc -> bc.getId().equals(savedCopy.getId())));
-        System.out.println("✅ BookCopyDAO findByStatus operation works");
+        savedCopy.checkIn();
+        assertEquals(BookCopy.CopyStatus.AVAILABLE, savedCopy.getStatus());
+        System.out.println("✅ BookCopy status operations work");
+
+        // Test UPDATE
+        savedCopy.setCondition("Excellent");
+        BookCopy updatedCopy = bookCopyDAO.update(savedCopy);
+        assertEquals("Excellent", updatedCopy.getCondition());
+        System.out.println("✅ BookCopyDAO update operation works");
 
         // Test count
         long count = bookCopyDAO.count();
         assertTrue(count > 0);
         System.out.println("✅ BookCopyDAO count operation works: " + count);
+
+        // Test DELETE
+        bookCopyDAO.delete(savedCopy);
+        assertFalse(bookCopyDAO.existsById(savedCopy.getId()));
+        System.out.println("✅ BookCopyDAO delete operation works");
+
+        // Clean up the book
+        bookDAO.delete(savedBook);
     }
 
     @Test
