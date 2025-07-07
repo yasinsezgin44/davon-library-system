@@ -1,18 +1,14 @@
 package com.davon.library.service;
 
-import com.davon.library.dao.BookDAO;
-import com.davon.library.model.Author;
+import com.davon.library.repository.BookRepository;
 import com.davon.library.model.Book;
-import com.davon.library.model.BookCopy;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.util.stream.Collectors;
 import java.util.logging.Logger;
 
 /**
- * Service for generating book labels.
- * Uses DAO pattern following SOLID principles.
+ * Service for generating book labels and barcodes.
  */
 @ApplicationScoped
 public class BookLabelService {
@@ -20,44 +16,57 @@ public class BookLabelService {
     private static final Logger logger = Logger.getLogger(BookLabelService.class.getName());
 
     @Inject
-    private BookDAO bookDAO;
+    BookRepository bookRepository;
 
     /**
-     * Generate labels based on book information.
-     * Note: BookCopy functionality would require a BookCopyDAO implementation.
+     * Generates a label for a book.
      * 
-     * @param bookId the ID of the book to generate label for
-     * @return formatted label string
-     * @throws BookLabelException if label generation fails
+     * @param bookId the book ID
+     * @return the generated label content
      */
-    public String generateLabel(Long bookId) throws BookLabelException {
-        try {
-            Book book = bookDAO.findById(bookId)
-                    .orElseThrow(() -> new BookLabelException("Book not found with ID: " + bookId));
-
-            return String.format("%s\n%s\n%s\nID: %d",
-                    book.getTitle(),
-                    book.getAuthors().stream()
-                            .map(Author::getName)
-                            .collect(Collectors.joining(", ")),
-                    book.getISBN(),
-                    book.getId());
-        } catch (Exception e) {
-            logger.severe("Failed to generate label for book ID: " + bookId + " - " + e.getMessage());
-            throw new BookLabelException("Failed to generate label", e);
+    public String generateBookLabel(Long bookId) {
+        Book book = bookRepository.findById(bookId);
+        if (book == null) {
+            throw new IllegalArgumentException("Book not found with ID: " + bookId);
         }
+
+        StringBuilder label = new StringBuilder();
+        label.append("BOOK LABEL\n");
+        label.append("Title: ").append(book.getTitle()).append("\n");
+        label.append("ISBN: ").append(book.getISBN()).append("\n");
+
+        if (book.getAuthors() != null && !book.getAuthors().isEmpty()) {
+            label.append("Author(s): ");
+            book.getAuthors().forEach(author -> label.append(author.getName()).append(" "));
+            label.append("\n");
+        }
+
+        if (book.getPublisher() != null) {
+            label.append("Publisher: ").append(book.getPublisher().getName()).append("\n");
+        }
+
+        label.append("Year: ").append(book.getPublicationYear()).append("\n");
+
+        logger.info("Generated label for book: " + book.getTitle());
+        return label.toString();
     }
 
     /**
-     * Custom exception for book label service operations.
+     * Generates a barcode for a book.
+     * 
+     * @param bookId the book ID
+     * @return the barcode data
      */
-    public static class BookLabelException extends Exception {
-        public BookLabelException(String message) {
-            super(message);
+    public String generateBookBarcode(Long bookId) {
+        Book book = bookRepository.findById(bookId);
+        if (book == null) {
+            throw new IllegalArgumentException("Book not found with ID: " + bookId);
         }
 
-        public BookLabelException(String message, Throwable cause) {
-            super(message, cause);
-        }
+        // Simple barcode generation - in production would use a proper barcode library
+        String barcode = "B" + String.format("%08d", bookId) + book.getISBN();
+
+        logger.info("Generated barcode for book: " + book.getTitle());
+        return barcode;
     }
 }

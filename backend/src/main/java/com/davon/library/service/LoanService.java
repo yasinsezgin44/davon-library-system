@@ -1,9 +1,8 @@
 package com.davon.library.service;
 
-import com.davon.library.dao.LoanDAO;
-import com.davon.library.dao.BookCopyDAO;
-import com.davon.library.dao.FineDAO;
-import com.davon.library.dao.DAOException;
+import com.davon.library.repository.LoanRepository;
+import com.davon.library.repository.BookCopyRepository;
+import com.davon.library.repository.FineRepository;
 import com.davon.library.model.*;
 import com.davon.library.exception.BusinessException;
 
@@ -18,7 +17,7 @@ import java.util.logging.Level;
 
 /**
  * Service for managing book loans (checkout and return processes).
- * Follows SOLID principles and uses DAO pattern for data access.
+ * Follows SOLID principles and uses repository pattern for data access.
  */
 @ApplicationScoped
 public class LoanService {
@@ -28,21 +27,22 @@ public class LoanService {
     private static final double DAILY_FINE_RATE = 0.25; // $0.25 per day
     private static final int MAX_LOANS_PER_MEMBER = 5;
 
-    private final LoanDAO loanDAO;
-    private final BookCopyDAO bookCopyDAO;
-    private final FineDAO fineDAO;
+    private final LoanRepository loanRepository;
+    private final BookCopyRepository bookCopyRepository;
+    private final FineRepository fineRepository;
     private final UserService userService;
     private final BookService bookService;
     private final NotificationService notificationService;
     private final ReceiptService receiptService;
 
     @Inject
-    public LoanService(LoanDAO loanDAO, BookCopyDAO bookCopyDAO, FineDAO fineDAO,
+    public LoanService(LoanRepository loanRepository, BookCopyRepository bookCopyRepository,
+            FineRepository fineRepository,
             UserService userService, BookService bookService,
             NotificationService notificationService, ReceiptService receiptService) {
-        this.loanDAO = loanDAO;
-        this.bookCopyDAO = bookCopyDAO;
-        this.fineDAO = fineDAO;
+        this.loanRepository = loanRepository;
+        this.bookCopyRepository = bookCopyRepository;
+        this.fineRepository = fineRepository;
         this.userService = userService;
         this.bookService = bookService;
         this.notificationService = notificationService;
@@ -71,10 +71,10 @@ public class LoanService {
 
             // 4. Update book copy status
             bookCopy.checkOut();
-            bookCopyDAO.update(bookCopy);
+            bookCopyRepository.persist(bookCopy);
 
             // 5. Save loan record
-            loan = loanDAO.save(loan);
+            loanRepository.persist(loan);
 
             // 6. Send notification
             notificationService.sendCheckoutNotification(member, loan);
@@ -82,7 +82,7 @@ public class LoanService {
             logger.info("Book checked out successfully - Loan ID: " + loan.getId());
             return loan;
 
-        } catch (DAOException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Database error during checkout", e);
             throw new BusinessException("Failed to checkout book due to system error");
         }
@@ -110,7 +110,7 @@ public class LoanService {
                 logger.info("DEBUG: Loan is overdue, calculating fine");
                 fine = calculateAndCreateLateFine(loan);
                 logger.info("DEBUG: Fine created with amount: " + fine.getAmount());
-                fine = fineDAO.save(fine);
+                fineRepository.persist(fine);
                 logger.info("DEBUG: Fine saved with ID: " + fine.getId());
 
                 // Update member's fine balance
@@ -126,12 +126,12 @@ public class LoanService {
 
             // 3. Update loan status
             loan.returnBook();
-            loanDAO.update(loan);
+            loanRepository.persist(loan);
 
             // 4. Update book copy availability
             BookCopy bookCopy = loan.getBookCopy();
             bookCopy.checkIn();
-            bookCopyDAO.update(bookCopy);
+            bookCopyRepository.persist(bookCopy);
 
             // 5. Generate receipt
             Receipt receipt = receiptService.generateReturnReceipt(loan, fine);
@@ -142,7 +142,7 @@ public class LoanService {
             logger.info("Book returned successfully - Loan ID: " + loan.getId());
             return receipt;
 
-        } catch (DAOException | UserService.UserServiceException e) {
+        } catch (UserService.UserServiceException e) {
             logger.log(Level.SEVERE, "Error during book return", e);
             throw new BusinessException("Failed to return book due to system error");
         }
@@ -156,7 +156,7 @@ public class LoanService {
      */
     public List<Loan> getMemberLoans(Long memberId) {
         Member member = Member.builder().id(memberId).build();
-        return loanDAO.findByMember(member);
+        return loanRepository.findByMember(member);
     }
 
     /**
@@ -167,7 +167,7 @@ public class LoanService {
      */
     public List<Loan> getMemberActiveLoans(Long memberId) {
         Member member = Member.builder().id(memberId).build();
-        return loanDAO.findActiveLoansByMember(member);
+        return loanRepository.findActiveLoansByMember(member);
     }
 
     /**
@@ -177,7 +177,7 @@ public class LoanService {
      */
     public List<Loan> getOverdueLoans() {
         try {
-            return loanDAO.findOverdueLoans(LocalDate.now());
+            return loanRepository.findOverdueLoans();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error getting overdue loans", e);
             throw new RuntimeException("Service error");
@@ -194,41 +194,32 @@ public class LoanService {
     @Transactional
     public Loan renewLoan(Long loanId) throws BusinessException {
         try {
-            Optional<Loan> loanOpt = loanDAO.findById(loanId);
-            if (loanOpt.isEmpty()) {
+            Loan loan = loanRepository.findById(loanId);
+            if (loan == null) {
                 throw new BusinessException("Loan not found with ID: " + loanId);
             }
 
-            Loan loan = loanOpt.get();
-
-            // Check if renewal is allowed
+            // Validate renewal is allowed
             if (loan.getStatus() != Loan.LoanStatus.ACTIVE) {
                 throw new BusinessException("Only active loans can be renewed");
             }
 
-            if (loan.getRenewalCount() >= 2) {
-                throw new BusinessException("Maximum renewals reached");
+            // Check renewal eligibility
+            if (!loan.renew()) {
+                throw new BusinessException("Loan renewal not allowed");
             }
 
-            // Check if member has outstanding fines
-            Member member = loan.getMember();
-            if (member.getFineBalance() > 0) {
-                throw new BusinessException("Cannot renew loan with outstanding fines");
-            }
+            // Save updated loan
+            loanRepository.persist(loan);
 
-            // Extend due date
-            loan.setDueDate(loan.getDueDate().plusDays(DEFAULT_LOAN_PERIOD_DAYS));
-            loan.setRenewalCount(loan.getRenewalCount() + 1);
-
-            loan = loanDAO.update(loan);
-
-            notificationService.sendRenewalNotification(member, loan);
+            // Send notification
+            notificationService.sendRenewalNotification(loan.getMember(), loan);
 
             logger.info("Loan renewed successfully - Loan ID: " + loan.getId());
             return loan;
 
-        } catch (DAOException e) {
-            logger.log(Level.SEVERE, "Error renewing loan", e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error during loan renewal", e);
             throw new BusinessException("Failed to renew loan due to system error");
         }
     }
@@ -253,7 +244,7 @@ public class LoanService {
         }
 
         // Check loan limit
-        long activeLoanCount = loanDAO.countActiveLoansByMember(member);
+        long activeLoanCount = loanRepository.countActiveLoansByMember(member);
         if (activeLoanCount >= MAX_LOANS_PER_MEMBER) {
             throw new BusinessException("Member has reached maximum loan limit of " + MAX_LOANS_PER_MEMBER);
         }
@@ -267,7 +258,7 @@ public class LoanService {
             throw new BusinessException("Book not found with ID: " + bookId);
         }
 
-        List<BookCopy> availableCopies = bookCopyDAO.findAvailableByBook(book);
+        List<BookCopy> availableCopies = bookCopyRepository.findAvailableByBook(book);
         if (availableCopies.isEmpty()) {
             throw new BusinessException("No available copies of book: " + book.getTitle());
         }
@@ -287,12 +278,11 @@ public class LoanService {
     }
 
     private Loan validateLoanForReturn(Long loanId) throws BusinessException {
-        Optional<Loan> loanOpt = loanDAO.findById(loanId);
-        if (loanOpt.isEmpty()) {
+        Loan loan = loanRepository.findById(loanId);
+        if (loan == null) {
             throw new BusinessException("Loan not found with ID: " + loanId);
         }
 
-        Loan loan = loanOpt.get();
         if (loan.getStatus() != Loan.LoanStatus.ACTIVE) {
             throw new BusinessException("Only active loans can be returned");
         }
