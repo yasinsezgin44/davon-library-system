@@ -1,5 +1,7 @@
 package com.davon.library.model;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.time.LocalDate;
@@ -7,6 +9,8 @@ import java.time.LocalDate;
 /**
  * Represents a librarian who manages the library system.
  */
+@Entity
+@DiscriminatorValue("librarian")
 @Data
 @SuperBuilder
 @NoArgsConstructor

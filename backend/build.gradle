@@ -24,6 +24,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-config-yaml'
     
     // Database dependencies
+    implementation 'io.quarkus:quarkus-hibernate-orm'
     implementation 'io.quarkus:quarkus-agroal'
     implementation 'io.quarkus:quarkus-jdbc-mssql'
     implementation 'com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11'

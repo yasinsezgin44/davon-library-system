@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -10,17 +11,15 @@ import java.time.LocalDateTime;
 /**
  * Base class for all users in the library system.
  */
+@Entity
+@Table(name = "users")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "userType", discriminatorType = DiscriminatorType.STRING)
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "userType")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = Member.class, name = "member"),
-        @JsonSubTypes.Type(value = Librarian.class, name = "librarian"),
-        @JsonSubTypes.Type(value = Admin.class, name = "admin")
-})
 public abstract class User extends BaseEntity {
     private String username;
     private String passwordHash;
@@ -28,7 +27,10 @@ public abstract class User extends BaseEntity {
     private String email;
     private String phoneNumber;
     private boolean active;
+
+    @Enumerated(EnumType.STRING)
     private UserStatus status;
+
     private LocalDate lastLogin;
     private LocalDateTime createdAt;
     private LocalDateTime lastModifiedAt;
