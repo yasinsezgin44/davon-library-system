@@ -70,4 +70,9 @@ public class MSSQLFineDAOImpl implements FineDAO {
     public List<Fine> findAll() {
         return List.of();
     }
+
+    @Override
+    public void delete(Fine fine) {
+        // No-op for now
+    }
 }
