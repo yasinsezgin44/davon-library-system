@@ -184,9 +184,10 @@ public class FinalDAOTest {
     @Test
     @Order(4)
     void testBookDAOSearchOperations() throws DAOException {
-        // Create multiple test books with proper ISBNs
-        String isbn1 = TEST_PREFIX + "SEARCH1_" + System.currentTimeMillis();
-        String isbn2 = TEST_PREFIX + "SEARCH2_" + System.currentTimeMillis();
+        // Create multiple test books with proper ISBN-13 format
+        long timestamp = System.currentTimeMillis() % 1000000000L; // Last 9 digits
+        String isbn1 = "978" + String.format("%09d", timestamp) + "1"; // ISBN-13 ending with 1
+        String isbn2 = "978" + String.format("%09d", timestamp) + "2"; // ISBN-13 ending with 2
 
         Book book1 = Book.builder()
                 .title("Java Programming Guide")
