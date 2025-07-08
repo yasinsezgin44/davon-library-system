@@ -1,28 +1,48 @@
 package com.davon.library.model;
 
-import lombok.*;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.experimental.SuperBuilder;
-import java.util.HashSet;
-import java.util.Set;
 
-/**
- * Represents a category for books in the library system.
- */
+@Entity
+@Table(name = "categories")
 @Data
-@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = { "books" })
-@ToString(callSuper = true, exclude = { "books" })
-public class Category extends BaseEntity {
+@Builder
+public class Category {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
     private String name;
+
+    @Column
     private String description;
 
-    @Builder.Default
-    private Set<Book> books = new HashSet<>();
+    // Audit fields
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private java.time.LocalDateTime createdAt;
 
-    public Set<Book> getBooks() {
-        return books;
+    @Column(name = "updated_at")
+    private java.time.LocalDateTime updatedAt;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = java.time.LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = java.time.LocalDateTime.now();
     }
 }

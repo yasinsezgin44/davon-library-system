@@ -185,7 +185,7 @@ class LibrarianServiceTest {
                 LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("Failed to checkout book"));
+        assertTrue(exception.getMessage().equals("Loan service error"));
         verify(userService).findById(1L);
         verify(bookService).getBookById(1L);
         verify(testBook).isAvailable();
@@ -219,7 +219,7 @@ class LibrarianServiceTest {
                 LibrarianServiceException.class,
                 () -> librarianService.returnBook(1L));
 
-        assertTrue(exception.getMessage().contains("Failed to return book"));
+        assertTrue(exception.getMessage().equals("Return service error"));
         verify(loanService).returnBook(1L);
     }
 
@@ -252,7 +252,7 @@ class LibrarianServiceTest {
                 LibrarianServiceException.class,
                 () -> librarianService.getOverdueLoans());
 
-        assertTrue(exception.getMessage().contains("Failed to get overdue loans"));
+        assertTrue(exception.getMessage().equals("Failed to get overdue loans: Service error"));
         verify(loanService).getOverdueLoans();
     }
 
@@ -289,7 +289,7 @@ class LibrarianServiceTest {
                 LibrarianServiceException.class,
                 () -> librarianService.renewLoan(1L));
 
-        assertTrue(exception.getMessage().contains("Failed to renew loan"));
+        assertTrue(exception.getMessage().equals("Renewal not allowed"));
         verify(loanService).renewLoan(1L);
     }
 }
