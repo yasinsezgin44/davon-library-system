@@ -39,6 +39,7 @@ public class Book extends BaseEntity {
 
     @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "book_authors", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "author_id"))
+    @JsonIgnore // Temporarily ignore to prevent circular reference
     @lombok.Builder.Default
     private Set<Author> authors = new HashSet<>();
 
