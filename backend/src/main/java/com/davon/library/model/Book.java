@@ -62,6 +62,7 @@ public class Book extends BaseEntity {
         return 0; // Placeholder
     }
 
+    @JsonIgnore // Prevent Jackson from calling this method during serialization
     public BookDetails getDetails() {
         return new BookDetails(
                 this.title,
@@ -99,6 +100,7 @@ public class Book extends BaseEntity {
         private String description;
         private String coverImage;
         private int pages;
+        @JsonIgnore // Prevent circular reference in nested object
         private Set<Author> authors;
         private Publisher publisher;
         private Category category;
