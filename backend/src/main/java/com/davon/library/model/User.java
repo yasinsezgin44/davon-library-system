@@ -5,7 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 
 /**
@@ -28,7 +28,7 @@ import java.time.LocalDate;
 public abstract class User extends BaseEntity {
     private String username;
 
-    @JsonIgnore // Don't serialize password hash for security
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // Allow input but not output for security
     private String passwordHash;
 
     private String fullName;
