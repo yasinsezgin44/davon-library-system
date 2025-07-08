@@ -140,7 +140,7 @@ public class UserService {
      */
     public List<User> searchUsers(String query) {
         if (query == null || query.trim().isEmpty()) {
-            return List.of();
+            return getAllUsers(); // Return all users for empty query instead of empty list
         }
         return userRepository.searchUsers(query.trim());
     }
