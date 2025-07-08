@@ -123,7 +123,7 @@ class LoanServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> loanService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("outstanding fines"));
+        assertTrue(exception.getMessage().contains("Member has outstanding fines of $10.0"));
         verify(userService).findById(1L);
         verifyNoInteractions(bookService, loanRepository, bookCopyRepository);
     }
@@ -138,7 +138,7 @@ class LoanServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> loanService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("Member not found"));
+        assertTrue(exception.getMessage().contains("Member not found with ID: 1"));
     }
 
     @Test
@@ -154,7 +154,7 @@ class LoanServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> loanService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("not a member"));
+        assertTrue(exception.getMessage().contains("User is not a member"));
     }
 
     @Test
@@ -168,7 +168,7 @@ class LoanServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> loanService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("Book not found"));
+        assertTrue(exception.getMessage().contains("Book not found with ID: 1"));
     }
 
     @Test
@@ -184,7 +184,7 @@ class LoanServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> loanService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("No available copies"));
+        assertTrue(exception.getMessage().contains("No available copies of book: Test Book"));
     }
 
     @Test
@@ -321,7 +321,7 @@ class LoanServiceTest {
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> loanService.renewLoan(1L));
 
-        assertTrue(exception.getMessage().contains("Maximum renewals reached"));
+        assertTrue(exception.getMessage().contains("Loan renewal not allowed"));
     }
 
     @Test

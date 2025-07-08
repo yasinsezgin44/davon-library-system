@@ -82,6 +82,9 @@ public class LoanService {
             logger.info("Book checked out successfully - Loan ID: " + loan.getId());
             return loan;
 
+        } catch (BusinessException e) {
+            // Re-throw BusinessExceptions without wrapping
+            throw e;
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Database error during checkout", e);
             throw new BusinessException("Failed to checkout book due to system error");
@@ -218,6 +221,9 @@ public class LoanService {
             logger.info("Loan renewed successfully - Loan ID: " + loan.getId());
             return loan;
 
+        } catch (BusinessException e) {
+            // Re-throw BusinessExceptions without wrapping
+            throw e;
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error during loan renewal", e);
             throw new BusinessException("Failed to renew loan due to system error");
