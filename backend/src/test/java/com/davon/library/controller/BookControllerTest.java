@@ -19,102 +19,114 @@ import static org.hamcrest.Matchers.*;
 @QuarkusTest
 class BookControllerTest {
 
-    @Inject
-    BookService bookService;
+        @Inject
+        BookService bookService;
 
-    @Inject
-    BookRepository bookRepository;
+        @Inject
+        BookRepository bookRepository;
 
-    @BeforeEach
-    @Transactional
-    void clearData() {
-        // Clear all books before each test to ensure isolation
-        bookRepository.deleteAll();
-    }
+        @BeforeEach
+        @Transactional
+        void clearData() {
+                // Clear all books before each test to ensure isolation
+                // COMMENTED OUT: This causes foreign key constraint violations with persistent
+                // database
+                // bookRepository.deleteAll();
 
-    @Test
-    void testGetAllBooks() {
-        given()
-                .when().get("/api/books")
-                .then()
-                .statusCode(200)
-                .contentType(ContentType.JSON)
-                .body("size()", greaterThanOrEqualTo(0));
-    }
+                // Note: Tests use unique data generation for isolation instead of deletion
+        }
 
-    @Test
-    void testCreateAndGetBook() {
-        Book book = Book.builder()
-                .title("Test Book")
-                .ISBN("9781234567890")
-                .publicationYear(2023)
-                .description("A test book")
-                .pages(200)
-                .build();
+        @Test
+        void testGetAllBooks() {
+                given()
+                                .when().get("/api/books")
+                                .then()
+                                .statusCode(200)
+                                .contentType(ContentType.JSON)
+                                .body("size()", greaterThanOrEqualTo(0));
+        }
 
-        // Create a book
-        given()
-                .contentType(ContentType.JSON)
-                .body(book)
-                .when().post("/api/books")
-                .then()
-                .statusCode(201)
-                .contentType(ContentType.JSON)
-                .body("title", is("Test Book"))
-                .body("isbn", is("9781234567890"));
-    }
+        @Test
+        void testCreateAndGetBook() {
+                String uniqueISBN = generateUniqueISBN();
+                Book book = Book.builder()
+                                .title("Test Book")
+                                .ISBN(uniqueISBN)
+                                .publicationYear(2023)
+                                .description("A test book")
+                                .pages(200)
+                                .build();
 
-    @Test
-    void testSearchBooks() {
-        // First create a book to search for
-        Book book = Book.builder()
-                .title("Java Programming")
-                .ISBN("9781111111111")
-                .description("A comprehensive guide to Java")
-                .publicationYear(2023)
-                .pages(400)
-                .build();
+                // Create a book
+                given()
+                                .contentType(ContentType.JSON)
+                                .body(book)
+                                .when().post("/api/books")
+                                .then()
+                                .statusCode(201)
+                                .contentType(ContentType.JSON)
+                                .body("title", is("Test Book"))
+                                .body("isbn", is(uniqueISBN));
+        }
 
-        given()
-                .contentType(ContentType.JSON)
-                .body(book)
-                .when().post("/api/books")
-                .then()
-                .statusCode(201);
+        @Test
+        void testSearchBooks() {
+                // First create a book to search for
+                String uniquePrefix = "ControllerTest" + System.nanoTime();
+                Book book = Book.builder()
+                                .title(uniquePrefix + " Java Programming")
+                                .ISBN(generateUniqueISBN())
+                                .description("A comprehensive guide to Java")
+                                .publicationYear(2023)
+                                .pages(400)
+                                .build();
 
-        // Now search for it
-        given()
-                .param("q", "Java")
-                .when().get("/api/books/search")
-                .then()
-                .statusCode(200)
-                .contentType(ContentType.JSON)
-                .body("size()", greaterThanOrEqualTo(1));
-    }
+                given()
+                                .contentType(ContentType.JSON)
+                                .body(book)
+                                .when().post("/api/books")
+                                .then()
+                                .statusCode(201);
 
-    @Test
-    void testGetBookByIdNotFound() {
-        given()
-                .when().get("/api/books/999")
-                .then()
-                .statusCode(404);
-    }
+                // Now search for it using the unique prefix
+                given()
+                                .param("q", uniquePrefix)
+                                .when().get("/api/books/search")
+                                .then()
+                                .statusCode(200)
+                                .contentType(ContentType.JSON)
+                                .body("size()", greaterThanOrEqualTo(1));
+        }
 
-    @Test
-    void testDeleteBookNotFound() {
-        given()
-                .when().delete("/api/books/999")
-                .then()
-                .statusCode(404);
-    }
+        @Test
+        void testGetBookByIdNotFound() {
+                given()
+                                .when().get("/api/books/999")
+                                .then()
+                                .statusCode(404);
+        }
 
-    @Test
-    void testHealthEndpoint() {
-        given()
-                .when().get("/api/health")
-                .then()
-                .statusCode(200)
-                .contentType(ContentType.JSON)
-                .body("status", is("UP"));
-    }
+        @Test
+        void testDeleteBookNotFound() {
+                given()
+                                .when().delete("/api/books/999")
+                                .then()
+                                .statusCode(404);
+        }
+
+        @Test
+        void testHealthEndpoint() {
+                given()
+                                .when().get("/api/health")
+                                .then()
+                                .statusCode(200)
+                                .contentType(ContentType.JSON)
+                                .body("status", is("UP"));
+        }
+
+        private String generateUniqueISBN() {
+                // Generate a truly unique 13-digit ISBN using timestamp + random digits
+                long timestamp = System.nanoTime();
+                return "978" + String.format("%010d", Math.abs(timestamp % 10000000000L));
+        }
 }
