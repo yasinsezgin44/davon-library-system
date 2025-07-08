@@ -31,7 +31,7 @@ public class UserController {
 
     @POST
     @Operation(summary = "Create new user", description = "Add a new user to the system")
-    public Response createUser(Member userData) {
+    public Response createUser(User userData) {
         try {
             User newUser = userService.createUser(userData);
             return Response.status(Response.Status.CREATED).entity(newUser).build();
@@ -43,7 +43,7 @@ public class UserController {
     @PUT
     @Path("/{id}")
     @Operation(summary = "Update user", description = "Update an existing user")
-    public Response updateUser(@PathParam("id") Long id, Member userData) {
+    public Response updateUser(@PathParam("id") Long id, User userData) {
         try {
             User user = userService.findById(id);
             if (user == null) {
