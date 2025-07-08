@@ -45,7 +45,7 @@ public class BookRepository implements PanacheRepository<Book> {
     public List<Book> searchBooks(String searchTerm) {
         String lowerSearchTerm = "%" + searchTerm.toLowerCase() + "%";
         return find("LOWER(title) LIKE ?1 OR LOWER(ISBN) LIKE ?1 OR " +
-                "EXISTS (SELECT 1 FROM authors a WHERE a MEMBER OF authors AND LOWER(a.name) LIKE ?1)",
+                "EXISTS (SELECT 1 FROM Author a WHERE a MEMBER OF authors AND LOWER(a.name) LIKE ?1)",
                 lowerSearchTerm).list();
     }
 

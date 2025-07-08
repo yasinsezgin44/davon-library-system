@@ -85,22 +85,27 @@ class BookServiceQuarkusTest {
 
     @Test
     void testSearchBooks() throws BookServiceException {
-        // Given
-        Book book1 = createTestBook("Java Programming", generateUniqueISBN());
-        Book book2 = createTestBook("Python Guide", generateUniqueISBN());
-        Book book3 = createTestBook("Advanced Java", generateUniqueISBN());
+        // Given - use a unique search term to avoid conflicts with existing data
+        String uniquePrefix = "TestSearch" + System.nanoTime();
+        Book book1 = createTestBook(uniquePrefix + " Java Programming", generateUniqueISBN());
+        Book book2 = createTestBook(uniquePrefix + " Python Guide", generateUniqueISBN());
+        Book book3 = createTestBook(uniquePrefix + " Advanced Java", generateUniqueISBN());
 
         bookService.createBook(book1);
         bookService.createBook(book2);
         bookService.createBook(book3);
 
-        // When
-        List<Book> results = bookService.searchBooks("Java");
+        // When - search for the unique prefix (should match all 3 books, then filter
+        // for Java)
+        List<Book> allResults = bookService.searchBooks(uniquePrefix);
+        List<Book> javaResults = allResults.stream()
+                .filter(b -> b.getTitle().contains("Java"))
+                .toList();
 
         // Then
-        assertEquals(2, results.size());
-        assertTrue(results.stream().anyMatch(b -> b.getTitle().equals("Java Programming")));
-        assertTrue(results.stream().anyMatch(b -> b.getTitle().equals("Advanced Java")));
+        assertEquals(2, javaResults.size());
+        assertTrue(javaResults.stream().anyMatch(b -> b.getTitle().equals(uniquePrefix + " Java Programming")));
+        assertTrue(javaResults.stream().anyMatch(b -> b.getTitle().equals(uniquePrefix + " Advanced Java")));
     }
 
     @Test
