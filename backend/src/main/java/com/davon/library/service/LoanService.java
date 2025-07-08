@@ -207,6 +207,12 @@ public class LoanService {
                 throw new BusinessException("Only active loans can be renewed");
             }
 
+            // Check if member has outstanding fines
+            Member member = loan.getMember();
+            if (member.getFineBalance() > 0) {
+                throw new BusinessException("Member has outstanding fines of $" + member.getFineBalance());
+            }
+
             // Check renewal eligibility
             if (!loan.renew()) {
                 throw new BusinessException("Loan renewal not allowed");

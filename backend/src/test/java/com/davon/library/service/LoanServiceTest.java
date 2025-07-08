@@ -304,10 +304,12 @@ class LoanServiceTest {
         when(loanRepository.findById(1L)).thenReturn(testLoan);
 
         // Act & Assert
-        BusinessException exception = assertThrows(BusinessException.class,
+        BusinessException exception = assertThrows(
+                BusinessException.class,
                 () -> loanService.renewLoan(1L));
 
-        assertTrue(exception.getMessage().contains("outstanding fines"));
+        assertEquals("Member has outstanding fines of $10.0", exception.getMessage());
+        verify(loanRepository).findById(1L);
     }
 
     @Test
