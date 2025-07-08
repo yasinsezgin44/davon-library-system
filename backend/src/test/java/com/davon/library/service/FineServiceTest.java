@@ -9,137 +9,149 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FineServiceTest {
-    private FineService fineService;
-    private Loan overdueLoan;
-    private BookCopy bookCopy;
-    private Book book;
-    private Member member;
+        private FineService fineService;
+        private Loan overdueLoan;
+        private BookCopy bookCopy;
+        private Book book;
+        private Member member;
 
-    @BeforeEach
-    void setUp() {
-        fineService = new FineService();
+        @BeforeEach
+        void setUp() {
+                fineService = new FineService();
 
-        // Create test objects
-        book = Book.builder()
-                .id(1L)
-                .title("Test Book")
-                .ISBN("1234567890")
-                .build();
+                // Create test objects
+                book = Book.builder()
+                                .id(1L)
+                                .title("Test Book")
+                                .ISBN("1234567890")
+                                .build();
 
-        bookCopy = BookCopy.builder()
-                .id(1L)
-                .book(book)
-                .status(BookCopy.CopyStatus.CHECKED_OUT)
-                .condition("Good")
-                .build();
+                bookCopy = BookCopy.builder()
+                                .id(1L)
+                                .book(book)
+                                .status(BookCopy.CopyStatus.CHECKED_OUT)
+                                .condition("Good")
+                                .build();
 
-        member = Member.builder()
-                .id(1L)
-                .fullName("Test Member")
-                .active(true)
-                .build();
+                member = Member.builder()
+                                .id(1L)
+                                .fullName("Test Member")
+                                .active(true)
+                                .build();
 
-        // Create an overdue loan
-        overdueLoan = Loan.builder()
-                .id(1L)
-                .member(member)
-                .bookCopy(bookCopy)
-                .checkoutDate(LocalDate.now().minusDays(30)) // Checked out 30 days ago
-                .dueDate(LocalDate.now().minusDays(10)) // Due 10 days ago
-                .status(Loan.LoanStatus.OVERDUE)
-                .build();
-    }
+                // Create an overdue loan
+                overdueLoan = Loan.builder()
+                                .id(1L)
+                                .member(member)
+                                .bookCopy(bookCopy)
+                                .checkoutDate(LocalDate.now().minusDays(30)) // Checked out 30 days ago
+                                .dueDate(LocalDate.now().minusDays(10)) // Due 10 days ago
+                                .status(Loan.LoanStatus.OVERDUE)
+                                .build();
+        }
 
-    @Test
-    void testCalculateOverdueFine() {
-        // Test with overdue loan
-        Fine fine = fineService.calculateOverdueFine(overdueLoan);
+        @Test
+        void testCalculateOverdueFine() {
+                // Test with overdue loan
+                Fine fine = fineService.calculateOverdueFine(overdueLoan);
 
-        assertNotNull(fine);
-        assertEquals(Fine.FineReason.OVERDUE, fine.getReason());
-        assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
-        assertEquals(LocalDate.now(), fine.getIssueDate());
-        assertEquals(LocalDate.now().plusDays(14), fine.getDueDate());
+                assertNotNull(fine);
+                assertEquals(Fine.FineReason.OVERDUE, fine.getReason());
+                assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
+                assertEquals(LocalDate.now(), fine.getIssueDate());
+                assertEquals(LocalDate.now().plusDays(14), fine.getDueDate());
 
-        // 10 days overdue at $0.50 per day = $5.00
-        assertEquals(5.00, fine.getAmount());
+                // 10 days overdue at $0.50 per day = $5.00
+                assertEquals(5.00, fine.getAmount());
 
-        // Test with non-overdue loan
-        Loan activeLoan = Loan.builder()
-                .status(Loan.LoanStatus.ACTIVE)
-                .build();
+                // Test with non-overdue loan
+                Loan activeLoan = Loan.builder()
+                                .status(Loan.LoanStatus.ACTIVE)
+                                .checkoutDate(LocalDate.now().minusDays(5))
+                                .dueDate(LocalDate.now().plusDays(5)) // Due in 5 days
+                                .build();
 
-        Fine noFine = fineService.calculateOverdueFine(activeLoan);
-        assertNull(noFine);
-    }
+                Fine noFine = fineService.calculateOverdueFine(activeLoan);
+                assertNull(noFine);
 
-    @Test
-    void testCreateDamageFine() {
-        String damageDescription = "Water damage on pages 10-20";
-        Fine fine = fineService.createDamageFine(bookCopy, damageDescription);
+                // Test with null loan
+                assertNull(fineService.calculateOverdueFine(null));
 
-        assertNotNull(fine);
-        assertEquals(Fine.FineReason.DAMAGED_ITEM, fine.getReason());
-        assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
-        assertEquals(LocalDate.now(), fine.getIssueDate());
-        assertEquals(LocalDate.now().plusDays(14), fine.getDueDate());
+                // Test with loan having null due date
+                Loan loanWithNullDueDate = Loan.builder()
+                                .status(Loan.LoanStatus.ACTIVE)
+                                .checkoutDate(LocalDate.now())
+                                .build();
+                assertNull(fineService.calculateOverdueFine(loanWithNullDueDate));
+        }
 
-        // Default amount from service is $10.00
-        assertEquals(10.00, fine.getAmount());
-    }
+        @Test
+        void testCreateDamageFine() {
+                String damageDescription = "Water damage on pages 10-20";
+                Fine fine = fineService.createDamageFine(bookCopy, damageDescription);
 
-    @Test
-    void testCreateLostItemFine() {
-        Fine fine = fineService.createLostItemFine(bookCopy);
+                assertNotNull(fine);
+                assertEquals(Fine.FineReason.DAMAGED_ITEM, fine.getReason());
+                assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
+                assertEquals(LocalDate.now(), fine.getIssueDate());
+                assertEquals(LocalDate.now().plusDays(14), fine.getDueDate());
 
-        assertNotNull(fine);
-        assertEquals(Fine.FineReason.LOST_ITEM, fine.getReason());
-        assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
-        assertEquals(LocalDate.now(), fine.getIssueDate());
-        assertEquals(LocalDate.now().plusDays(14), fine.getDueDate());
+                // Default amount from service is $10.00
+                assertEquals(10.00, fine.getAmount());
+        }
 
-        // Default replacement cost from service is $25.00
-        assertEquals(25.00, fine.getAmount());
-    }
+        @Test
+        void testCreateLostItemFine() {
+                Fine fine = fineService.createLostItemFine(bookCopy);
 
-    @Test
-    void testMaxFineLimit() {
-        // Create a loan that's 100 days overdue (which would exceed the max fine)
-        Loan veryOverdueLoan = Loan.builder()
-                .id(2L)
-                .member(member)
-                .bookCopy(bookCopy)
-                .checkoutDate(LocalDate.now().minusDays(120))
-                .dueDate(LocalDate.now().minusDays(100))
-                .status(Loan.LoanStatus.OVERDUE)
-                .build();
+                assertNotNull(fine);
+                assertEquals(Fine.FineReason.LOST_ITEM, fine.getReason());
+                assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
+                assertEquals(LocalDate.now(), fine.getIssueDate());
+                assertEquals(LocalDate.now().plusDays(14), fine.getDueDate());
 
-        Fine fine = fineService.calculateOverdueFine(veryOverdueLoan);
+                // Default replacement cost from service is $25.00
+                assertEquals(25.00, fine.getAmount());
+        }
 
-        assertNotNull(fine);
-        // 100 days * $0.50 = $50, but max is $25
-        assertEquals(25.00, fine.getAmount());
-    }
+        @Test
+        void testMaxFineLimit() {
+                // Create a loan that's 100 days overdue (which would exceed the max fine)
+                Loan veryOverdueLoan = Loan.builder()
+                                .id(2L)
+                                .member(member)
+                                .bookCopy(bookCopy)
+                                .checkoutDate(LocalDate.now().minusDays(120))
+                                .dueDate(LocalDate.now().minusDays(100))
+                                .status(Loan.LoanStatus.OVERDUE)
+                                .build();
 
-    @Test
-    void testOverdueFineAcrossMonths() {
-        // Create a loan that spans across months with different lengths
-        LocalDate checkoutDate = LocalDate.now().minusDays(51);
-        LocalDate dueDate = LocalDate.now().minusDays(36);
+                Fine fine = fineService.calculateOverdueFine(veryOverdueLoan);
 
-        Loan crossMonthLoan = Loan.builder()
-                .id(3L)
-                .member(member)
-                .bookCopy(bookCopy)
-                .checkoutDate(checkoutDate)
-                .dueDate(dueDate)
-                .status(Loan.LoanStatus.OVERDUE)
-                .build();
+                assertNotNull(fine);
+                // 100 days * $0.50 = $50, but max is $25
+                assertEquals(25.00, fine.getAmount());
+        }
 
-        Fine fine = fineService.calculateOverdueFine(crossMonthLoan);
+        @Test
+        void testOverdueFineAcrossMonths() {
+                // Create a loan that spans across months with different lengths
+                LocalDate checkoutDate = LocalDate.now().minusDays(51);
+                LocalDate dueDate = LocalDate.now().minusDays(36);
 
-        assertNotNull(fine);
-        assertEquals(18.00, fine.getAmount(),
-                "Fine should be $18.00 for 36 days overdue, but got $" + fine.getAmount());
-    }
+                Loan crossMonthLoan = Loan.builder()
+                                .id(3L)
+                                .member(member)
+                                .bookCopy(bookCopy)
+                                .checkoutDate(checkoutDate)
+                                .dueDate(dueDate)
+                                .status(Loan.LoanStatus.OVERDUE)
+                                .build();
+
+                Fine fine = fineService.calculateOverdueFine(crossMonthLoan);
+
+                assertNotNull(fine);
+                assertEquals(18.00, fine.getAmount(),
+                                "Fine should be $18.00 for 36 days overdue, but got $" + fine.getAmount());
+        }
 }

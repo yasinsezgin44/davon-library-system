@@ -226,21 +226,17 @@ public class LibrarianService {
             // 1. Validate member can borrow
             Member member = (Member) userService.findById(memberId);
             if (member == null) {
-                throw new LibrarianServiceException("Member not found with ID: " + memberId);
+                throw new LibrarianServiceException("Member not found");
             }
 
             if (member.getFineBalance() > 0) {
-                throw new LibrarianServiceException("Member has outstanding fines of $" + member.getFineBalance());
+                throw new LibrarianServiceException("outstanding fines");
             }
 
             // 2. Validate book exists and is available
             Book book = bookService.getBookById(bookId);
             if (book == null) {
-                throw new LibrarianServiceException("Book not found with ID: " + bookId);
-            }
-
-            if (!book.isAvailable()) {
-                throw new LibrarianServiceException("No available copies of book: " + book.getTitle());
+                throw new LibrarianServiceException("Book not found");
             }
 
             // 3. Create loan
@@ -249,11 +245,11 @@ public class LibrarianService {
                     + loan.getId());
             return loan;
         } catch (BusinessException e) {
-            logger.severe("Failed to checkout book: " + e);
+            logger.severe("Failed to checkout book: " + e.getMessage());
             throw new LibrarianServiceException(e.getMessage());
         } catch (Exception e) {
-            logger.severe("Failed to checkout book: " + e);
-            throw new LibrarianServiceException("System error during checkout");
+            logger.severe("Failed to checkout book: " + e.getMessage());
+            throw new LibrarianServiceException("Failed to checkout book due to system error");
         }
     }
 
@@ -266,17 +262,16 @@ public class LibrarianService {
      * @throws LibrarianServiceException if return processing fails
      */
     @Transactional
-    public Receipt returnBook(Long loanId) throws LibrarianServiceException {
+    public void returnBook(Long loanId) throws LibrarianServiceException {
         try {
-            Receipt receipt = loanService.returnBook(loanId);
+            loanService.returnBook(loanId);
             logger.info("Book returned by librarian - Loan: " + loanId);
-            return receipt;
+        } catch (BusinessException e) {
+            logger.severe("Failed to return book: " + e.getMessage());
+            throw new LibrarianServiceException(e.getMessage());
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to return book", e);
-            if (e instanceof BusinessException) {
-                throw new LibrarianServiceException(e.getMessage());
-            }
-            throw new LibrarianServiceException("Failed to return book: " + e.getMessage());
+            logger.severe("Failed to return book: " + e.getMessage());
+            throw new LibrarianServiceException("Failed to return book due to system error");
         }
     }
 
@@ -290,7 +285,7 @@ public class LibrarianService {
         try {
             return loanService.getOverdueLoans();
         } catch (Exception e) {
-            logger.severe("Failed to get overdue loans: " + e);
+            logger.severe("Failed to get overdue loans: " + e.getMessage());
             throw new LibrarianServiceException("Failed to get overdue loans: " + e.getMessage());
         }
     }
@@ -303,17 +298,16 @@ public class LibrarianService {
      * @throws LibrarianServiceException if renewal fails
      */
     @Transactional
-    public Loan renewLoan(Long loanId) throws LibrarianServiceException {
+    public void renewLoan(Long loanId) throws LibrarianServiceException {
         try {
-            Loan loan = loanService.renewLoan(loanId);
+            loanService.renewLoan(loanId);
             logger.info("Loan renewed by librarian - Loan: " + loanId);
-            return loan;
+        } catch (BusinessException e) {
+            logger.severe("Failed to renew loan: " + e.getMessage());
+            throw new LibrarianServiceException(e.getMessage());
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to renew loan", e);
-            if (e instanceof BusinessException) {
-                throw new LibrarianServiceException(e.getMessage());
-            }
-            throw new LibrarianServiceException("Failed to renew loan: " + e.getMessage());
+            logger.severe("Failed to renew loan: " + e.getMessage());
+            throw new LibrarianServiceException("Failed to renew loan due to system error");
         }
     }
 
