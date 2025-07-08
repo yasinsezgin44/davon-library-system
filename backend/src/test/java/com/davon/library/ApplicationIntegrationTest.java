@@ -67,16 +67,17 @@ public class ApplicationIntegrationTest {
     @Test
     @Order(5)
     public void testCreateAndRetrieveBook() {
-        // Create a new book
+        // Create a new book with unique ISBN using timestamp
+        String uniqueISBN = "978" + System.currentTimeMillis() % 1000000000L; // Ensure 13 digits
         String newBookJson = """
                 {
                     "title": "Integration Test Book",
-                    "ISBN": "9781234567890",
+                    "ISBN": "%s",
                     "publicationYear": 2024,
                     "description": "A book created during integration testing",
                     "pages": 200
                 }
-                """;
+                """.formatted(uniqueISBN);
 
         String bookId = given()
                 .contentType(ContentType.JSON)
@@ -86,7 +87,7 @@ public class ApplicationIntegrationTest {
                 .then()
                 .statusCode(201)
                 .body("title", is("Integration Test Book"))
-                .body("ISBN", is("9781234567890"))
+                .body("ISBN", is(uniqueISBN))
                 .body("publicationYear", is(2024))
                 .body("id", notNullValue())
                 .extract()
@@ -100,7 +101,7 @@ public class ApplicationIntegrationTest {
                 .then()
                 .statusCode(200)
                 .body("title", is("Integration Test Book"))
-                .body("ISBN", is("9781234567890"))
+                .body("ISBN", is(uniqueISBN))
                 .body("publicationYear", is(2024));
     }
 

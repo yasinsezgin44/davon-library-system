@@ -26,7 +26,8 @@ public class Book extends BaseEntity {
      * simplicity.
      */
     @jakarta.validation.constraints.Pattern(regexp = "\\d{10}|\\d{13}", message = "ISBN must be 10 or 13 digits")
-    @Column(unique = true, nullable = false)
+    @Column(name = "isbn", unique = true, nullable = false)
+    @com.fasterxml.jackson.annotation.JsonProperty("ISBN")
     private String ISBN;
 
     @jakarta.validation.constraints.Min(value = 1, message = "Publication year must be positive")

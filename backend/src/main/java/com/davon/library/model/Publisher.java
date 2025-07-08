@@ -36,12 +36,6 @@ public class Publisher {
     @Column(name = "updated_at")
     private java.time.LocalDateTime updatedAt;
 
-    @Column(name = "created_by")
-    private String createdBy;
-
-    @Column(name = "updated_by")
-    private String updatedBy;
-
     @PrePersist
     protected void onCreate() {
         createdAt = java.time.LocalDateTime.now();
