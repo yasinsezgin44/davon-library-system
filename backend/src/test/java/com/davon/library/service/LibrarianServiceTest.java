@@ -194,7 +194,8 @@ class LibrarianServiceTest {
     @DisplayName("Should successfully return book")
     void testReturnBookSuccess() throws Exception {
         // Arrange
-        doNothing().when(loanService).returnBook(1L);
+        Receipt mockReceipt = mock(Receipt.class);
+        when(loanService.returnBook(1L)).thenReturn(mockReceipt);
 
         // Act
         librarianService.returnBook(1L);
@@ -207,8 +208,7 @@ class LibrarianServiceTest {
     @DisplayName("Should propagate LoanService exception during return")
     void testReturnBookLoanServiceException() throws Exception {
         // Arrange
-        doThrow(new BusinessException("Return service error"))
-                .when(loanService).returnBook(1L);
+        when(loanService.returnBook(1L)).thenThrow(new BusinessException("Return service error"));
 
         // Act & Assert
         LibrarianServiceException exception = assertThrows(
@@ -256,7 +256,7 @@ class LibrarianServiceTest {
     @DisplayName("Should successfully renew loan")
     void testRenewLoanSuccess() throws Exception {
         // Arrange
-        doNothing().when(loanService).renewLoan(1L);
+        when(loanService.renewLoan(1L)).thenReturn(testLoan);
 
         // Act
         librarianService.renewLoan(1L);
@@ -269,8 +269,7 @@ class LibrarianServiceTest {
     @DisplayName("Should propagate LoanService exception during renewal")
     void testRenewLoanLoanServiceException() throws Exception {
         // Arrange
-        doThrow(new BusinessException("Renewal not allowed"))
-                .when(loanService).renewLoan(1L);
+        when(loanService.renewLoan(1L)).thenThrow(new BusinessException("Renewal not allowed"));
 
         // Act & Assert
         LibrarianServiceException exception = assertThrows(

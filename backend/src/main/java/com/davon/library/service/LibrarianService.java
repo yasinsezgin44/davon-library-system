@@ -239,7 +239,12 @@ public class LibrarianService {
                 throw new LibrarianServiceException("Book not found");
             }
 
-            // 3. Create loan
+            // 3. Check if book is available
+            if (!book.isAvailable()) {
+                throw new LibrarianServiceException("Book not available");
+            }
+
+            // 4. Create loan
             Loan loan = loanService.checkoutBook(bookId, memberId);
             logger.info("Book checked out by librarian - Member: " + memberId + ", Book: " + bookId + ", Loan: "
                     + loan.getId());
@@ -247,6 +252,9 @@ public class LibrarianService {
         } catch (BusinessException e) {
             logger.severe("Failed to checkout book: " + e.getMessage());
             throw new LibrarianServiceException(e.getMessage());
+        } catch (LibrarianServiceException e) {
+            logger.severe("Failed to checkout book: " + e.getMessage());
+            throw e;
         } catch (Exception e) {
             logger.severe("Failed to checkout book: " + e.getMessage());
             throw new LibrarianServiceException("Failed to checkout book due to system error");
