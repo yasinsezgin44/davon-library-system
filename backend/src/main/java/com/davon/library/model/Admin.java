@@ -1,7 +1,6 @@
 package com.davon.library.model;
 
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.time.LocalDate;
@@ -11,21 +10,24 @@ import java.util.Set;
  * Represents an admin user in the library system.
  */
 @Entity
-@DiscriminatorValue("admin")
+@Table(name = "admins")
+@PrimaryKeyJoinColumn(name = "user_id")
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Admin extends User {
+    @Column(name = "admin_level")
     private int adminLevel;
+
     private String department;
 
-    // Note: Storing a Set<String> directly is not ideal for relational databases.
-    // This will likely be stored as a serialized blob. For a better approach,
-    // consider using a separate @ElementCollection or a @OneToMany relationship.
-    private Set<String> permissions;
+    // Store permissions as text - better approach would be separate table
+    @Column(columnDefinition = "TEXT")
+    private String permissions; // Changed from Set<String> to String for database compatibility
 
+    @Column(name = "last_activity")
     private LocalDate lastActivity;
 
     public void manageUsers() {

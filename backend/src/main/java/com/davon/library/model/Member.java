@@ -1,9 +1,6 @@
 package com.davon.library.model;
 
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.time.LocalDate;
@@ -15,7 +12,8 @@ import java.util.List;
  * Represents a library member who can borrow books and make reservations.
  */
 @Entity
-@DiscriminatorValue("member")
+@Table(name = "members")
+@PrimaryKeyJoinColumn(name = "user_id")
 @Data
 @SuperBuilder
 @NoArgsConstructor

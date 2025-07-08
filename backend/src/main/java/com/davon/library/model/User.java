@@ -13,8 +13,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "users")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "userType", discriminatorType = DiscriminatorType.STRING)
+@Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @SuperBuilder
 @NoArgsConstructor
@@ -32,8 +31,24 @@ public abstract class User extends BaseEntity {
     private UserStatus status;
 
     private LocalDate lastLogin;
+
+    // Audit fields - inherited from BaseEntity, but need column mapping
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    private LocalDateTime lastModifiedAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
     public boolean isAdmin() {
         return this instanceof Admin;
