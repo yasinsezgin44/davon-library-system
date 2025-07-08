@@ -14,6 +14,12 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "userType")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Member.class, name = "member"),
+        @JsonSubTypes.Type(value = Librarian.class, name = "librarian"),
+        @JsonSubTypes.Type(value = Admin.class, name = "admin")
+})
 @Data
 @SuperBuilder
 @NoArgsConstructor
