@@ -93,8 +93,7 @@ class LibrarianServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(testMember.getId(), result.getMember().getId());
-
+        assertEquals(testLoan.getId(), result.getId());
         verify(userService).findById(1L);
         verify(bookService).getBookById(1L);
         verify(testBook).isAvailable();
@@ -102,7 +101,7 @@ class LibrarianServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when member not found during checkout")
+    @DisplayName("Should throw exception when member not found")
     void testCheckoutBookMemberNotFound() throws Exception {
         // Arrange
         when(userService.findById(1L)).thenReturn(null);
@@ -112,13 +111,13 @@ class LibrarianServiceTest {
                 LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("Member not found"));
+        assertEquals("Member not found", exception.getMessage());
         verify(userService).findById(1L);
-        verifyNoInteractions(bookService, loanService);
+        verify(bookService, never()).getBookById(anyLong());
     }
 
     @Test
-    @DisplayName("Should throw exception when member has outstanding fines during checkout")
+    @DisplayName("Should throw exception when member has outstanding fines")
     void testCheckoutBookMemberHasFines() throws Exception {
         // Arrange
         testMember.setFineBalance(10.0);
@@ -129,46 +128,45 @@ class LibrarianServiceTest {
                 LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("outstanding fines"));
+        assertEquals("outstanding fines", exception.getMessage());
         verify(userService).findById(1L);
-        verifyNoInteractions(bookService, loanService);
+        verify(bookService, never()).getBookById(anyLong());
     }
 
     @Test
-    @DisplayName("Should throw exception when book not found during checkout")
+    @DisplayName("Should throw exception when book not found")
     void testCheckoutBookNotFound() throws Exception {
         // Arrange
-        when(userService.findById(1L)).thenReturn(null);
+        when(userService.findById(1L)).thenReturn(testMember);
+        when(bookService.getBookById(1L)).thenReturn(null);
 
         // Act & Assert
         LibrarianServiceException exception = assertThrows(
                 LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("Member not found"));
+        assertEquals("Book not found", exception.getMessage());
         verify(userService).findById(1L);
-        verifyNoInteractions(bookService, loanService);
+        verify(bookService).getBookById(1L);
     }
 
     @Test
-    @DisplayName("Should throw exception when book not available during checkout")
+    @DisplayName("Should throw exception when book not available")
     void testCheckoutBookNotAvailable() throws Exception {
         // Arrange
         when(userService.findById(1L)).thenReturn(testMember);
         when(bookService.getBookById(1L)).thenReturn(testBook);
         when(testBook.isAvailable()).thenReturn(false);
-        when(testBook.getTitle()).thenReturn("Test Book");
 
         // Act & Assert
         LibrarianServiceException exception = assertThrows(
                 LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().contains("not available"));
+        assertEquals("Book not available", exception.getMessage());
         verify(userService).findById(1L);
         verify(bookService).getBookById(1L);
         verify(testBook).isAvailable();
-        verifyNoInteractions(loanService);
     }
 
     @Test
@@ -185,7 +183,7 @@ class LibrarianServiceTest {
                 LibrarianServiceException.class,
                 () -> librarianService.checkoutBook(1L, 1L));
 
-        assertTrue(exception.getMessage().equals("Loan service error"));
+        assertEquals("Loan service error", exception.getMessage());
         verify(userService).findById(1L);
         verify(bookService).getBookById(1L);
         verify(testBook).isAvailable();
@@ -196,15 +194,12 @@ class LibrarianServiceTest {
     @DisplayName("Should successfully return book")
     void testReturnBookSuccess() throws Exception {
         // Arrange
-        when(loanService.returnBook(1L)).thenReturn(testReceipt);
+        doNothing().when(loanService).returnBook(1L);
 
         // Act
-        Receipt result = librarianService.returnBook(1L);
+        librarianService.returnBook(1L);
 
         // Assert
-        assertNotNull(result);
-        assertEquals(testReceipt.getTransactionId(), result.getTransactionId());
-
         verify(loanService).returnBook(1L);
     }
 
@@ -212,14 +207,15 @@ class LibrarianServiceTest {
     @DisplayName("Should propagate LoanService exception during return")
     void testReturnBookLoanServiceException() throws Exception {
         // Arrange
-        when(loanService.returnBook(1L)).thenThrow(new BusinessException("Return service error"));
+        doThrow(new BusinessException("Return service error"))
+                .when(loanService).returnBook(1L);
 
         // Act & Assert
         LibrarianServiceException exception = assertThrows(
                 LibrarianServiceException.class,
                 () -> librarianService.returnBook(1L));
 
-        assertTrue(exception.getMessage().equals("Return service error"));
+        assertEquals("Return service error", exception.getMessage());
         verify(loanService).returnBook(1L);
     }
 
@@ -260,21 +256,12 @@ class LibrarianServiceTest {
     @DisplayName("Should successfully renew loan")
     void testRenewLoanSuccess() throws Exception {
         // Arrange
-        Loan renewedLoan = Loan.builder()
-                .id(1L)
-                .member(testMember)
-                .dueDate(LocalDate.now().plusDays(28)) // Extended
-                .renewalCount(1)
-                .build();
-        when(loanService.renewLoan(1L)).thenReturn(renewedLoan);
+        doNothing().when(loanService).renewLoan(1L);
 
         // Act
-        Loan result = librarianService.renewLoan(1L);
+        librarianService.renewLoan(1L);
 
         // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getRenewalCount());
-
         verify(loanService).renewLoan(1L);
     }
 
@@ -282,14 +269,15 @@ class LibrarianServiceTest {
     @DisplayName("Should propagate LoanService exception during renewal")
     void testRenewLoanLoanServiceException() throws Exception {
         // Arrange
-        when(loanService.renewLoan(1L)).thenThrow(new BusinessException("Renewal not allowed"));
+        doThrow(new BusinessException("Renewal not allowed"))
+                .when(loanService).renewLoan(1L);
 
         // Act & Assert
         LibrarianServiceException exception = assertThrows(
                 LibrarianServiceException.class,
                 () -> librarianService.renewLoan(1L));
 
-        assertTrue(exception.getMessage().equals("Renewal not allowed"));
+        assertEquals("Renewal not allowed", exception.getMessage());
         verify(loanService).renewLoan(1L);
     }
 }

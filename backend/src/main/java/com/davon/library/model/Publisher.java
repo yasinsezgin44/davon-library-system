@@ -1,29 +1,54 @@
 package com.davon.library.model;
 
-import lombok.*;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.experimental.SuperBuilder;
-import java.util.HashSet;
-import java.util.Set;
 
-/**
- * Represents a publisher in the library system.
- */
+@Entity
+@Table(name = "publishers")
 @Data
-@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = { "publishedBooks" })
-@ToString(callSuper = true, exclude = { "publishedBooks" })
-public class Publisher extends BaseEntity {
+@Builder
+public class Publisher {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
     private String name;
+
+    @Column
     private String address;
-    private String contact;
 
-    @Builder.Default
-    private Set<Book> publishedBooks = new HashSet<>();
+    @Column
+    private String phone;
 
-    public Set<Book> getPublishedBooks() {
-        return publishedBooks;
+    @Column
+    private String email;
+
+    // Audit fields
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private java.time.LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private java.time.LocalDateTime updatedAt;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = java.time.LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = java.time.LocalDateTime.now();
     }
 }
