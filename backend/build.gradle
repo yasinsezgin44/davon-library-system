@@ -54,6 +54,11 @@ dependencies {
 test {
     useJUnitPlatform()
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+
+    // Include default test patterns and Quarkus-specific patterns
+    include '**/*Test.class'
+    include '**/*QuarkusTest.class'
+    include '**/*IntegrationTest.class'
 }
 
 // Configure Checkstyle
