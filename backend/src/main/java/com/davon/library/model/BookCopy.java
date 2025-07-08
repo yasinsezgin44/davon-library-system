@@ -3,7 +3,7 @@ package com.davon.library.model;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
 
 /**
@@ -20,7 +20,7 @@ import java.time.LocalDate;
 public class BookCopy extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnore // Prevent circular reference in JSON serialization
     private Book book;
 
     @Column(name = "acquisition_date")
