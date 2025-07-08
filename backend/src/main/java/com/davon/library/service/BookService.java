@@ -1,7 +1,9 @@
 package com.davon.library.service;
 
 import com.davon.library.repository.BookRepository;
+import com.davon.library.repository.BookCopyRepository;
 import com.davon.library.model.Book;
+import com.davon.library.model.BookCopy;
 import com.davon.library.model.Author;
 import com.davon.library.model.Category;
 
@@ -25,13 +27,15 @@ public class BookService {
     private static final Logger logger = Logger.getLogger(BookService.class.getName());
 
     private final BookRepository bookRepository;
+    private final BookCopyRepository bookCopyRepository;
 
     /**
      * Constructor-based injection preferred for immutability and testability.
      */
     @Inject
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository, BookCopyRepository bookCopyRepository) {
         this.bookRepository = bookRepository;
+        this.bookCopyRepository = bookCopyRepository;
     }
 
     /**
@@ -127,10 +131,22 @@ public class BookService {
                 throw new BookServiceException("Book ID cannot be null");
             }
 
-            boolean deleted = bookRepository.deleteById(id);
-            if (!deleted) {
+            // First, find the book to ensure it exists
+            Book book = bookRepository.findById(id);
+            if (book == null) {
                 throw new BookServiceException("Book not found with ID: " + id);
             }
+
+            // Delete all book copies first to avoid foreign key constraint violations
+            // The database foreign key constraint doesn't have CASCADE DELETE
+            List<BookCopy> copies = bookCopyRepository.findByBook(book);
+            for (BookCopy copy : copies) {
+                bookCopyRepository.delete(copy);
+            }
+
+            // Now delete the book
+            bookRepository.delete(book);
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to delete book", e);
             throw new BookServiceException("Failed to delete book: " + e.getMessage(), e);
