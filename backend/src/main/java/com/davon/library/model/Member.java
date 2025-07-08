@@ -3,6 +3,7 @@ package com.davon.library.model;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,10 +27,12 @@ public class Member extends User {
     private String address;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // Prevent circular reference in JSON serialization
     @lombok.Builder.Default
     private Set<Loan> loans = new HashSet<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // Prevent circular reference in JSON serialization
     @lombok.Builder.Default
     private Set<Reservation> reservations = new HashSet<>();
 
@@ -37,6 +40,7 @@ public class Member extends User {
     private double fineBalance = 0.0;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // Prevent circular reference in JSON serialization
     @lombok.Builder.Default
     private Set<Fine> fines = new HashSet<>();
 

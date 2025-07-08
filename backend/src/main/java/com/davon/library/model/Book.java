@@ -3,7 +3,7 @@ package com.davon.library.model;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -51,7 +51,7 @@ public class Book extends BaseEntity {
     private Category category;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonIgnore // Prevent circular reference in JSON serialization
     @lombok.Builder.Default
     private Set<BookCopy> copies = new HashSet<>();
 
