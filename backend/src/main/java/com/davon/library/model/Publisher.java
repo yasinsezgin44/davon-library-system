@@ -24,10 +24,7 @@ public class Publisher {
     private String address;
 
     @Column
-    private String phone;
-
-    @Column
-    private String email;
+    private String contact;
 
     // Audit fields
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -39,6 +36,7 @@ public class Publisher {
     @PrePersist
     protected void onCreate() {
         createdAt = java.time.LocalDateTime.now();
+        updatedAt = java.time.LocalDateTime.now();
     }
 
     @PreUpdate
