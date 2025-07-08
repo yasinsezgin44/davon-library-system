@@ -20,6 +20,12 @@ class FineServiceTest {
                 fineService = new FineService();
 
                 // Create test objects
+                member = Member.builder()
+                                .id(1L)
+                                .fullName("Test Member")
+                                .active(true)
+                                .build();
+
                 book = Book.builder()
                                 .id(1L)
                                 .title("Test Book")
@@ -33,19 +39,14 @@ class FineServiceTest {
                                 .condition("Good")
                                 .build();
 
-                member = Member.builder()
-                                .id(1L)
-                                .fullName("Test Member")
-                                .active(true)
-                                .build();
-
-                // Create an overdue loan
+                // Create an overdue loan with proper member reference
+                // Due 10 days ago
                 overdueLoan = Loan.builder()
                                 .id(1L)
                                 .member(member)
                                 .bookCopy(bookCopy)
-                                .checkoutDate(LocalDate.now().minusDays(30)) // Checked out 30 days ago
-                                .dueDate(LocalDate.now().minusDays(10)) // Due 10 days ago
+                                .checkoutDate(LocalDate.now().minusDays(30))
+                                .dueDate(LocalDate.now().minusDays(10))
                                 .status(Loan.LoanStatus.OVERDUE)
                                 .build();
         }
@@ -66,6 +67,7 @@ class FineServiceTest {
 
                 // Test with non-overdue loan
                 Loan activeLoan = Loan.builder()
+                                .member(member)
                                 .status(Loan.LoanStatus.ACTIVE)
                                 .checkoutDate(LocalDate.now().minusDays(5))
                                 .dueDate(LocalDate.now().plusDays(5)) // Due in 5 days
@@ -79,6 +81,7 @@ class FineServiceTest {
 
                 // Test with loan having null due date
                 Loan loanWithNullDueDate = Loan.builder()
+                                .member(member)
                                 .status(Loan.LoanStatus.ACTIVE)
                                 .checkoutDate(LocalDate.now())
                                 .build();
@@ -88,7 +91,7 @@ class FineServiceTest {
         @Test
         void testCreateDamageFine() {
                 String damageDescription = "Water damage on pages 10-20";
-                Fine fine = fineService.createDamageFine(bookCopy, damageDescription);
+                Fine fine = fineService.createDamageFine(member, bookCopy, damageDescription);
 
                 assertNotNull(fine);
                 assertEquals(Fine.FineReason.DAMAGED_ITEM, fine.getReason());
@@ -102,7 +105,7 @@ class FineServiceTest {
 
         @Test
         void testCreateLostItemFine() {
-                Fine fine = fineService.createLostItemFine(bookCopy);
+                Fine fine = fineService.createLostItemFine(member, bookCopy);
 
                 assertNotNull(fine);
                 assertEquals(Fine.FineReason.LOST_ITEM, fine.getReason());
@@ -135,16 +138,13 @@ class FineServiceTest {
 
         @Test
         void testOverdueFineAcrossMonths() {
-                // Create a loan that spans across months with different lengths
-                LocalDate checkoutDate = LocalDate.now().minusDays(51);
-                LocalDate dueDate = LocalDate.now().minusDays(36);
-
+                // Create a loan that is 36 days overdue
                 Loan crossMonthLoan = Loan.builder()
                                 .id(3L)
                                 .member(member)
                                 .bookCopy(bookCopy)
-                                .checkoutDate(checkoutDate)
-                                .dueDate(dueDate)
+                                .checkoutDate(LocalDate.now().minusDays(51))
+                                .dueDate(LocalDate.now().minusDays(36))
                                 .status(Loan.LoanStatus.OVERDUE)
                                 .build();
 
@@ -153,5 +153,26 @@ class FineServiceTest {
                 assertNotNull(fine);
                 assertEquals(18.00, fine.getAmount(),
                                 "Fine should be $18.00 for 36 days overdue, but got $" + fine.getAmount());
+        }
+
+        @Test
+        void testNullInputHandling() {
+                // Test null member
+                assertNull(fineService.createDamageFine(null, bookCopy, "damage"));
+                assertNull(fineService.createLostItemFine(null, bookCopy));
+
+                // Test null bookCopy
+                assertNull(fineService.createDamageFine(member, null, "damage"));
+                assertNull(fineService.createLostItemFine(member, null));
+
+                // Test loan with null member
+                Loan loanWithNullMember = Loan.builder()
+                                .id(1L)
+                                .bookCopy(bookCopy)
+                                .checkoutDate(LocalDate.now().minusDays(30))
+                                .dueDate(LocalDate.now().minusDays(10))
+                                .status(Loan.LoanStatus.OVERDUE)
+                                .build();
+                assertNull(fineService.calculateOverdueFine(loanWithNullMember));
         }
 }

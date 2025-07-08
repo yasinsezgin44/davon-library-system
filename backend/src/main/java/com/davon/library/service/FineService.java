@@ -11,8 +11,7 @@ public class FineService {
     private static final double MAX_FINE = 25.00; // Maximum fine amount
 
     public Fine calculateOverdueFine(Loan loan) {
-        if (loan == null || loan.getDueDate() == null ||
-                (loan.getStatus() != Loan.LoanStatus.OVERDUE && loan.getStatus() != Loan.LoanStatus.ACTIVE)) {
+        if (loan == null || loan.getDueDate() == null || loan.getMember() == null) {
             return null;
         }
 
@@ -24,6 +23,7 @@ public class FineService {
             return null;
         }
 
+        // Calculate overdue days from the due date to the current date
         int overdueDays = (int) ChronoUnit.DAYS.between(dueDate, currentDate);
         double amount = Math.min(overdueDays * DAILY_RATE, MAX_FINE);
 
@@ -31,33 +31,45 @@ public class FineService {
                 .member(loan.getMember())
                 .amount(amount)
                 .reason(Fine.FineReason.OVERDUE)
-                .issueDate(LocalDate.now())
-                .dueDate(LocalDate.now().plusDays(14))
+                .issueDate(currentDate)
+                .dueDate(currentDate.plusDays(14))
                 .status(Fine.FineStatus.PENDING)
                 .build();
     }
 
-    public Fine createDamageFine(BookCopy bookCopy, String damageDescription) {
+    public Fine createDamageFine(Member member, BookCopy bookCopy, String damageDescription) {
+        if (member == null || bookCopy == null) {
+            return null;
+        }
+
         double amount = calculateDamageAmount(bookCopy.getCondition(), damageDescription);
+        LocalDate currentDate = LocalDate.now();
 
         return Fine.builder()
+                .member(member)
                 .amount(amount)
                 .reason(Fine.FineReason.DAMAGED_ITEM)
-                .issueDate(LocalDate.now())
-                .dueDate(LocalDate.now().plusDays(14))
+                .issueDate(currentDate)
+                .dueDate(currentDate.plusDays(14))
                 .status(Fine.FineStatus.PENDING)
                 .build();
     }
 
-    public Fine createLostItemFine(BookCopy bookCopy) {
+    public Fine createLostItemFine(Member member, BookCopy bookCopy) {
+        if (member == null || bookCopy == null) {
+            return null;
+        }
+
         // Calculate replacement cost based on book value
         double replacementCost = 25.00; // Example default value
+        LocalDate currentDate = LocalDate.now();
 
         return Fine.builder()
+                .member(member)
                 .amount(replacementCost)
                 .reason(Fine.FineReason.LOST_ITEM)
-                .issueDate(LocalDate.now())
-                .dueDate(LocalDate.now().plusDays(14))
+                .issueDate(currentDate)
+                .dueDate(currentDate.plusDays(14))
                 .status(Fine.FineStatus.PENDING)
                 .build();
     }
