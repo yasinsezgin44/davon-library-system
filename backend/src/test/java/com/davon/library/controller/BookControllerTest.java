@@ -66,7 +66,7 @@ class BookControllerTest {
                                 .statusCode(201)
                                 .contentType(ContentType.JSON)
                                 .body("title", is("Test Book"))
-                                .body("isbn", is(uniqueISBN));
+                                .body("ISBN", is(uniqueISBN));
         }
 
         @Test
