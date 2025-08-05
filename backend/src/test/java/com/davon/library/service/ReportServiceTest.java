@@ -40,7 +40,7 @@ class ReportServiceTest {
                 // Create test members
                 member1 = Member.builder()
                                 .id(1L)
-                                .fullName("John Doe")
+                                .name("John Doe")
                                 .email("john@test.com")
                                 .active(true)
                                 .build();

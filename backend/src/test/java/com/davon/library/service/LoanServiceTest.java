@@ -58,7 +58,7 @@ class LoanServiceTest {
         testMember = Member.builder()
                 .id(1L)
                 .email("test@library.com")
-                .fullName("John Doe")
+                .name("John Doe")
                 .fineBalance(0.0)
                 .build();
 
