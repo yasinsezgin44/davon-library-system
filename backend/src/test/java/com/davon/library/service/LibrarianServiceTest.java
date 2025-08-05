@@ -59,7 +59,7 @@ class LibrarianServiceTest {
                 .username("johndoe")
                 .passwordHash("hashedpassword123")
                 .email("test@library.com")
-                .fullName("John Doe")
+                .name("John Doe")
                 .fineBalance(0.0)
                 .active(true)
                 .build();

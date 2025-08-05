@@ -47,7 +47,7 @@ class ReportServiceTest {
 
                 member2 = Member.builder()
                                 .id(2L)
-                                .fullName("Jane Smith")
+                                .name("Jane Smith")
                                 .email("jane@test.com")
                                 .active(true)
                                 .build();
