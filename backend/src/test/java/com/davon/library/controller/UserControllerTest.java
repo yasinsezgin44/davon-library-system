@@ -119,4 +119,178 @@ class UserControllerTest {
                                 .statusCode(200)
                                 .contentType(ContentType.JSON);
         }
+
+        @Test
+        void testUpdateUser() {
+                // First create a user
+                String uniqueEmail = "update-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
+                String uniqueUsername = "updateuser-" + UUID.randomUUID().toString().substring(0, 8);
+
+                String userJson = """
+                                {
+                                    "userType": "member",
+                                    "username": "%s",
+                                    "passwordHash": "hashed_password",
+                                    "fullName": "Original Name",
+                                    "email": "%s",
+                                    "phoneNumber": "123-456-7890",
+                                    "active": true,
+                                    "status": "ACTIVE"
+                                }
+                                """.formatted(uniqueUsername, uniqueEmail);
+
+                String userId = given()
+                                .contentType(ContentType.JSON)
+                                .body(userJson)
+                                .when().post("/api/users")
+                                .then()
+                                .statusCode(201)
+                                .extract()
+                                .jsonPath()
+                                .getString("id");
+
+                // Update the user
+                String updatedUserJson = """
+                                {
+                                    "userType": "member",
+                                    "username": "%s",
+                                    "passwordHash": "new_hashed_password",
+                                    "fullName": "Updated Name",
+                                    "email": "%s",
+                                    "phoneNumber": "987-654-3210",
+                                    "active": true,
+                                    "status": "ACTIVE"
+                                }
+                                """.formatted(uniqueUsername, uniqueEmail);
+
+                given()
+                                .contentType(ContentType.JSON)
+                                .body(updatedUserJson)
+                                .when().put("/api/users/" + userId)
+                                .then()
+                                .statusCode(200)
+                                .body("fullName", is("Updated Name"))
+                                .body("phoneNumber", is("987-654-3210"));
+        }
+
+        @Test
+        void testGetUserById() {
+                // First create a user
+                String uniqueEmail = "get-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
+                String uniqueUsername = "getuser-" + UUID.randomUUID().toString().substring(0, 8);
+
+                String userJson = """
+                                {
+                                    "userType": "member",
+                                    "username": "%s",
+                                    "passwordHash": "hashed_password",
+                                    "fullName": "Get Test User",
+                                    "email": "%s",
+                                    "phoneNumber": "555-123-4567",
+                                    "active": true,
+                                    "status": "ACTIVE"
+                                }
+                                """.formatted(uniqueUsername, uniqueEmail);
+
+                String userId = given()
+                                .contentType(ContentType.JSON)
+                                .body(userJson)
+                                .when().post("/api/users")
+                                .then()
+                                .statusCode(201)
+                                .extract()
+                                .jsonPath()
+                                .getString("id");
+
+                // Get the user by ID
+                given()
+                                .when().get("/api/users/" + userId)
+                                .then()
+                                .statusCode(200)
+                                .body("fullName", is("Get Test User"))
+                                .body("email", is(uniqueEmail))
+                                .body("username", is(uniqueUsername));
+        }
+
+        @Test
+        void testDeleteUser() {
+                // First create a user
+                String uniqueEmail = "delete-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
+                String uniqueUsername = "deleteuser-" + UUID.randomUUID().toString().substring(0, 8);
+
+                String userJson = """
+                                {
+                                    "userType": "member",
+                                    "username": "%s",
+                                    "passwordHash": "hashed_password",
+                                    "fullName": "Delete Test User",
+                                    "email": "%s",
+                                    "phoneNumber": "555-999-8888",
+                                    "active": true,
+                                    "status": "ACTIVE"
+                                }
+                                """.formatted(uniqueUsername, uniqueEmail);
+
+                String userId = given()
+                                .contentType(ContentType.JSON)
+                                .body(userJson)
+                                .when().post("/api/users")
+                                .then()
+                                .statusCode(201)
+                                .extract()
+                                .jsonPath()
+                                .getString("id");
+
+                // Delete the user
+                given()
+                                .when().delete("/api/users/" + userId)
+                                .then()
+                                .statusCode(204); // No Content for successful deletion
+
+                // Verify the user is deleted
+                given()
+                                .when().get("/api/users/" + userId)
+                                .then()
+                                .statusCode(404);
+        }
+
+        @Test
+        void testCreateUserWithInvalidData() {
+                // Test with missing required fields
+                String invalidUserJson = """
+                                {
+                                    "userType": "member",
+                                    "username": "",
+                                    "email": "invalid-email",
+                                    "fullName": ""
+                                }
+                                """;
+
+                given()
+                                .contentType(ContentType.JSON)
+                                .body(invalidUserJson)
+                                .when().post("/api/users")
+                                .then()
+                                .statusCode(400); // Bad Request for validation errors
+        }
+
+        @Test
+        void testGetUsersByStatus() {
+                given()
+                                .param("status", "ACTIVE")
+                                .when().get("/api/users")
+                                .then()
+                                .statusCode(200)
+                                .contentType(ContentType.JSON);
+        }
+
+        @Test
+        void testGetUsersByUserType() {
+                given()
+                                .param("userType", "member")
+                                .when().get("/api/users")
+                                .then()
+                                .statusCode(200)
+                                .contentType(ContentType.JSON);
+        }
 }
