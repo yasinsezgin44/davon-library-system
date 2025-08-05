@@ -1,1 +1,60 @@
+# System files
 .DS_Store
+
+# Node dependencies
+node_modules/
+
+# Build outputs
+build/
+backend/build/
+frontend/build/
+
+# Gradle
+.gradle/
+*.class
+*.jar
+*.war
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment files
+.env*
+**/application.yml
+
+# History files
+.Rhistory
+
+# Misc
+*.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Coverage
+coverage/
+
+# Ignore Next.js and other web build outputs (if any)
+.next/
+out/
+
+# Ignore production build folders
+/dist/
+
+# Do not ignore .gitkeep (used to keep empty dirs)
+!**/.gitkeep
+.Rhistory
+
+# Project deliverables
+/deliverables/
+
+# Documentation
+/docs/
+
+# Cursor rules
+.cursorrules
