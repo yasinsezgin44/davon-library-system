@@ -33,11 +33,11 @@ public abstract class User extends BaseEntity {
     private String passwordHash;
 
     @Column(name = "full_name")
-    private String fullName;
+    private String name;
     private String email;
     @Column(name = "phone_number")
     private String phoneNumber;
-    private boolean active;
+    private boolean isActive;
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;
