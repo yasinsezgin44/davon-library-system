@@ -139,10 +139,15 @@ public class UserService {
      * @return a list of users matching the search criteria
      */
     public List<User> searchUsers(String query) {
+        logger.info("Searching users with query: '" + query + "'");
         if (query == null || query.trim().isEmpty()) {
-            return getAllUsers(); // Return all users for empty query instead of empty list
+            List<User> allUsers = getAllUsers();
+            logger.info("Empty query, returning all users: " + allUsers.size());
+            return allUsers;
         }
-        return userRepository.searchUsers(query.trim());
+        List<User> results = userRepository.searchUsers(query.trim());
+        logger.info("Search results: " + results.size());
+        return results;
     }
 
     /**
@@ -205,7 +210,15 @@ public class UserService {
      * @return a list of all users
      */
     public List<User> getAllUsers() {
-        return userRepository.listAll();
+        try {
+            List<User> users = userRepository.getAllUsersWithInheritance();
+            logger.info("Retrieved " + users.size() + " users from database");
+            return users;
+        } catch (Exception e) {
+            logger.severe("Error retrieving all users: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     /**

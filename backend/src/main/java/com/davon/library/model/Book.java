@@ -33,8 +33,10 @@ public class Book extends BaseEntity {
     private String ISBN;
 
     @jakarta.validation.constraints.Min(value = 1, message = "Publication year must be positive")
+    @Column(name = "publication_year")
     private int publicationYear;
     private String description;
+    @Column(name = "cover_image")
     private String coverImage;
     private int pages;
 

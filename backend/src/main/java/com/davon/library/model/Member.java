@@ -22,7 +22,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true, exclude = { "loans", "reservations", "fines" })
 @ToString(callSuper = true, exclude = { "loans", "reservations", "fines" })
 public class Member extends User {
+    @Column(name = "membership_start_date")
     private LocalDate membershipStartDate;
+    @Column(name = "membership_end_date")
     private LocalDate membershipEndDate;
     private String address;
 
@@ -36,6 +38,7 @@ public class Member extends User {
     @lombok.Builder.Default
     private Set<Reservation> reservations = new HashSet<>();
 
+    @Column(name = "fine_balance")
     @lombok.Builder.Default
     private double fineBalance = 0.0;
 

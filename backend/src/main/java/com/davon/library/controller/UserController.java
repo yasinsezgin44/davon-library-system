@@ -22,11 +22,21 @@ public class UserController {
 
     @GET
     @Operation(summary = "Get all users", description = "Retrieve a list of all users")
-    public List<User> getUsers(@QueryParam("filter") String filter) {
-        if (filter == null || filter.isEmpty()) {
-            return userService.searchUsers("");
+    public Response getUsers(@QueryParam("filter") String filter) {
+        try {
+            List<User> users;
+            if (filter == null || filter.isEmpty()) {
+                users = userService.getAllUsers(); // Use getAllUsers instead of searchUsers("")
+            } else {
+                users = userService.searchUsers(filter);
+            }
+            return Response.ok(users).build();
+        } catch (Exception e) {
+            e.printStackTrace(); // Add stack trace for debugging
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error retrieving users: " + e.getMessage() + "\nStack trace: " + e.getStackTrace()[0])
+                    .build();
         }
-        return userService.searchUsers(filter);
     }
 
     @POST
@@ -90,7 +100,14 @@ public class UserController {
     @GET
     @Path("/search")
     @Operation(summary = "Search users", description = "Search for users by various criteria")
-    public List<User> searchUsers(@QueryParam("q") String query) {
-        return userService.searchUsers(query != null ? query : "");
+    public Response searchUsers(@QueryParam("q") String query) {
+        try {
+            List<User> users = userService.searchUsers(query != null ? query : "");
+            return Response.ok(users).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Error searching users: " + e.getMessage())
+                    .build();
+        }
     }
 }

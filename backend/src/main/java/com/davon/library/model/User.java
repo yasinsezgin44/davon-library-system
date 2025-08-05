@@ -29,16 +29,20 @@ public abstract class User extends BaseEntity {
     private String username;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // Allow input but not output for security
+    @Column(name = "password_hash")
     private String passwordHash;
 
+    @Column(name = "full_name")
     private String fullName;
     private String email;
+    @Column(name = "phone_number")
     private String phoneNumber;
     private boolean active;
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
+    @Column(name = "last_login")
     private LocalDate lastLogin;
 
     public boolean isAdmin() {

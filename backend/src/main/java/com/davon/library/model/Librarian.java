@@ -17,6 +17,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Librarian extends User {
+    @Column(name = "employment_date")
     private LocalDate employmentDate;
+    @Column(name = "employee_id")
     private String employeeId;
 }
