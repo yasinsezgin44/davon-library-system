@@ -263,7 +263,7 @@ public class UserService {
                 return false;
             }
 
-            user.setFullName(profile.getFullName());
+            user.setName(profile.getName());
             user.setEmail(profile.getEmail());
             user.setPhoneNumber(profile.getPhoneNumber());
 
