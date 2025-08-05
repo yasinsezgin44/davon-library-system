@@ -15,7 +15,6 @@ import java.util.Optional;
  */
 @ApplicationScoped
 public class BookRepository implements PanacheRepository<Book> {
-
     public List<Book> findAllWithAuthors() {
         return find("SELECT b FROM Book b LEFT JOIN FETCH b.authors").list();
     }
