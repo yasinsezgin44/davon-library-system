@@ -66,6 +66,16 @@
             <artifactId>quarkus-config-yaml</artifactId>
         </dependency>
 
+        <!-- Flyway for database migrations -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-sqlserver</artifactId>
+        </dependency>
+
         <!-- Transaction management -->
         <dependency>
             <groupId>io.quarkus</groupId>
