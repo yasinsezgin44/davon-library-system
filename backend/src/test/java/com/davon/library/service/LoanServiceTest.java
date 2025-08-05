@@ -91,7 +91,7 @@ class LoanServiceTest {
         // Arrange
         when(userService.findById(1L)).thenReturn(testMember);
         when(bookService.getBookById(1L)).thenReturn(testBook);
-        when(bookCopyRepository.findAvailableByBook(testBook)).thenReturn(Arrays.asList(testBookCopy));
+        when(bookCopyRepository.findAvailableByBook(testBook)).thenReturn(Optional.of(testBookCopy));
         when(loanRepository.countActiveLoansByMember(testMember)).thenReturn(2L);
         doNothing().when(loanRepository).persist(any(Loan.class));
         doNothing().when(bookCopyRepository).persist(any(BookCopy.class));
@@ -177,7 +177,7 @@ class LoanServiceTest {
         // Arrange
         when(userService.findById(1L)).thenReturn(testMember);
         when(bookService.getBookById(1L)).thenReturn(testBook);
-        when(bookCopyRepository.findAvailableByBook(testBook)).thenReturn(Arrays.asList());
+        when(bookCopyRepository.findAvailableByBook(testBook)).thenReturn(Optional.empty());
         when(loanRepository.countActiveLoansByMember(testMember)).thenReturn(2L);
 
         // Act & Assert

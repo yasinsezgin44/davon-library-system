@@ -16,9 +16,6 @@
     <description>Backend API for Davon Library Management System</description>
 
     <properties>
-        <quarkus.platform.version>3.2.9.Final</quarkus.platform.version>
-        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <compiler-plugin.version>3.12.1</compiler-plugin.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
@@ -69,6 +66,12 @@
             <artifactId>quarkus-config-yaml</artifactId>
         </dependency>
 
+        <!-- Transaction management -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-narayana-jta</artifactId>
+        </dependency>
+
         <!-- Database dependencies -->
         <dependency>
             <groupId>jakarta.persistence</groupId>
@@ -94,7 +97,7 @@
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>12.4.2.jre11</version>
+            <version>12.6.1.jre11</version>
         </dependency>
 
         <!-- Testing dependencies -->

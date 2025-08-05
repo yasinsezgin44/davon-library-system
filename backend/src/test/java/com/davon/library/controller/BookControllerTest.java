@@ -1,40 +1,70 @@
 package com.davon.library.controller;
 
+import com.davon.library.model.Author;
 import com.davon.library.model.Book;
+import com.davon.library.model.Category;
+import com.davon.library.model.Publisher;
+import com.davon.library.repository.*;
 import com.davon.library.service.BookService;
-import com.davon.library.repository.BookRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-import java.util.List;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 
 @QuarkusTest
 class BookControllerTest {
 
-        @Inject
-        BookService bookService;
+    @Inject
+    BookService bookService;
 
-        @Inject
-        BookRepository bookRepository;
+    @Inject
+    BookRepository bookRepository;
 
-        @BeforeEach
-        @Transactional
-        void clearData() {
-                // Clear all books before each test to ensure isolation
-                // COMMENTED OUT: This causes foreign key constraint violations with persistent
-                // database
-                // bookRepository.deleteAll();
+    @Inject
+    AuthorRepository authorRepository;
 
-                // Note: Tests use unique data generation for isolation instead of deletion
-        }
+    @Inject
+    PublisherRepository publisherRepository;
+
+    @Inject
+    CategoryRepository categoryRepository;
+
+    @Inject
+    BookCopyRepository bookCopyRepository;
+
+    @Inject
+    LoanRepository loanRepository;
+
+    @BeforeEach
+    @Transactional
+    void setup() {
+        // Clear existing data in the correct order
+        loanRepository.deleteAll();
+        bookCopyRepository.deleteAll();
+        bookRepository.deleteAll();
+        authorRepository.deleteAll();
+        publisherRepository.deleteAll();
+        categoryRepository.deleteAll();
+
+        // Create test data
+        Category category = new Category();
+        category.setName("Test Category");
+        categoryRepository.persist(category);
+
+        Author author = new Author();
+        author.setName("Test Author");
+        authorRepository.persist(author);
+
+        Publisher publisher = new Publisher();
+        publisher.setName("Test Publisher");
+        publisherRepository.persist(publisher);
+    }
 
         @Test
         void testGetAllBooks() {
@@ -51,15 +81,15 @@ class BookControllerTest {
                 String uniqueISBN = generateUniqueISBN();
                 
                 // Create book JSON manually instead of using Lombok builder
-                String bookJson = """
-                                {
-                                    "title": "Test Book",
-                                    "ISBN": "%s",
-                                    "publicationYear": 2023,
-                                    "description": "A test book",
-                                    "pages": 200
-                                }
-                                """.formatted(uniqueISBN);
+                        String bookJson = """
+				{
+					"title": "Test Book",
+					"ISBN": "%s",
+					"publicationYear": 2023,
+					"description": "A test book",
+					"pages": 200
+				}
+				""".formatted(uniqueISBN);
 
                 // Create a book
                 given()
@@ -155,15 +185,29 @@ class BookControllerTest {
                                 .getString("id");
 
                 // Update the book
-                String updatedBookJson = """
-                                {
-                                    "title": "Updated Title",
-                                    "ISBN": "%s",
-                                    "publicationYear": 2024,
-                                    "description": "Updated description",
-                                    "pages": 250
-                                }
-                                """.formatted(uniqueISBN);
+                Category category = categoryRepository.findAll().firstResult();
+        Author author = authorRepository.findAll().firstResult();
+        Publisher publisher = publisherRepository.findAll().firstResult();
+        String updatedBookJson = """
+						{
+							"title": "Updated Title",
+							"ISBN": "%s",
+							"publicationYear": 2024,
+							"description": "Updated description",
+							"pages": 250,
+							"authors": [
+								{
+									"id": %d
+								}
+							],
+							"publisher": {
+								"id": %d
+							},
+							"category": {
+								"id": %d
+							}
+						}
+						""".formatted(uniqueISBN, author.getId(), publisher.getId(), category.getId());
 
                 given()
                                 .contentType(ContentType.JSON)

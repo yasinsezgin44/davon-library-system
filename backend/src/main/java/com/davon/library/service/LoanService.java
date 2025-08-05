@@ -270,12 +270,8 @@ public class LoanService {
             throw new BusinessException("Book not found with ID: " + bookId);
         }
 
-        List<BookCopy> availableCopies = bookCopyRepository.findAvailableByBook(book);
-        if (availableCopies.isEmpty()) {
-            throw new BusinessException("No available copies of book: " + book.getTitle());
-        }
-
-        return availableCopies.get(0); // Return first available copy
+        return bookCopyRepository.findAvailableByBook(book)
+                .orElseThrow(() -> new BusinessException("No available copies of book: " + book.getTitle()));
     }
 
     private Loan createLoan(Member member, BookCopy bookCopy) {

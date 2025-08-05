@@ -25,7 +25,6 @@
         <pmd.version>6.55.0</pmd.version>
         <spotbugs.version>4.8.2</spotbugs.version>
     </properties>
-
     <modules>
         <module>backend</module>
     </modules>
@@ -73,6 +72,7 @@
                     <configuration>
                         <systemPropertyVariables>
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                            <quarkus.test.profile>test</quarkus.test.profile>
                         </systemPropertyVariables>
                         <includes>
                             <include>**/*Test.class</include>
@@ -105,7 +105,7 @@
                         <linkXRef>false</linkXRef>
                         <sourceEncoding>UTF-8</sourceEncoding>
                         <minimumTokens>100</minimumTokens>
-                        <targetJdk>17</targetJdk>
+                        <targetJdk>21</targetJdk>
                         <rulesets>
                             <ruleset>config/pmd/ruleset.xml</ruleset>
                         </rulesets>
@@ -128,7 +128,6 @@
             </plugins>
         </pluginManagement>
     </build>
-
     <profiles>
         <profile>
             <id>code-quality</id>
