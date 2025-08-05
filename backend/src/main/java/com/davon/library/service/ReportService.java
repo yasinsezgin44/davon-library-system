@@ -132,7 +132,7 @@ public class ReportService {
     private Map<String, Integer> generateMemberActivitySummary(List<Loan> loans) {
         return loans.stream()
                 .collect(Collectors.groupingBy(
-                        loan -> loan.getMember().getFullName(),
+                        loan -> loan.getMember().getName(),
                         Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
     }
 
