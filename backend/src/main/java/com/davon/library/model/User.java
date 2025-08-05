@@ -37,6 +37,7 @@ public abstract class User extends BaseEntity {
     private String email;
     @Column(name = "phone_number")
     private String phoneNumber;
+    @Column(name = "active")
     private boolean isActive;
 
     @Enumerated(EnumType.STRING)

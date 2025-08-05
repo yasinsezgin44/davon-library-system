@@ -44,7 +44,7 @@ public class BookService {
      * @return a list of all books
      */
     public List<Book> getAllBooks() {
-        return bookRepository.listAll();
+        return bookRepository.findAllWithAuthors();
     }
 
     /**

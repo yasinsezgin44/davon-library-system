@@ -16,9 +16,13 @@ import java.util.Optional;
 @ApplicationScoped
 public class BookRepository implements PanacheRepository<Book> {
 
+    public List<Book> findAllWithAuthors() {
+        return find("SELECT b FROM Book b LEFT JOIN FETCH b.authors").list();
+    }
+
     /**
      * Finds a book by its ISBN.
-     * 
+     *
      * @param isbn the ISBN to search for
      * @return the book if found, empty otherwise
      */
