@@ -40,6 +40,16 @@ public class Book extends BaseEntity {
     private String coverImage;
     private int pages;
 
+    @JsonProperty("author")
+    public String getAuthorNames() {
+        if (authors == null || authors.isEmpty()) {
+            return "";
+        }
+        return authors.stream()
+                .map(Author::getName)
+                .collect(java.util.stream.Collectors.joining(", "));
+    }
+
     @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "book_authors", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "author_id"))
     @JsonIgnoreProperties("books") // Ignore the books property of Author to prevent circular reference
