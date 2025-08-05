@@ -49,18 +49,22 @@ class BookControllerTest {
         @Test
         void testCreateAndGetBook() {
                 String uniqueISBN = generateUniqueISBN();
-                Book book = Book.builder()
-                                .title("Test Book")
-                                .ISBN(uniqueISBN)
-                                .publicationYear(2023)
-                                .description("A test book")
-                                .pages(200)
-                                .build();
+                
+                // Create book JSON manually instead of using Lombok builder
+                String bookJson = """
+                                {
+                                    "title": "Test Book",
+                                    "ISBN": "%s",
+                                    "publicationYear": 2023,
+                                    "description": "A test book",
+                                    "pages": 200
+                                }
+                                """.formatted(uniqueISBN);
 
                 // Create a book
                 given()
                                 .contentType(ContentType.JSON)
-                                .body(book)
+                                .body(bookJson)
                                 .when().post("/api/books")
                                 .then()
                                 .statusCode(201)
@@ -73,17 +77,19 @@ class BookControllerTest {
         void testSearchBooks() {
                 // First create a book to search for
                 String uniquePrefix = "ControllerTest" + System.nanoTime();
-                Book book = Book.builder()
-                                .title(uniquePrefix + " Java Programming")
-                                .ISBN(generateUniqueISBN())
-                                .description("A comprehensive guide to Java")
-                                .publicationYear(2023)
-                                .pages(400)
-                                .build();
+                String bookJson = """
+                                {
+                                    "title": "%s Java Programming",
+                                    "ISBN": "%s",
+                                    "description": "A comprehensive guide to Java",
+                                    "publicationYear": 2023,
+                                    "pages": 400
+                                }
+                                """.formatted(uniquePrefix, generateUniqueISBN());
 
                 given()
                                 .contentType(ContentType.JSON)
-                                .body(book)
+                                .body(bookJson)
                                 .when().post("/api/books")
                                 .then()
                                 .statusCode(201);
@@ -122,6 +128,142 @@ class BookControllerTest {
                                 .statusCode(200)
                                 .contentType(ContentType.JSON)
                                 .body("status", is("UP"));
+        }
+
+        @Test
+        void testUpdateBook() {
+                // First create a book
+                String uniqueISBN = generateUniqueISBN();
+                String bookJson = """
+                                {
+                                    "title": "Original Title",
+                                    "ISBN": "%s",
+                                    "publicationYear": 2023,
+                                    "description": "Original description",
+                                    "pages": 200
+                                }
+                                """.formatted(uniqueISBN);
+
+                String bookId = given()
+                                .contentType(ContentType.JSON)
+                                .body(bookJson)
+                                .when().post("/api/books")
+                                .then()
+                                .statusCode(201)
+                                .extract()
+                                .jsonPath()
+                                .getString("id");
+
+                // Update the book
+                String updatedBookJson = """
+                                {
+                                    "title": "Updated Title",
+                                    "ISBN": "%s",
+                                    "publicationYear": 2024,
+                                    "description": "Updated description",
+                                    "pages": 250
+                                }
+                                """.formatted(uniqueISBN);
+
+                given()
+                                .contentType(ContentType.JSON)
+                                .body(updatedBookJson)
+                                .when().put("/api/books/" + bookId)
+                                .then()
+                                .statusCode(200)
+                                .body("title", is("Updated Title"))
+                                .body("publicationYear", is(2024))
+                                .body("pages", is(250));
+        }
+
+        @Test
+        void testCreateBookWithInvalidData() {
+                // Test with missing required fields
+                String invalidBookJson = """
+                                {
+                                    "title": "",
+                                    "ISBN": "invalid-isbn",
+                                    "publicationYear": 1800
+                                }
+                                """;
+
+                given()
+                                .contentType(ContentType.JSON)
+                                .body(invalidBookJson)
+                                .when().post("/api/books")
+                                .then()
+                                .statusCode(400); // Bad Request for validation errors
+        }
+
+        @Test
+        void testGetBookById() {
+                // First create a book
+                String uniqueISBN = generateUniqueISBN();
+                String bookJson = """
+                                {
+                                    "title": "Test Book for Get",
+                                    "ISBN": "%s",
+                                    "publicationYear": 2023,
+                                    "description": "A test book for get operation",
+                                    "pages": 300
+                                }
+                                """.formatted(uniqueISBN);
+
+                String bookId = given()
+                                .contentType(ContentType.JSON)
+                                .body(bookJson)
+                                .when().post("/api/books")
+                                .then()
+                                .statusCode(201)
+                                .extract()
+                                .jsonPath()
+                                .getString("id");
+
+                // Get the book by ID
+                given()
+                                .when().get("/api/books/" + bookId)
+                                .then()
+                                .statusCode(200)
+                                .body("title", is("Test Book for Get"))
+                                .body("ISBN", is(uniqueISBN))
+                                .body("pages", is(300));
+        }
+
+        @Test
+        void testDeleteBook() {
+                // First create a book
+                String uniqueISBN = generateUniqueISBN();
+                String bookJson = """
+                                {
+                                    "title": "Book to Delete",
+                                    "ISBN": "%s",
+                                    "publicationYear": 2023,
+                                    "description": "A book that will be deleted",
+                                    "pages": 150
+                                }
+                                """.formatted(uniqueISBN);
+
+                String bookId = given()
+                                .contentType(ContentType.JSON)
+                                .body(bookJson)
+                                .when().post("/api/books")
+                                .then()
+                                .statusCode(201)
+                                .extract()
+                                .jsonPath()
+                                .getString("id");
+
+                // Delete the book
+                given()
+                                .when().delete("/api/books/" + bookId)
+                                .then()
+                                .statusCode(204); // No Content for successful deletion
+
+                // Verify the book is deleted
+                given()
+                                .when().get("/api/books/" + bookId)
+                                .then()
+                                .statusCode(404);
         }
 
         private String generateUniqueISBN() {
