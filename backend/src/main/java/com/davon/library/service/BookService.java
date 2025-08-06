@@ -1,8 +1,10 @@
 package com.davon.library.service;
 
 import com.davon.library.model.Book;
+import com.davon.library.model.Category;
 import com.davon.library.repository.BookRepository;
 import com.davon.library.repository.BookCopyRepository;
+import com.davon.library.repository.CategoryRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -23,6 +25,9 @@ public class BookService {
 
     @Inject
     BookCopyRepository bookCopyRepository;
+
+    @Inject
+    CategoryRepository categoryRepository;
 
     @Transactional
     public Book createBook(Book book) {
@@ -77,5 +82,11 @@ public class BookService {
 
     public boolean isBookAvailable(Long bookId) {
         return bookCopyRepository.count("book.id = ?1 and status = 'AVAILABLE'", bookId) > 0;
+    }
+
+    public List<Book> getBooksByCategory(Long categoryId) {
+        Category category = categoryRepository.findByIdOptional(categoryId)
+                .orElseThrow(() -> new NotFoundException("Category not found"));
+        return bookRepository.findByCategory(category);
     }
 }
