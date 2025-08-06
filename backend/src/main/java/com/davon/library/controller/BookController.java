@@ -85,4 +85,11 @@ public class BookController {
     public List<Category> getGenres() {
         return categoryService.getAllCategories();
     }
+
+    @GET
+    @Path("/genre/{genreId}")
+    @Operation(summary = "Get books by genre")
+    public List<Book> getBooksByGenre(@PathParam("genreId") Long genreId) {
+        return bookService.getBooksByCategory(genreId);
+    }
 }

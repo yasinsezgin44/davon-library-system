@@ -73,4 +73,15 @@ class BookControllerTest {
                 .statusCode(201)
                 .body("title", is("Test Book"));
     }
+
+    @Test
+    void testGetBooksByGenre() {
+        when(bookService.getBooksByCategory(1L)).thenReturn(List.of(book));
+        given()
+                .when().get("/api/books/genre/1")
+                .then()
+                .statusCode(200)
+                .body("$.size()", is(1))
+                .body("[0].title", is("Test Book"));
+    }
 }
