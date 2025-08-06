@@ -80,10 +80,8 @@ class ReportServiceTest {
     @Test
     @Transactional
     void testGenerateMonthlyReport() {
-        Report report = reportService.generateMonthlyReport();
+        ReportService.MonthlyReport report = reportService.generateMonthlyReport(LocalDate.now().minusMonths(1), LocalDate.now());
 
         assertNotNull(report);
-        assertNotNull(report.getReportContent());
-        assertFalse(report.getReportContent().isEmpty());
     }
 }

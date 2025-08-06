@@ -49,4 +49,8 @@ public class Report {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public String getReportContent() {
+        return content;
+    }
 }
