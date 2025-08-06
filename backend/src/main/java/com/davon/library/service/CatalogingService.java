@@ -11,10 +11,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-/**
- * Service for cataloging operations.
- * Uses DAO pattern following SOLID principles.
- */
 @ApplicationScoped
 public class CatalogingService {
 
@@ -23,20 +19,10 @@ public class CatalogingService {
     @Inject
     private BookRepository bookRepository;
 
-    // Constructor
-
     public boolean verifyISBN(String isbn) {
-        // Implement actual ISBN validation algorithm
-        // (check digit verification, format validation)
         return isbn != null && (isbn.length() == 10 || isbn.length() == 13);
     }
 
-    /**
-     * Adds a new book to the catalog.
-     * 
-     * @param book the book to add
-     * @return the added book with assigned ID
-     */
     @Transactional
     public Book addBookToCatalog(Book book) {
         try {
@@ -44,9 +30,8 @@ public class CatalogingService {
                 throw new IllegalArgumentException("Book cannot be null");
             }
 
-            // Validate book doesn't already exist by ISBN
-            if (book.getISBN() != null && bookRepository.existsByISBN(book.getISBN())) {
-                throw new IllegalArgumentException("Book with ISBN " + book.getISBN() + " already exists");
+            if (book.getIsbn() != null && bookRepository.find("isbn", book.getIsbn()).count() > 0) {
+                throw new IllegalArgumentException("Book with ISBN " + book.getIsbn() + " already exists");
             }
 
             bookRepository.persist(book);
@@ -58,12 +43,6 @@ public class CatalogingService {
         }
     }
 
-    /**
-     * Updates a book in the catalog.
-     * 
-     * @param book the book to update
-     * @return the updated book
-     */
     @Transactional
     public Book updateBookInCatalog(Book book) {
         try {
@@ -85,11 +64,6 @@ public class CatalogingService {
         }
     }
 
-    /**
-     * Removes a book from the catalog.
-     * 
-     * @param bookId the ID of the book to remove
-     */
     @Transactional
     public void removeBookFromCatalog(Long bookId) {
         try {
@@ -109,9 +83,6 @@ public class CatalogingService {
         }
     }
 
-    /**
-     * Custom exception for cataloging service operations.
-     */
     public static class CatalogingException extends Exception {
         public CatalogingException(String message) {
             super(message);
@@ -123,6 +94,5 @@ public class CatalogingService {
     }
 
     public void assignCategories(Long bookId, List<Category> categories) {
-        // Implement category assignment
     }
 }
