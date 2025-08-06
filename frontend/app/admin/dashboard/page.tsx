@@ -1,4 +1,4 @@
-// frontend/app/dashboard/page.tsx
+// frontend/app/admin/dashboard/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,34 +7,35 @@ import { LibraryCard } from "@/components/library-card";
 import { LibraryHeader } from "@/components/library-header";
 import { LibrarySidebar } from "@/components/library-sidebar";
 import { LibraryFooter } from "@/components/library-footer";
-import { getMyLoans, getMyReservations } from "@/lib/api";
-import { Loan } from "@/types/loan";
-import { Reservation } from "@/types/reservation";
+import { getBooks, getAllUsers } from "@/lib/api";
+import { Book } from "@/types/book";
+import { User } from "@/types/user";
 
-export default function MemberDashboardPage() {
-  const [loans, setLoans] = useState<Loan[]>([]);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+export default function AdminDashboardPage() {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/member/login");
+      router.push("/login");
       return;
     }
 
     const fetchData = async () => {
       try {
-        const [loansData, reservationsData] = await Promise.all([
-          getMyLoans(),
-          getMyReservations(),
+        const [booksData, usersData] = await Promise.all([
+          getBooks(),
+          getAllUsers(),
         ]);
-        setLoans(loansData);
-        setReservations(reservationsData);
+        setBooks(booksData);
+        setUsers(usersData);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
+        // Handle token expiration, e.g., redirect to login
         if (error.message.includes("401")) {
-          router.push("/member/login");
+          router.push("/login");
         }
       }
     };
@@ -47,26 +48,22 @@ export default function MemberDashboardPage() {
       <LibrarySidebar />
       <main className="lg:ml-64 p-4 lg:p-8">
         <h1 className="text-3xl font-bold text-dark-gray mb-8">
-          Member Dashboard
+          Admin Dashboard
         </h1>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <LibraryCard>
-            <h2 className="text-2xl font-bold text-dark-gray mb-4">My Loans</h2>
+            <h2 className="text-2xl font-bold text-dark-gray mb-4">Books</h2>
             <ul>
-              {loans.map((loan) => (
-                <li key={loan.id}>{loan.bookCopy.book.title}</li>
+              {books.map((book) => (
+                <li key={book.id}>{book.title}</li>
               ))}
             </ul>
           </LibraryCard>
           <LibraryCard>
-            <h2 className="text-2xl font-bold text-dark-gray mb-4">
-              My Reservations
-            </h2>
+            <h2 className="text-2xl font-bold text-dark-gray mb-4">Users</h2>
             <ul>
-              {reservations.map((reservation) => (
-                <li key={reservation.id}>
-                  {reservation.book.title} - {reservation.status}
-                </li>
+              {users.map((user) => (
+                <li key={user.id}>{user.fullName}</li>
               ))}
             </ul>
           </LibraryCard>
