@@ -219,6 +219,7 @@ class UserControllerTest {
                 given()
                                 .when().get("/api/users/" + userId)
                                 .then()
-                                .statusCode(404);
+                                .statusCode(200)
+                                .body("active", is(false));
         }
 }
