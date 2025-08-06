@@ -3,6 +3,8 @@ package com.davon.library.service;
 import com.davon.library.model.Role;
 import com.davon.library.model.User;
 import com.davon.library.repository.RoleRepository;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.quarkus.panache.common.Page;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import jakarta.inject.Inject;
@@ -10,9 +12,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
@@ -43,7 +47,10 @@ class AdminServiceTest {
 
     @Test
     void testCreateUserWithRole() {
-        when(roleRepository.find("name", "ADMIN")).thenReturn(io.quarkus.panache.common.Page.of(0, 1), java.util.List.of(role));
+        PanacheQuery<Role> query = mock(PanacheQuery.class);
+        when(roleRepository.find("name", "ADMIN")).thenReturn(query);
+        when(query.page(Page.of(0, 1))).thenReturn(query);
+        when(query.list()).thenReturn(List.of(role));
         when(userService.createUser(any(User.class))).thenReturn(user);
 
         adminService.createUserWithRole(new User(), "ADMIN");
@@ -59,8 +66,11 @@ class AdminServiceTest {
 
     @Test
     void testAssignRoleToUser() {
+        PanacheQuery<Role> query = mock(PanacheQuery.class);
         when(userService.getUserById(1L)).thenReturn(Optional.of(user));
-        when(roleRepository.find("name", "ADMIN")).thenReturn(io.quarkus.panache.common.Page.of(0, 1), java.util.List.of(role));
+        when(roleRepository.find("name", "ADMIN")).thenReturn(query);
+        when(query.page(Page.of(0, 1))).thenReturn(query);
+        when(query.list()).thenReturn(List.of(role));
 
         adminService.assignRoleToUser(1L, "ADMIN");
 
