@@ -1,44 +1,71 @@
-import { AuthIllustration } from "@/components/auth-illustration"
-import { LoginForm } from "@/components/login-form"
-import { BookOpen } from "lucide-react"
+// frontend/app/login/page.tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { LibraryCard } from "@/components/library-card";
+import { LibraryButton } from "@/components/library-button";
+import { LibraryHeader } from "@/components/library-header";
+import { LibraryFooter } from "@/components/library-footer";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { login } from '../lib/auth'; // Will create this auth library
 
 export default function LoginPage() {
-  return (
-    <div className="min-h-screen bg-clean-white flex">
-      {/* Left Side - Illustration */}
-      <div className="hidden lg:flex lg:w-1/2 relative">
-        <AuthIllustration />
-      </div>
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter();
 
-      {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center mb-8">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-modern-teal rounded-lg">
-                <BookOpen className="h-6 w-6 text-white" />
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const { token } = await login(username, password);
+      localStorage.setItem('token', token);
+      router.push('/admin/dashboard');
+    } catch (err) {
+      setError('Failed to login. Please check your credentials.');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-clean-white">
+      <LibraryHeader />
+      <main className="flex items-center justify-center p-4 lg:p-8">
+        <LibraryCard className="w-full max-w-md p-8">
+          <h2 className="text-2xl font-bold text-dark-gray mb-4 text-center">Admin Login</h2>
+          <form onSubmit={handleLogin}>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-dark-gray">Davon Library</h1>
-                <p className="text-dark-gray/70 text-sm">Digital Knowledge Hub</p>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
               </div>
             </div>
-          </div>
-
-          {/* Login Form Card */}
-          <div className="bg-white/60 backdrop-blur-sm border border-white/20 shadow-xl rounded-2xl p-8">
-            <LoginForm />
-          </div>
-
-          {/* Footer Links */}
-          <div className="mt-8 text-center space-x-6 text-sm text-dark-gray/60">
-            <button className="hover:text-dark-gray transition-colors">Privacy Policy</button>
-            <button className="hover:text-dark-gray transition-colors">Terms of Service</button>
-            <button className="hover:text-dark-gray transition-colors">Help</button>
-          </div>
-        </div>
-      </div>
+            {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+            <LibraryButton type="submit" className="w-full mt-6">
+              Login
+            </LibraryButton>
+          </form>
+        </LibraryCard>
+      </main>
+      <LibraryFooter />
     </div>
-  )
+  );
 }
