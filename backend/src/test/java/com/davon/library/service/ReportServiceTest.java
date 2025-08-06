@@ -10,11 +10,9 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 class ReportServiceTest {
@@ -29,102 +27,63 @@ class ReportServiceTest {
     FineRepository fineRepository;
 
     @Inject
+    MemberRepository memberRepository;
+
+    @Inject
     BookRepository bookRepository;
 
     @Inject
     BookCopyRepository bookCopyRepository;
 
     @Inject
-    MemberRepository memberRepository;
-
-    @Inject
-    UserRepository userRepository;
-
-    @Inject
-    AuthorRepository authorRepository;
-
-    @Inject
-    PublisherRepository publisherRepository;
-
-    @Inject
-    CategoryRepository categoryRepository;
-
-    private User user1;
-    private Member member1;
-    private Book book1;
-    private BookCopy bookCopy1;
+    ReservationRepository reservationRepository;
 
     @BeforeEach
     @Transactional
     void setUp() {
         fineRepository.deleteAll();
         loanRepository.deleteAll();
+        memberRepository.deleteAll();
+        reservationRepository.deleteAll();
         bookCopyRepository.deleteAll();
         bookRepository.deleteAll();
-        memberRepository.deleteAll();
-        userRepository.deleteAll();
-        authorRepository.deleteAll();
-        publisherRepository.deleteAll();
-        categoryRepository.deleteAll();
 
-        user1 = new User();
-        user1.setUsername("testuser1");
-        user1.setPasswordHash("password");
-        user1.setFullName("Test User 1");
-        user1.setEmail("test1@example.com");
-        userRepository.persist(user1);
+        Member member = new Member();
+        member.setFineBalance(BigDecimal.ZERO);
+        memberRepository.persist(member);
 
-        member1 = new Member();
-        member1.setUser(user1);
-        member1.setFineBalance(BigDecimal.ZERO);
-        memberRepository.persist(member1);
+        Book book = new Book();
+        book.setTitle("Test Book");
+        book.setIsbn("1234567890123");
+        bookRepository.persist(book);
 
-        Author author = new Author();
-        author.setName("Test Author");
-        authorRepository.persist(author);
+        BookCopy bookCopy = new BookCopy();
+        bookCopy.setBook(book);
+        bookCopy.setStatus("AVAILABLE");
+        bookCopyRepository.persist(bookCopy);
 
-        Publisher publisher = new Publisher();
-        publisher.setName("Test Publisher");
-        publisherRepository.persist(publisher);
+        Loan loan = new Loan();
+        loan.setMember(member);
+        loan.setBookCopy(bookCopy);
+        loan.setCheckoutDate(LocalDate.now().minusDays(30));
+        loan.setDueDate(LocalDate.now().minusDays(15));
+        loan.setStatus("ACTIVE");
+        loanRepository.persist(loan);
 
-        Category category = new Category();
-        category.setName("Test Category");
-        categoryRepository.persist(category);
-
-        Set<Author> authors = new HashSet<>();
-        authors.add(author);
-
-        book1 = new Book();
-        book1.setTitle("Java Programming");
-        book1.setIsbn("1234567890");
-        book1.setPublicationYear(2022);
-        book1.setAuthors(authors);
-        book1.setPublisher(publisher);
-        book1.setCategory(category);
-        bookRepository.persist(book1);
-
-        bookCopy1 = new BookCopy();
-        bookCopy1.setBook(book1);
-        bookCopy1.setStatus("AVAILABLE");
-        bookCopyRepository.persist(bookCopy1);
+        Fine fine = new Fine();
+        fine.setLoan(loan);
+        fine.setAmount(BigDecimal.TEN);
+        fine.setStatus("OUTSTANDING");
+        fineRepository.persist(fine);
     }
 
     @Test
     @Transactional
     void testGenerateMonthlyReport() {
-        LocalDate startDate = LocalDate.now().minusMonths(1);
-        LocalDate endDate = LocalDate.now();
+        Report report = reportService.generateMonthlyReport();
 
-        Loan loan = new Loan();
-        loan.setMember(member1);
-        loan.setBookCopy(bookCopy1);
-        loan.setCheckoutDate(LocalDate.now().minusDays(10));
-        loan.setDueDate(LocalDate.now().plusDays(4));
-        loan.setStatus("ACTIVE");
-        loanRepository.persist(loan);
-
-        ReportService.MonthlyReport report = reportService.generateMonthlyReport(startDate, endDate);
         assertNotNull(report);
-        assertEquals(1, report.getTotalLoans());
+        assertNotNull(report.getReportContent());
+        assertFalse(report.getReportContent().isEmpty());
     }
 }

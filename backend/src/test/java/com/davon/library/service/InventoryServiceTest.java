@@ -1,18 +1,18 @@
 package com.davon.library.service;
 
-import com.davon.library.model.*;
-import com.davon.library.repository.*;
+import com.davon.library.model.Book;
+import com.davon.library.model.BookCopy;
+import com.davon.library.repository.BookCopyRepository;
+import com.davon.library.repository.BookRepository;
+import com.davon.library.repository.ReservationRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 class InventoryServiceTest {
@@ -27,71 +27,30 @@ class InventoryServiceTest {
     BookCopyRepository bookCopyRepository;
 
     @Inject
-    AuthorRepository authorRepository;
+    ReservationRepository reservationRepository;
 
-    @Inject
-    PublisherRepository publisherRepository;
-
-    @Inject
-    CategoryRepository categoryRepository;
-
-    @Inject
-    LoanRepository loanRepository;
-
-    @Inject
-    FineRepository fineRepository;
-
-    private Author author;
-    private Publisher publisher;
-    private Category category;
-    private Book testBook1;
+    private Book book;
 
     @BeforeEach
     @Transactional
     void setUp() {
-        fineRepository.deleteAll();
-        loanRepository.deleteAll();
+        reservationRepository.deleteAll();
         bookCopyRepository.deleteAll();
         bookRepository.deleteAll();
-        authorRepository.deleteAll();
-        publisherRepository.deleteAll();
-        categoryRepository.deleteAll();
 
-        author = new Author();
-        author.setName("Test Author");
-        authorRepository.persist(author);
-
-        publisher = new Publisher();
-        publisher.setName("Test Publisher");
-        publisherRepository.persist(publisher);
-
-        category = new Category();
-        category.setName("Test Category");
-        categoryRepository.persist(category);
-
-        Set<Author> authors = new HashSet<>();
-        authors.add(author);
-
-        testBook1 = new Book();
-        testBook1.setTitle("Java Programming");
-        testBook1.setIsbn("1234567890");
-        testBook1.setPublicationYear(2022);
-        testBook1.setAuthors(authors);
-        testBook1.setPublisher(publisher);
-        testBook1.setCategory(category);
-        bookRepository.persist(testBook1);
+        book = new Book();
+        book.setTitle("Test Book");
+        book.setIsbn("1234567890123");
+        bookRepository.persist(book);
     }
 
     @Test
     @Transactional
     void testAddBookCopy() {
-        BookCopy newCopy = new BookCopy();
-        newCopy.setBook(testBook1);
-        newCopy.setStatus("AVAILABLE");
-        newCopy.setLocation("Shelf B2");
-        inventoryService.addBookCopy(newCopy);
+        BookCopy bookCopy = inventoryService.addBookCopy(book.getId());
 
-        List<BookCopy> copies = inventoryService.getCopiesForBook(testBook1.getId());
-        assertEquals(1, copies.size());
+        assertNotNull(bookCopy);
+        assertNotNull(bookCopy.getId());
+        assertEquals(book.getId(), bookCopy.getBook().getId());
     }
 }
