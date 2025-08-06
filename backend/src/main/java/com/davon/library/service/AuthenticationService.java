@@ -2,9 +2,9 @@ package com.davon.library.service;
 
 import com.davon.library.model.User;
 import com.davon.library.repository.UserRepository;
+import io.quarkus.elytron.security.common.BcryptUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.security.enterprise.identitystore.Pbkdf2PasswordHash;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotAuthorizedException;
 import org.slf4j.Logger;
@@ -18,15 +18,12 @@ public class AuthenticationService {
     @Inject
     UserRepository userRepository;
 
-    @Inject
-    Pbkdf2PasswordHash passwordHash;
-
     public User authenticate(String username, String password) {
         log.info("Authenticating user: {}", username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotAuthorizedException("Invalid credentials"));
 
-        if (!passwordHash.verify(password.toCharArray(), user.getPasswordHash())) {
+        if (!BcryptUtil.matches(password, user.getPasswordHash())) {
             throw new NotAuthorizedException("Invalid credentials");
         }
 
@@ -47,7 +44,7 @@ public class AuthenticationService {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        user.setPasswordHash(passwordHash.generate(password.toCharArray()));
+        user.setPasswordHash(BcryptUtil.bcryptHash(password));
         userRepository.persist(user);
         return user;
     }
