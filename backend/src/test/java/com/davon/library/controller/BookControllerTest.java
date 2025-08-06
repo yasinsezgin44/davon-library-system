@@ -41,10 +41,18 @@ class BookControllerTest {
     @Inject
     LoanRepository loanRepository;
 
+    @Inject
+    ReservationRepository reservationRepository;
+
+    @Inject
+    FineRepository fineRepository;
+
     @BeforeEach
     @Transactional
     void setup() {
+        fineRepository.deleteAll();
         loanRepository.deleteAll();
+        reservationRepository.deleteAll();
         bookCopyRepository.deleteAll();
         bookRepository.deleteAll();
         authorRepository.deleteAll();
