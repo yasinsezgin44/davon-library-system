@@ -2,63 +2,52 @@ package com.davon.library.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.time.LocalDate;
 
-/**
- * Represents a physical copy of a book in the library system.
- */
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "book_copies")
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = { "book" })
-@ToString(callSuper = true, exclude = { "book" })
-public class BookCopy extends BaseEntity {
-    @ManyToOne(fetch = FetchType.LAZY)
+public class BookCopy {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "book_id", nullable = false)
-    @JsonIgnore // Prevent circular reference in JSON serialization
     private Book book;
 
     @Column(name = "acquisition_date")
     private LocalDate acquisitionDate;
 
-    @Column(name = "condition")
+    @Column(length = 50)
     private String condition;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private CopyStatus status;
+    @Column(length = 20)
+    private String status;
 
-    @Column(name = "location")
+    @Column(length = 100)
     private String location;
 
-    public boolean isAvailable() {
-        return status == CopyStatus.AVAILABLE;
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public void checkOut() {
-        this.status = CopyStatus.CHECKED_OUT;
-    }
-
-    public void checkIn() {
-        this.status = CopyStatus.AVAILABLE;
-    }
-
-    public boolean updateCondition(String newCondition, String notes) {
-        this.condition = newCondition;
-        // Consider adding conditionHistory to track changes over time
-        return true;
-    }
-
-    public enum CopyStatus {
-        AVAILABLE,
-        CHECKED_OUT,
-        IN_REPAIR,
-        LOST,
-        RESERVED
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

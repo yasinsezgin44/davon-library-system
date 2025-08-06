@@ -2,51 +2,76 @@ package com.davon.library.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDate;
 
-/**
- * Base class for all users in the library system.
- */
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "users")
-@Inheritance(strategy = InheritanceType.JOINED)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "userType")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = Member.class, name = "member"),
-        @JsonSubTypes.Type(value = Librarian.class, name = "librarian"),
-        @JsonSubTypes.Type(value = Admin.class, name = "admin")
-})
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public abstract class User extends BaseEntity {
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false, length = 100)
     private String username;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // Allow input but not output for security
-    @Column(name = "password_hash")
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "full_name")
-    private String name;
-    private String email;
-    @Column(name = "phone_number")
-    private String phoneNumber;
-    @Column(name = "active")
-    private boolean isActive;
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
 
-    @Enumerated(EnumType.STRING)
-    private UserStatus status;
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    private Boolean active;
+
+    @Column(length = 20)
+    private String status;
 
     @Column(name = "last_login")
     private LocalDate lastLogin;
 
-    public boolean isAdmin() {
-        return this instanceof Admin;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Member member;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Librarian librarian;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Admin admin;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles",
+               joinColumns = @JoinColumn(name = "user_id"),
+               inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

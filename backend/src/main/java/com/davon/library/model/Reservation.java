@@ -2,52 +2,40 @@ package com.davon.library.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
+
 import java.time.LocalDateTime;
 
-/**
- * Represents a reservation of a book by a member.
- */
 @Entity
 @Table(name = "reservations")
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = { "member", "book" })
-@ToString(callSuper = true, exclude = { "member", "book" })
-public class Reservation extends BaseEntity {
+public class Reservation {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    @Column(name = "reservation_time", nullable = false)
+    @Column(name = "reservation_time")
     private LocalDateTime reservationTime;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private ReservationStatus status;
+    @Column(length = 20)
+    private String status;
 
     @Column(name = "priority_number")
-    private int priorityNumber; // Bug: This will be calculated incorrectly
+    private Integer priorityNumber;
 
-    public void cancel() {
-        this.status = ReservationStatus.CANCELLED;
-    }
-
-    public void fulfill() {
-        this.status = ReservationStatus.COMPLETED;
-    }
-
-    public enum ReservationStatus {
-        PENDING,
-        READY_FOR_PICKUP,
-        COMPLETED,
-        CANCELLED
+    @PrePersist
+    protected void onCreate() {
+        reservationTime = LocalDateTime.now();
     }
 }

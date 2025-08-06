@@ -2,80 +2,47 @@ package com.davon.library.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.List;
 
-/**
- * Represents a library member who can borrow books and make reservations.
- */
 @Entity
 @Table(name = "members")
-@PrimaryKeyJoinColumn(name = "user_id")
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = { "loans", "reservations", "fines" })
-@ToString(callSuper = true, exclude = { "loans", "reservations", "fines" })
-public class Member extends User {
+public class Member {
+
+    @Id
+    @Column(name = "user_id")
+    private Long id;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Column(name = "membership_start_date")
     private LocalDate membershipStartDate;
+
     @Column(name = "membership_end_date")
     private LocalDate membershipEndDate;
+
+    @Lob
     private String address;
 
+    @Column(name = "fine_balance", precision = 10, scale = 2)
+    private BigDecimal fineBalance;
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore // Prevent circular reference in JSON serialization
-    @lombok.Builder.Default
     private Set<Loan> loans = new HashSet<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore // Prevent circular reference in JSON serialization
-    @lombok.Builder.Default
     private Set<Reservation> reservations = new HashSet<>();
 
-    @Column(name = "fine_balance")
-    @lombok.Builder.Default
-    private double fineBalance = 0.0;
-
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore // Prevent circular reference in JSON serialization
-    @lombok.Builder.Default
     private Set<Fine> fines = new HashSet<>();
-
-    public boolean borrowBooks(List<Long> bookIds) {
-        // Implementation
-        return true;
-    }
-
-    public boolean renewMembership(int durationMonths) {
-        this.membershipEndDate = this.membershipEndDate.plusMonths(durationMonths);
-        return true;
-    }
-
-    public boolean payFines(double amount) {
-        if (amount <= 0 || amount > fineBalance) {
-            return false;
-        }
-        fineBalance -= amount;
-        return true;
-    }
-
-    public void addFine(double amount) {
-        if (amount > 0) {
-            fineBalance += amount;
-        }
-    }
-
-    public double getFineBalance() {
-        return fineBalance;
-    }
-
-    public Set<Fine> getFines() {
-        return fines;
-    }
 }

@@ -2,54 +2,54 @@ package com.davon.library.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import java.time.LocalDate;
-import java.util.List;
 
-/**
- * Represents a history record of loan actions.
- */
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "loan_history")
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = { "member", "loan", "book" })
-@ToString(callSuper = true, exclude = { "member", "loan", "book" })
-public class LoanHistory extends BaseEntity {
+public class LoanHistory {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "loan_id", nullable = false)
     private Loan loan;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    @Column(name = "action_date", nullable = false)
+    @Column(nullable = false, length = 20)
+    private String action;
+
+    @Column(name = "action_date")
     private LocalDate actionDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "action", nullable = false)
-    private LoanAction action;
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    public List<Loan> getActiveLoans() {
-        // This would be implemented in LoanHistoryRepository
-        return null;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public List<Loan> getPastLoans() {
-        // This would be implemented in LoanHistoryRepository
-        return null;
-    }
-
-    public float getAverageReturnTime() {
-        // Implementation would calculate average days to return
-        return 0f;
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

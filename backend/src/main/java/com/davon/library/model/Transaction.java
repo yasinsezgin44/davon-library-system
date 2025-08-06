@@ -1,48 +1,60 @@
 package com.davon.library.model;
 
+import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import java.time.LocalDate;
 
-/**
- * Represents a payment or fee transaction in the library system.
- */
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "transactions")
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class Transaction extends BaseEntity {
+public class Transaction {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fine_id")
+    private Fine fine;
+
     private LocalDate date;
-    private double amount;
-    private TransactionType type;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal amount;
+
+    @Column(nullable = false, length = 20)
+    private String type;
+
+    @Lob
     private String description;
+
+    @Column(name = "payment_method", length = 50)
     private String paymentMethod;
 
-    public Receipt generateReceipt() {
-        Receipt.ReceiptItem[] items = {
-                new Receipt.ReceiptItem(this.description, this.amount, 1)
-        };
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-        return Receipt.builder()
-                .transactionId(this.getId())
-                .issueDate(LocalDate.now())
-                .items(items)
-                .total(this.amount)
-                .build();
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public boolean voidTransaction() {
-        // Logic to void transaction
-        return true;
-    }
-
-    public boolean recoverFailedTransaction() {
-        // Logic to recover failed transaction
-        return true;
-    }
-
-    public enum TransactionType {
-        FINE_PAYMENT, MEMBERSHIP_FEE, LOST_ITEM_FEE, RESERVATION_FEE, REFUND
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }
