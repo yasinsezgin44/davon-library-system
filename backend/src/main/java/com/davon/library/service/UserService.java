@@ -36,8 +36,7 @@ public class UserService {
     @Transactional
     public User updateUser(Long userId, User updatedUser) {
         log.debug("Updating user: {}", userId);
-        User existingUser = userRepository.findByIdOptional(userId)
-                .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
+        User existingUser = findById(userId);
 
         existingUser.setFullName(updatedUser.getFullName());
         existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
@@ -47,6 +46,14 @@ public class UserService {
         return existingUser;
     }
 
+    @Transactional
+    public boolean deactivateUser(Long userId) {
+        log.debug("Deactivating user: {}", userId);
+        User user = findById(userId);
+        user.setActive(false);
+        return true;
+    }
+    
     @Transactional
     public void deleteUser(Long userId) {
         log.debug("Deleting user: {}", userId);
@@ -59,6 +66,12 @@ public class UserService {
     public List<User> getAllUsers() {
         log.debug("Fetching all users");
         return userRepository.listAll();
+    }
+
+    public User findById(Long userId) {
+        log.debug("Fetching user by ID: {}", userId);
+        return userRepository.findByIdOptional(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
     }
 
     public Optional<User> getUserById(Long userId) {
@@ -74,5 +87,9 @@ public class UserService {
     public List<User> searchUsers(String searchTerm) {
         log.debug("Searching users with term: {}", searchTerm);
         return userRepository.searchUsers(searchTerm);
+    }
+
+    public long countUsers() {
+        return userRepository.count();
     }
 }

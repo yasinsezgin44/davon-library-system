@@ -55,4 +55,17 @@ public class FineService {
                 .orElseThrow(() -> new NotFoundException("Member not found"));
         return fineRepository.findByMember(member);
     }
+
+    @Transactional
+    public Fine createOverdueFine(Loan loan) {
+        Fine fine = new Fine();
+        fine.setMember(loan.getMember());
+        fine.setLoan(loan);
+        fine.setAmount(new BigDecimal("25.00")); // Or some calculated amount
+        fine.setReason(FineReason.OVERDUE);
+        fine.setIssueDate(LocalDate.now());
+        fine.setDueDate(LocalDate.now().plusDays(30));
+        fine.setStatus(FineStatus.PENDING);
+        return createFine(fine);
+    }
 }

@@ -29,4 +29,8 @@ public interface FineRepository extends PanacheRepository<Fine> {
     default List<Fine> findOverdueFines() {
         return list("dueDate < ?1 AND status = ?2", LocalDate.now(), FineStatus.PENDING);
     }
+
+    default List<Fine> findByIssueDateBetween(LocalDate startDate, LocalDate endDate) {
+        return list("issueDate >= ?1 and issueDate <= ?2", startDate, endDate);
+    }
 }

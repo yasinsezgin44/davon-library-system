@@ -29,7 +29,7 @@ public class EmailService {
         sendEmail(toEmail, subject, message);
     }
 
-    private void sendEmail(String toEmail, String subject, String content) {
+    public void sendEmail(String toEmail, String subject, String content) {
         // In a real implementation, this would connect to an email service
         // For now, just log the email
         logger.info("Sending email to: " + toEmail);

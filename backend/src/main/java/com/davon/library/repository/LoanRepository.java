@@ -27,4 +27,8 @@ public interface LoanRepository extends PanacheRepository<Loan> {
     default List<Loan> findOverdueLoans() {
         return list("dueDate < ?1 and status = ?2", LocalDate.now(), LoanStatus.ACTIVE);
     }
+
+    default List<Loan> findByCheckoutDateBetween(LocalDate startDate, LocalDate endDate) {
+        return list("checkoutDate >= ?1 and checkoutDate <= ?2", startDate, endDate);
+    }
 }
