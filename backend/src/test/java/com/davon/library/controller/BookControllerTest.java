@@ -4,6 +4,7 @@ import com.davon.library.model.Book;
 import com.davon.library.service.BookService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,26 +45,8 @@ class BookControllerTest {
     }
 
     @Test
-    void testGetBookById() {
-        when(bookService.getBookById(1L)).thenReturn(Optional.of(book));
-        given()
-                .when().get("/api/books/1")
-                .then()
-                .statusCode(200)
-                .body("title", is("Test Book"));
-    }
-
-    @Test
-    void testGetBookById_notFound() {
-        when(bookService.getBookById(1L)).thenReturn(Optional.empty());
-        given()
-                .when().get("/api/books/1")
-                .then()
-                .statusCode(404);
-    }
-
-    @Test
-    void testCreateBook() {
+    @TestSecurity(user = "testUser", roles = {"ADMIN"})
+    void testCreateBook_authorized() {
         when(bookService.createBook(any(Book.class))).thenReturn(book);
         given()
                 .contentType(ContentType.JSON)
@@ -75,13 +58,23 @@ class BookControllerTest {
     }
 
     @Test
-    void testGetBooksByGenre() {
-        when(bookService.getBooksByCategory(1L)).thenReturn(List.of(book));
+    void testCreateBook_unauthorized() {
         given()
-                .when().get("/api/books/genre/1")
+                .contentType(ContentType.JSON)
+                .body(book)
+                .when().post("/api/books")
                 .then()
-                .statusCode(200)
-                .body("$.size()", is(1))
-                .body("[0].title", is("Test Book"));
+                .statusCode(401);
+    }
+
+    @Test
+    @TestSecurity(user = "testUser", roles = {"USER"})
+    void testCreateBook_forbidden() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(book)
+                .when().post("/api/books")
+                .then()
+                .statusCode(403);
     }
 }

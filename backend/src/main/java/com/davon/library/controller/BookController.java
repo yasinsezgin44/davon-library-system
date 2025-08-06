@@ -4,11 +4,13 @@ import com.davon.library.model.Book;
 import com.davon.library.model.Category;
 import com.davon.library.service.BookService;
 import com.davon.library.service.CategoryService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
@@ -42,7 +44,9 @@ public class BookController {
     }
 
     @POST
+    @RolesAllowed({"ADMIN", "LIBRARIAN"})
     @Operation(summary = "Create a new book")
+    @SecurityRequirement(name = "jwt")
     public Response createBook(Book book) {
         Book createdBook = bookService.createBook(book);
         return Response.status(Response.Status.CREATED).entity(createdBook).build();
@@ -50,7 +54,9 @@ public class BookController {
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed({"ADMIN", "LIBRARIAN"})
     @Operation(summary = "Update a book's details")
+    @SecurityRequirement(name = "jwt")
     public Response updateBook(@PathParam("id") Long id, Book book) {
         Book updatedBook = bookService.updateBook(id, book);
         return Response.ok(updatedBook).build();
@@ -58,7 +64,9 @@ public class BookController {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed({"ADMIN", "LIBRARIAN"})
     @Operation(summary = "Delete a book")
+    @SecurityRequirement(name = "jwt")
     public Response deleteBook(@PathParam("id") Long id) {
         bookService.deleteBook(id);
         return Response.noContent().build();
