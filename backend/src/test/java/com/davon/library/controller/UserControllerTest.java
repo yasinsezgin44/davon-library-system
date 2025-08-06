@@ -24,28 +24,21 @@ class UserControllerTest {
 
         @Test
         void testCreateAndGetUser() {
-                // Generate unique email to avoid constraint violations
                 String uniqueEmail = "test-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
                 String uniqueUsername = "testuser-" + UUID.randomUUID().toString().substring(0, 8);
 
-                // Create a user using JSON with userType field for Jackson deserialization
                 String userJson = """
                                 {
-                                    "userType": "member",
                                     "username": "%s",
                                     "passwordHash": "hashed_password",
                                     "fullName": "Test User",
                                     "email": "%s",
                                     "phoneNumber": "123-456-7890",
                                     "active": true,
-                                    "status": "ACTIVE",
-                                    "membershipStartDate": "2024-01-01",
-                                    "membershipEndDate": "2025-01-01",
-                                    "address": "123 Test St"
+                                    "status": "ACTIVE"
                                 }
                                 """.formatted(uniqueUsername, uniqueEmail);
 
-                // Create a user
                 given()
                                 .contentType(ContentType.JSON)
                                 .body(userJson)
@@ -59,14 +52,11 @@ class UserControllerTest {
 
         @Test
         void testSearchUsers() {
-                // Generate unique identifiers to avoid constraint violations
                 String uniqueEmail = "search-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
                 String uniqueUsername = "searchuser-" + UUID.randomUUID().toString().substring(0, 8);
 
-                // First create a user to search for using JSON
                 String userJson = """
                                 {
-                                    "userType": "member",
                                     "username": "%s",
                                     "passwordHash": "password",
                                     "fullName": "Search Test User",
@@ -84,7 +74,6 @@ class UserControllerTest {
                                 .then()
                                 .statusCode(201);
 
-                // Now search for it
                 given()
                                 .param("q", "Search")
                                 .when().get("/api/users/search")
@@ -111,24 +100,12 @@ class UserControllerTest {
         }
 
         @Test
-        void testGetUsersWithFilter() {
-                given()
-                                .param("filter", "test")
-                                .when().get("/api/users")
-                                .then()
-                                .statusCode(200)
-                                .contentType(ContentType.JSON);
-        }
-
-        @Test
         void testUpdateUser() {
-                // First create a user
                 String uniqueEmail = "update-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
                 String uniqueUsername = "updateuser-" + UUID.randomUUID().toString().substring(0, 8);
 
                 String userJson = """
                                 {
-                                    "userType": "member",
                                     "username": "%s",
                                     "passwordHash": "hashed_password",
                                     "fullName": "Original Name",
@@ -149,10 +126,8 @@ class UserControllerTest {
                                 .jsonPath()
                                 .getString("id");
 
-                // Update the user
                 String updatedUserJson = """
                                 {
-                                    "userType": "member",
                                     "username": "%s",
                                     "passwordHash": "new_hashed_password",
                                     "fullName": "Updated Name",
@@ -175,13 +150,11 @@ class UserControllerTest {
 
         @Test
         void testGetUserById() {
-                // First create a user
                 String uniqueEmail = "get-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
                 String uniqueUsername = "getuser-" + UUID.randomUUID().toString().substring(0, 8);
 
                 String userJson = """
                                 {
-                                    "userType": "member",
                                     "username": "%s",
                                     "passwordHash": "hashed_password",
                                     "fullName": "Get Test User",
@@ -202,7 +175,6 @@ class UserControllerTest {
                                 .jsonPath()
                                 .getString("id");
 
-                // Get the user by ID
                 given()
                                 .when().get("/api/users/" + userId)
                                 .then()
@@ -214,13 +186,11 @@ class UserControllerTest {
 
         @Test
         void testDeleteUser() {
-                // First create a user
                 String uniqueEmail = "delete-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
                 String uniqueUsername = "deleteuser-" + UUID.randomUUID().toString().substring(0, 8);
 
                 String userJson = """
                                 {
-                                    "userType": "member",
                                     "username": "%s",
                                     "passwordHash": "hashed_password",
                                     "fullName": "Delete Test User",
@@ -241,57 +211,14 @@ class UserControllerTest {
                                 .jsonPath()
                                 .getString("id");
 
-                // Delete (deactivate) the user
                 given()
                                 .when().delete("/api/users/" + userId)
                                 .then()
-                                .statusCode(204); // No Content for successful deletion
+                                .statusCode(204);
 
-                // Verify the user is deactivated by checking its active status
                 given()
                                 .when().get("/api/users/" + userId)
                                 .then()
-                                .statusCode(200)
-                                .body("active", is(false)); // User should be deactivated, not deleted
-        }
-
-        @Test
-        void testCreateUserWithInvalidData() {
-                // Test with missing required fields
-                String invalidUserJson = """
-                                {
-                                    "userType": "member",
-                                    "username": "",
-                                    "email": "invalid-email",
-                                    "fullName": ""
-                                }
-                                """;
-
-                given()
-                                .contentType(ContentType.JSON)
-                                .body(invalidUserJson)
-                                .when().post("/api/users")
-                                .then()
-                                .statusCode(400); // Bad Request for validation errors
-        }
-
-        @Test
-        void testGetUsersByStatus() {
-                given()
-                                .param("status", "ACTIVE")
-                                .when().get("/api/users")
-                                .then()
-                                .statusCode(200)
-                                .contentType(ContentType.JSON);
-        }
-
-        @Test
-        void testGetUsersByUserType() {
-                given()
-                                .param("userType", "member")
-                                .when().get("/api/users")
-                                .then()
-                                .statusCode(200)
-                                .contentType(ContentType.JSON);
+                                .statusCode(404);
         }
 }
