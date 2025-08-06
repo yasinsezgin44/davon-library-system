@@ -1,60 +1,50 @@
 package com.davon.library.service;
 
-import com.davon.library.model.*;
+import com.davon.library.model.Loan;
+import com.davon.library.model.Member;
+import com.davon.library.model.Reservation;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.time.LocalDate;
+import jakarta.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class NotificationService {
 
-    public void sendCheckoutConfirmation(Member member, BookCopy bookCopy) {
-        String message = String.format("You have checked out: %s. Due date: %s",
-                bookCopy.getBook().getTitle(),
-                LocalDate.now().plusDays(14).toString());
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
-        System.out.println("Notification to " + member.getUser().getEmail() + ": " + message);
-    }
-
-    public void sendOverdueNotice(Loan loan) {
-        Member member = loan.getMember();
-        BookCopy bookCopy = loan.getBookCopy();
-
-        String message = String.format("The book '%s' is overdue. Please return it as soon as possible.",
-                bookCopy.getBook().getTitle());
-
-        System.out.println("Overdue Notice to " + member.getUser().getEmail() + ": " + message);
-    }
-
-    public void sendReservationNotification(Reservation reservation) {
-        Member member = reservation.getMember();
-        Book book = reservation.getBook();
-
-        String message = String.format("The book '%s' you reserved is now available. Please pick it up within 3 days.",
-                book.getTitle());
-
-        System.out.println("Reservation Notice to " + member.getUser().getEmail() + ": " + message);
-    }
+    @Inject
+    EmailService emailService;
 
     public void sendCheckoutNotification(Member member, Loan loan) {
-        String message = String.format("You have checked out: %s. Due date: %s",
-                loan.getBookCopy().getBook().getTitle(),
-                loan.getDueDate().toString());
-
-        System.out.println("Checkout Notification to " + member.getUser().getEmail() + ": " + message);
+        String subject = "Book Checkout Confirmation";
+        String body = String.format("Dear %s,\n\nYou have successfully checked out the book '%s'.\nDue Date: %s",
+                member.getUser().getFullName(), loan.getBookCopy().getBook().getTitle(), loan.getDueDate());
+        log.info("Sending checkout notification to {}", member.getUser().getEmail());
+        emailService.sendEmail(member.getUser().getEmail(), subject, body);
     }
 
     public void sendReturnNotification(Member member, Loan loan) {
-        String message = String.format("You have successfully returned: %s. Thank you!",
-                loan.getBookCopy().getBook().getTitle());
-
-        System.out.println("Return Notification to " + member.getUser().getEmail() + ": " + message);
+        String subject = "Book Return Confirmation";
+        String body = String.format("Dear %s,\n\nYou have successfully returned the book '%s'.\nThank you!",
+                member.getUser().getFullName(), loan.getBookCopy().getBook().getTitle());
+        log.info("Sending return notification to {}", member.getUser().getEmail());
+        emailService.sendEmail(member.getUser().getEmail(), subject, body);
     }
 
-    public void sendRenewalNotification(Member member, Loan loan) {
-        String message = String.format("You have successfully renewed: %s. New due date: %s",
-                loan.getBookCopy().getBook().getTitle(),
-                loan.getDueDate().toString());
+    public void sendOverdueNotice(Loan loan) {
+        String subject = "Overdue Book Notice";
+        String body = String.format("Dear %s,\n\nThis is a reminder that the book '%s' is overdue. Please return it as soon as possible to avoid further fines.",
+                loan.getMember().getUser().getFullName(), loan.getBookCopy().getBook().getTitle());
+        log.info("Sending overdue notice to {}", loan.getMember().getUser().getEmail());
+        emailService.sendEmail(loan.getMember().getUser().getEmail(), subject, body);
+    }
 
-        System.out.println("Renewal Notification to " + member.getUser().getEmail() + ": " + message);
+    public void sendReservationAvailableNotification(Reservation reservation) {
+        String subject = "Book Reservation Available";
+        String body = String.format("Dear %s,\n\nThe book '%s' that you reserved is now available for pickup.",
+                reservation.getMember().getUser().getFullName(), reservation.getBook().getTitle());
+        log.info("Sending reservation available notification to {}", reservation.getMember().getUser().getEmail());
+        emailService.sendEmail(reservation.getMember().getUser().getEmail(), subject, body);
     }
 }

@@ -3,6 +3,7 @@ package com.davon.library.repository;
 import com.davon.library.model.User;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -18,27 +19,23 @@ public class UserRepository implements PanacheRepository<User> {
     }
 
     public List<User> findByStatus(String status) {
-        return find("status", status).list();
+        return list("status", status);
     }
 
     public List<User> findActiveUsers() {
-        return find("active", true).list();
-    }
-
-    public List<User> findByFullNameContaining(String name) {
-        return find("LOWER(fullName) LIKE LOWER(?1)", "%" + name + "%").list();
+        return list("active", true);
     }
 
     public boolean existsByUsername(String username) {
-        return find("username", username).count() > 0;
+        return count("username", username) > 0;
     }
 
     public boolean existsByEmail(String email) {
-        return find("email", email).count() > 0;
+        return count("email", email) > 0;
     }
 
     public List<User> searchUsers(String searchTerm) {
         String lowerSearchTerm = "%" + searchTerm.toLowerCase() + "%";
-        return find("LOWER(username) LIKE ?1 OR LOWER(email) LIKE ?1 OR LOWER(fullName) LIKE ?1", lowerSearchTerm).list();
+        return list("LOWER(username) LIKE ?1 OR LOWER(email) LIKE ?1 OR LOWER(fullName) LIKE ?1", lowerSearchTerm);
     }
 }

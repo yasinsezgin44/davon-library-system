@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import com.davon.library.model.enums.CopyStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,8 +29,10 @@ public class BookCopy {
     @Column(length = 50)
     private String condition;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status;
+    @Builder.Default
+    private CopyStatus status = CopyStatus.AVAILABLE;
 
     @Column(length = 100)
     private String location;
@@ -39,15 +42,4 @@ public class BookCopy {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

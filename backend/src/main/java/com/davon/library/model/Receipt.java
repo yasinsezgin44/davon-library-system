@@ -26,7 +26,7 @@ public class Receipt {
     @Column(name = "issue_date")
     private LocalDate issueDate;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String items;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -37,15 +37,4 @@ public class Receipt {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

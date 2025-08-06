@@ -1,6 +1,9 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
+import com.davon.library.model.enums.CopyStatus;
+import com.davon.library.model.enums.LoanStatus;
+import com.davon.library.model.enums.ReservationStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
@@ -45,7 +48,7 @@ class NotificationServiceTest {
                 bookCopy = new BookCopy();
                 bookCopy.setId(1L);
                 bookCopy.setBook(book);
-                bookCopy.setStatus("CHECKED_OUT");
+                bookCopy.setStatus(CopyStatus.CHECKED_OUT);
 
                 loan = new Loan();
                 loan.setId(1L);
@@ -53,13 +56,13 @@ class NotificationServiceTest {
                 loan.setBookCopy(bookCopy);
                 loan.setCheckoutDate(LocalDate.now().minusDays(20));
                 loan.setDueDate(LocalDate.now().minusDays(6));
-                loan.setStatus("OVERDUE");
+                loan.setStatus(LoanStatus.OVERDUE);
 
                 reservation = new Reservation();
                 reservation.setId(1L);
                 reservation.setMember(member);
                 reservation.setBook(book);
-                reservation.setStatus("PENDING");
+                reservation.setStatus(ReservationStatus.PENDING);
         }
 
         @AfterEach

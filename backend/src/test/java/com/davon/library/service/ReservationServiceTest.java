@@ -1,6 +1,7 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
+import com.davon.library.model.enums.ReservationStatus;
 import com.davon.library.repository.*;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -77,7 +78,7 @@ class ReservationServiceTest {
     void testCreateReservation() {
         Reservation reservation = reservationService.createReservation(member.getId(), book.getId());
         assertNotNull(reservation.getId());
-        assertEquals("PENDING", reservation.getStatus());
+        assertEquals(ReservationStatus.PENDING, reservation.getStatus());
     }
 
     @Test
@@ -85,6 +86,6 @@ class ReservationServiceTest {
     void testCancelReservation() {
         Reservation reservation = reservationService.createReservation(member.getId(), book.getId());
         reservationService.cancelReservation(reservation.getId());
-        assertEquals("CANCELLED", reservationRepository.findById(reservation.getId()).getStatus());
+        assertEquals(ReservationStatus.CANCELLED, reservationRepository.findById(reservation.getId()).getStatus());
     }
 }

@@ -1,6 +1,7 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
+import com.davon.library.model.enums.LoanStatus;
 import com.davon.library.exception.BusinessException;
 import com.davon.library.service.LibrarianService.LibrarianServiceException;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +66,7 @@ class LibrarianServiceTest {
         testLoan.setMember(member);
         testLoan.setCheckoutDate(LocalDate.now());
         testLoan.setDueDate(LocalDate.now().plusDays(14));
-        testLoan.setStatus("ACTIVE");
+        testLoan.setStatus(LoanStatus.ACTIVE);
     }
 
     @Test

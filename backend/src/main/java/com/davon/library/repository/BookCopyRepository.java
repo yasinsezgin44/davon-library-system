@@ -2,19 +2,21 @@ package com.davon.library.repository;
 
 import com.davon.library.model.Book;
 import com.davon.library.model.BookCopy;
+import com.davon.library.model.enums.CopyStatus;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+
 import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class BookCopyRepository implements PanacheRepository<BookCopy> {
+public interface BookCopyRepository extends PanacheRepository<BookCopy> {
 
-    public Optional<BookCopy> findAvailableByBook(Book book) {
-        return find("book = ?1 and status = 'AVAILABLE'", book).firstResultOptional();
+    default Optional<BookCopy> findAvailableByBook(Book book) {
+        return find("book = ?1 and status = ?2", book, CopyStatus.AVAILABLE).firstResultOptional();
     }
 
-    public List<BookCopy> findByBook(Book book) {
-        return find("book", book).list();
+    default List<BookCopy> findByBook(Book book) {
+        return list("book", book);
     }
 }

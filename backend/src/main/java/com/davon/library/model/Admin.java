@@ -28,7 +28,7 @@ public class Admin {
     @Column(length = 100)
     private String department;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String permissions;
 
     @Column(name = "last_activity")

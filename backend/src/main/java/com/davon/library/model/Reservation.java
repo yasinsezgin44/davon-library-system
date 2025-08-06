@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import com.davon.library.model.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,14 +29,11 @@ public class Reservation {
     @Column(name = "reservation_time")
     private LocalDateTime reservationTime;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status;
+    @Builder.Default
+    private ReservationStatus status = ReservationStatus.PENDING;
 
     @Column(name = "priority_number")
     private Integer priorityNumber;
-
-    @PrePersist
-    protected void onCreate() {
-        reservationTime = LocalDateTime.now();
-    }
 }

@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import com.davon.library.model.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,10 +33,11 @@ public class Transaction {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String type;
+    private TransactionType type;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "payment_method", length = 50)
@@ -46,15 +48,4 @@ public class Transaction {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

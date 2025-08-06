@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import com.davon.library.model.enums.LoanStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,26 +36,18 @@ public class Loan {
     @Column(name = "return_date")
     private LocalDate returnDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status;
+    @Builder.Default
+    private LoanStatus status = LoanStatus.ACTIVE;
 
     @Column(name = "renewal_count")
-    private Integer renewalCount;
+    @Builder.Default
+    private Integer renewalCount = 0;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

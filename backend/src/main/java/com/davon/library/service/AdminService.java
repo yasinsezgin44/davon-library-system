@@ -1,103 +1,52 @@
 package com.davon.library.service;
 
-import com.davon.library.model.*;
+import com.davon.library.model.Role;
+import com.davon.library.model.User;
+import com.davon.library.repository.RoleRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Set;
-import java.util.logging.Logger;
 
 @ApplicationScoped
 public class AdminService {
 
-    private static final Logger logger = Logger.getLogger(AdminService.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(AdminService.class);
 
     @Inject
     private UserService userService;
 
     @Inject
-    private SecurityService securityService;
+    private RoleRepository roleRepository;
 
-    public boolean createUserAccount(User user, String password, String roleName) throws AdminServiceException {
-        try {
-            user.setPasswordHash(securityService.hashPassword(password));
-            Role role = new Role();
-            role.setName(roleName);
-            Set<Role> roles = new HashSet<>();
-            roles.add(role);
-            user.setRoles(roles);
-            User createdUser = userService.createUser(user);
-            return createdUser != null;
-        } catch (UserService.UserServiceException e) {
-            logger.severe("Failed to create user account: " + e.getMessage());
-            throw new AdminServiceException("Failed to create user account: " + e.getMessage(), e);
-        }
+    @Transactional
+    public User createUserWithRole(User user, String roleName) {
+        log.info("Admin creating user {} with role {}", user.getUsername(), roleName);
+        Role role = roleRepository.find("name", roleName).firstResultOptional()
+                .orElseThrow(() -> new NotFoundException("Role not found: " + roleName));
+        user.setRoles(Set.of(role));
+        return userService.createUser(user);
     }
 
-    public boolean deleteUserAccount(Long userId) throws AdminServiceException {
-        try {
-            return userService.deactivateUser(userId);
-        } catch (UserService.UserServiceException e) {
-            logger.severe("Failed to delete user account: " + e.getMessage());
-            throw new AdminServiceException("Failed to delete user account: " + e.getMessage(), e);
-        }
+    @Transactional
+    public void deleteUser(Long userId) {
+        log.info("Admin deleting user {}", userId);
+        userService.deleteUser(userId);
     }
 
-    public boolean setUserRole(Long userId, String roleName) throws AdminServiceException {
-        try {
-            User user = userService.findById(userId);
-            if (user == null) {
-                return false;
-            }
-            Role role = new Role();
-            role.setName(roleName);
-            user.getRoles().add(role);
-            userService.updateUser(userId, user);
-            return true;
-        } catch (UserService.UserServiceException e) {
-            logger.severe("Failed to set user role: " + e.getMessage());
-            throw new AdminServiceException("Failed to set user role: " + e.getMessage(), e);
-        }
-    }
+    @Transactional
+    public User assignRoleToUser(Long userId, String roleName) {
+        log.info("Admin assigning role {} to user {}", roleName, userId);
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        Role role = roleRepository.find("name", roleName).firstResultOptional()
+                .orElseThrow(() -> new NotFoundException("Role not found: " + roleName));
 
-    public boolean lockUserAccount(Long userId) {
-        User user = userService.findById(userId);
-        if (user == null) {
-            return false;
-        }
-        securityService.lockAccount(user.getUsername());
-        return true;
-    }
-
-    public boolean unlockUserAccount(Long userId) {
-        User user = userService.findById(userId);
-        if (user == null) {
-            return false;
-        }
-        securityService.unlockAccount(user.getUsername());
-        return true;
-    }
-
-    public List<User> listUserAccounts() {
-        return userService.getAllUsers();
-    }
-
-    public void configureSecurityPolicy(Map<String, String> policySettings) {
-    }
-
-    public List<String> viewSecurityLogs() {
-        return List.of();
-    }
-
-    public static class AdminServiceException extends Exception {
-        public AdminServiceException(String message) {
-            super(message);
-        }
-
-        public AdminServiceException(String message, Throwable cause) {
-            super(message, cause);
-        }
+        user.getRoles().add(role);
+        return user;
     }
 }

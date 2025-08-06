@@ -2,47 +2,57 @@ package com.davon.library.service;
 
 import com.davon.library.model.Fine;
 import com.davon.library.model.Loan;
+import com.davon.library.model.Member;
+import com.davon.library.model.enums.FineReason;
+import com.davon.library.model.enums.FineStatus;
 import com.davon.library.repository.FineRepository;
+import com.davon.library.repository.MemberRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @ApplicationScoped
 public class FineService {
 
+    private static final Logger log = LoggerFactory.getLogger(FineService.class);
+
     @Inject
     FineRepository fineRepository;
 
-    private static final BigDecimal DAILY_FINE_RATE = new BigDecimal("0.50");
+    @Inject
+    MemberRepository memberRepository;
 
     @Transactional
-    public Fine createOverdueFine(Loan loan) {
-        long overdueDays = ChronoUnit.DAYS.between(loan.getDueDate(), LocalDate.now());
-        if (overdueDays > 0) {
-            BigDecimal amount = DAILY_FINE_RATE.multiply(new BigDecimal(overdueDays));
-            Fine fine = new Fine();
-            fine.setMember(loan.getMember());
-            fine.setLoan(loan);
-            fine.setAmount(amount);
-            fine.setReason("OVERDUE");
-            fine.setIssueDate(LocalDate.now());
-            fine.setStatus("PENDING");
-            fineRepository.persist(fine);
-            return fine;
-        }
-        return null;
+    public Fine createFine(Fine fine) {
+        log.info("Creating fine for member {}", fine.getMember().getId());
+        fineRepository.persist(fine);
+        return fine;
     }
 
-    public Fine getFineById(Long id) {
-        return fineRepository.findById(id);
+    @Transactional
+    public Fine payFine(Long fineId) {
+        log.info("Processing payment for fine {}", fineId);
+        Fine fine = fineRepository.findByIdOptional(fineId)
+                .orElseThrow(() -> new NotFoundException("Fine not found"));
+
+        fine.setStatus(FineStatus.PAID);
+
+        Member member = fine.getMember();
+        member.setFineBalance(member.getFineBalance().subtract(fine.getAmount()));
+
+        return fine;
     }
 
-    public List<Fine> getFinesByMember(Long memberId) {
-        return fineRepository.list("member.id", memberId);
+    public List<Fine> getFinesForMember(Long memberId) {
+        Member member = memberRepository.findByIdOptional(memberId)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
+        return fineRepository.findByMember(member);
     }
 }

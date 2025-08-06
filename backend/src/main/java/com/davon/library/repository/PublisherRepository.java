@@ -5,5 +5,5 @@ import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class PublisherRepository implements PanacheRepository<Publisher> {
+public interface PublisherRepository extends PanacheRepository<Publisher> {
 }

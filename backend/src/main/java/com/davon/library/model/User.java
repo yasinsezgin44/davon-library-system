@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import com.davon.library.model.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,39 +25,44 @@ public class User {
     @Column(unique = true, nullable = false, length = 100)
     private String username;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    @Column(name = "full_name", nullable = false)
+    @Column(name = "full_name", nullable = false, length = 255)
     private String fullName;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 255)
     private String email;
 
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
-    private Boolean active;
+    @Column(name = "active")
+    @Builder.Default
+    private Boolean active = true;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status;
+    @Builder.Default
+    private UserStatus status = UserStatus.ACTIVE;
 
     @Column(name = "last_login")
     private LocalDate lastLogin;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Member member;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Librarian librarian;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Admin admin;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
                joinColumns = @JoinColumn(name = "user_id"),
                inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
     @Column(name = "created_at", updatable = false)
@@ -64,17 +70,6 @@ public class User {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     @Override
     public String toString() {

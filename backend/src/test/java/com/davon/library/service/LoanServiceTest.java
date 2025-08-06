@@ -2,6 +2,8 @@ package com.davon.library.service;
 
 import com.davon.library.exception.BusinessException;
 import com.davon.library.model.*;
+import com.davon.library.model.enums.CopyStatus;
+import com.davon.library.model.enums.LoanStatus;
 import com.davon.library.repository.*;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -59,7 +61,7 @@ class LoanServiceTest {
 
         bookCopy = new BookCopy();
         bookCopy.setBook(book);
-        bookCopy.setStatus("AVAILABLE");
+        bookCopy.setStatus(CopyStatus.AVAILABLE);
         bookCopyRepository.persist(bookCopy);
     }
 
@@ -71,7 +73,7 @@ class LoanServiceTest {
         assertNotNull(loan);
         assertNotNull(loan.getId());
         assertEquals(member.getId(), loan.getMember().getId());
-        assertEquals("CHECKED_OUT", loan.getBookCopy().getStatus());
+        assertEquals(CopyStatus.CHECKED_OUT, loan.getBookCopy().getStatus());
     }
 
     @Test
@@ -82,13 +84,13 @@ class LoanServiceTest {
         loan.setBookCopy(bookCopy);
         loan.setCheckoutDate(LocalDate.now());
         loan.setDueDate(LocalDate.now().plusDays(14));
-        loan.setStatus("ACTIVE");
+        loan.setStatus(LoanStatus.ACTIVE);
         loanRepository.persist(loan);
 
         loanService.returnBook(loan.getId());
 
         Loan returnedLoan = loanRepository.findById(loan.getId());
-        assertEquals("RETURNED", returnedLoan.getStatus());
-        assertEquals("AVAILABLE", returnedLoan.getBookCopy().getStatus());
+        assertEquals(LoanStatus.RETURNED, returnedLoan.getStatus());
+        assertEquals(CopyStatus.AVAILABLE, returnedLoan.getBookCopy().getStatus());
     }
 }

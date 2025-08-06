@@ -18,7 +18,7 @@ public class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String title;
 
     @Column(name = "start_date")
@@ -27,10 +27,10 @@ public class Report {
     @Column(name = "end_date")
     private LocalDate endDate;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "generated_by")
+    @Column(name = "generated_by", length = 255)
     private String generatedBy;
 
     @Column(name = "created_at", updatable = false)
@@ -38,19 +38,4 @@ public class Report {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-    public String getReportContent() {
-        return content;
-    }
 }

@@ -1,6 +1,8 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
+import com.davon.library.model.enums.CopyStatus;
+import com.davon.library.model.enums.LoanStatus;
 import com.davon.library.repository.*;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -63,7 +65,7 @@ class FineServiceTest {
 
         bookCopy = new BookCopy();
         bookCopy.setBook(book);
-        bookCopy.setStatus("AVAILABLE");
+        bookCopy.setStatus(CopyStatus.AVAILABLE);
         bookCopyRepository.persist(bookCopy);
     }
 
@@ -75,7 +77,7 @@ class FineServiceTest {
         loan.setBookCopy(bookCopy);
         loan.setCheckoutDate(LocalDate.now().minusDays(30));
         loan.setDueDate(LocalDate.now().minusDays(15));
-        loan.setStatus("ACTIVE");
+        loan.setStatus(LoanStatus.ACTIVE);
         loanRepository.persist(loan);
 
         assertNotNull(loan.getId());

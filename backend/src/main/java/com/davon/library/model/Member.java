@@ -31,18 +31,22 @@ public class Member {
     @Column(name = "membership_end_date")
     private LocalDate membershipEndDate;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String address;
 
     @Column(name = "fine_balance", precision = 10, scale = 2)
-    private BigDecimal fineBalance;
+    @Builder.Default
+    private BigDecimal fineBalance = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<Loan> loans = new HashSet<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<Reservation> reservations = new HashSet<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<Fine> fines = new HashSet<>();
 }

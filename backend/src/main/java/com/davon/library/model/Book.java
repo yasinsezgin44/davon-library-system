@@ -19,19 +19,19 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String title;
 
-    @Column(unique = true, nullable = false, length = 255)
+    @Column(unique = true, nullable = false, length = 13)
     private String isbn;
 
     @Column(name = "publication_year")
     private Integer publicationYear;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "cover_image")
+    @Column(name = "cover_image", length = 255)
     private String coverImage;
 
     private Integer pages;
@@ -48,9 +48,11 @@ public class Book {
     @JoinTable(name = "book_authors",
                joinColumns = @JoinColumn(name = "book_id"),
                inverseJoinColumns = @JoinColumn(name = "author_id"))
+    @Builder.Default
     private Set<Author> authors = new HashSet<>();
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<BookCopy> copies = new HashSet<>();
 
     @Column(name = "created_at", updatable = false)
@@ -58,15 +60,4 @@ public class Book {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

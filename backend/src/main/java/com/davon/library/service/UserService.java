@@ -1,170 +1,78 @@
 package com.davon.library.service;
 
+import com.davon.library.model.User;
 import com.davon.library.repository.UserRepository;
-import com.davon.library.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.util.*;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import jakarta.ws.rs.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class UserService {
 
-    private static final Logger logger = Logger.getLogger(UserService.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Inject
     UserRepository userRepository;
 
     @Transactional
-    public User createUser(User user) throws UserServiceException {
-        try {
-            validateUserForCreation(user);
-            userRepository.persist(user);
-            return user;
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to create user", e);
-            throw new UserServiceException("Failed to create user: " + e.getMessage(), e);
+    public User createUser(User user) {
+        log.debug("Creating user: {}", user.getUsername());
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new IllegalArgumentException("Username already exists");
         }
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+        userRepository.persist(user);
+        return user;
     }
 
     @Transactional
-    public User updateUser(Long userId, User updatedUser) throws UserServiceException {
-        try {
-            if (userId == null) {
-                throw new UserServiceException("User ID cannot be null");
-            }
+    public User updateUser(Long userId, User updatedUser) {
+        log.debug("Updating user: {}", userId);
+        User existingUser = userRepository.findByIdOptional(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
 
-            User existingUser = userRepository.findById(userId);
-            if (existingUser == null) {
-                throw new UserServiceException("User not found with ID: " + userId);
-            }
+        existingUser.setFullName(updatedUser.getFullName());
+        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
+        existingUser.setStatus(updatedUser.getStatus());
+        existingUser.setActive(updatedUser.getActive());
 
-            updatedUser.setId(userId);
-            validateUserForUpdate(updatedUser);
-            return userRepository.getEntityManager().merge(updatedUser);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to update user", e);
-            throw new UserServiceException("Failed to update user: " + e.getMessage(), e);
-        }
+        return existingUser;
     }
 
     @Transactional
-    public boolean deactivateUser(Long userId) throws UserServiceException {
-        try {
-            User user = userRepository.findById(userId);
-            if (user == null) {
-                return false;
-            }
-
-            user.setActive(false);
-            userRepository.getEntityManager().merge(user);
-            return true;
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to deactivate user", e);
-            throw new UserServiceException("Failed to deactivate user: " + e.getMessage(), e);
+    public void deleteUser(Long userId) {
+        log.debug("Deleting user: {}", userId);
+        boolean deleted = userRepository.deleteById(userId);
+        if (!deleted) {
+            throw new NotFoundException("User not found with ID: " + userId);
         }
-    }
-
-    public List<User> searchUsers(String query) {
-        logger.info("Searching users with query: '" + query + "'");
-        if (query == null || query.trim().isEmpty()) {
-            List<User> allUsers = getAllUsers();
-            logger.info("Empty query, returning all users: " + allUsers.size());
-            return allUsers;
-        }
-        List<User> results = userRepository.searchUsers(query.trim());
-        logger.info("Search results: " + results.size());
-        return results;
-    }
-
-    public User authenticateUser(String username, String passwordHash) {
-        if (username == null || passwordHash == null) {
-            return null;
-        }
-
-        Optional<User> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isEmpty()) {
-            return null;
-        }
-
-        User user = userOpt.get();
-        if (user.getPasswordHash().equals(passwordHash) && user.getActive()) {
-            return user;
-        }
-
-        return null;
     }
 
     public List<User> getAllUsers() {
-        try {
-            List<User> users = userRepository.listAll();
-            logger.info("Retrieved " + users.size() + " users from database");
-            return users;
-        } catch (Exception e) {
-            logger.severe("Error retrieving all users: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
-        }
+        log.debug("Fetching all users");
+        return userRepository.listAll();
     }
 
-    public User findById(Long id) {
-        if (id == null) {
-            return null;
-        }
-        return userRepository.findById(id);
+    public Optional<User> getUserById(Long userId) {
+        log.debug("Fetching user by ID: {}", userId);
+        return userRepository.findByIdOptional(userId);
     }
 
-    private void validateUserForCreation(User user) throws UserServiceException {
-        if (user == null) {
-            throw new UserServiceException("User cannot be null");
-        }
-
-        if (user.getId() != null) {
-            throw new UserServiceException("User ID should be null for new users");
-        }
-
-        validateUserData(user);
+    public Optional<User> getUserByUsername(String username) {
+        log.debug("Fetching user by username: {}", username);
+        return userRepository.findByUsername(username);
     }
 
-    private void validateUserForUpdate(User user) throws UserServiceException {
-        if (user == null) {
-            throw new UserServiceException("User cannot be null");
-        }
-
-        if (user.getId() == null) {
-            throw new UserServiceException("User ID cannot be null for updates");
-        }
-
-        validateUserData(user);
-    }
-
-    private void validateUserData(User user) throws UserServiceException {
-        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
-            throw new UserServiceException("Username cannot be null or empty");
-        }
-
-        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
-            throw new UserServiceException("Email cannot be null or empty");
-        }
-
-        if (user.getPasswordHash() == null || user.getPasswordHash().trim().isEmpty()) {
-            throw new UserServiceException("Password cannot be null or empty");
-        }
-    }
-
-    public static class UserServiceException extends Exception {
-        public UserServiceException(String message) {
-            super(message);
-        }
-
-        public UserServiceException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-
-    public long countUsers() {
-        return userRepository.count();
+    public List<User> searchUsers(String searchTerm) {
+        log.debug("Searching users with term: {}", searchTerm);
+        return userRepository.searchUsers(searchTerm);
     }
 }

@@ -1,5 +1,6 @@
 package com.davon.library.model;
 
+import com.davon.library.model.enums.LoanAction;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,8 +31,9 @@ public class LoanHistory {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String action;
+    private LoanAction action;
 
     @Column(name = "action_date")
     private LocalDate actionDate;
@@ -41,15 +43,4 @@ public class LoanHistory {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

@@ -1,5 +1,7 @@
 package com.davon.library.model;
 
+import com.davon.library.model.enums.FineReason;
+import com.davon.library.model.enums.FineStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,8 +32,9 @@ public class Fine {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String reason;
+    private FineReason reason;
 
     @Column(name = "issue_date")
     private LocalDate issueDate;
@@ -39,23 +42,14 @@ public class Fine {
     @Column(name = "due_date")
     private LocalDate dueDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status;
+    @Builder.Default
+    private FineStatus status = FineStatus.PENDING;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

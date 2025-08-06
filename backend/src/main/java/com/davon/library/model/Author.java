@@ -19,10 +19,10 @@ public class Author {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String biography;
 
     @Column(name = "birth_date")
@@ -35,16 +35,6 @@ public class Author {
     private LocalDateTime updatedAt;
 
     @ManyToMany(mappedBy = "authors")
+    @Builder.Default
     private Set<Book> books = new HashSet<>();
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }
