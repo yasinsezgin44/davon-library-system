@@ -1,20 +1,19 @@
 package com.davon.library.controller;
 
 import com.davon.library.model.Book;
+import com.davon.library.model.Category;
 import com.davon.library.service.BookService;
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
+import com.davon.library.service.CategoryService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.List;
-import java.util.Map;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-/**
- * REST controller for book-related operations.
- */
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Path("/api/books")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -24,74 +23,66 @@ public class BookController {
     @Inject
     BookService bookService;
 
+    @Inject
+    CategoryService categoryService;
+
     @GET
-    @Operation(summary = "Get all books", description = "Retrieve a list of all books in the library")
+    @Operation(summary = "Get all books")
     public List<Book> getAllBooks() {
         return bookService.getAllBooks();
     }
 
     @GET
     @Path("/{id}")
-    @Operation(summary = "Get book by ID", description = "Retrieve a specific book by its ID")
+    @Operation(summary = "Get a book by its ID")
     public Response getBookById(@PathParam("id") Long id) {
-        Book book = bookService.getBookById(id);
-        if (book == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        return Response.ok(book).build();
+        return bookService.getBookById(id)
+                .map(book -> Response.ok(book).build())
+                .orElse(Response.status(Response.Status.NOT_FOUND).build());
     }
 
     @POST
-    @Operation(summary = "Create new book", description = "Add a new book to the library")
+    @Operation(summary = "Create a new book")
     public Response createBook(Book book) {
-        try {
-            Book createdBook = bookService.createBook(book);
-            return Response.status(Response.Status.CREATED).entity(createdBook).build();
-        } catch (BookService.BookServiceException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
+        Book createdBook = bookService.createBook(book);
+        return Response.status(Response.Status.CREATED).entity(createdBook).build();
     }
 
     @PUT
     @Path("/{id}")
-    @Operation(summary = "Update book", description = "Update an existing book")
+    @Operation(summary = "Update a book's details")
     public Response updateBook(@PathParam("id") Long id, Book book) {
-        try {
-            Book updatedBook = bookService.updateBook(id, book);
-            return Response.ok(updatedBook).build();
-        } catch (BookService.BookServiceException e) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
+        Book updatedBook = bookService.updateBook(id, book);
+        return Response.ok(updatedBook).build();
     }
 
     @DELETE
     @Path("/{id}")
-    @Operation(summary = "Delete book", description = "Remove a book from the library")
+    @Operation(summary = "Delete a book")
     public Response deleteBook(@PathParam("id") Long id) {
-        try {
-            Book book = bookService.getBookById(id);
-            if (book == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
-            }
-            bookService.deleteBook(id);
-            return Response.noContent().build();
-        } catch (BookService.BookServiceException e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
+        bookService.deleteBook(id);
+        return Response.noContent().build();
     }
 
     @GET
     @Path("/search")
-    @Operation(summary = "Search books", description = "Search for books by title, author, or ISBN")
-    public List<Book> searchBooks(@QueryParam("q") String query) {
+    @Operation(summary = "Search for books")
+    public List<Book> searchBooks(@QueryParam("query") String query) {
         return bookService.searchBooks(query);
     }
 
     @GET
-    @Path("/count")
-    @Operation(summary = "Count books", description = "Get the total number of books")
-    public Response countBooks() {
-        long count = bookService.countBooks();
-        return Response.ok(Map.of("count", count)).build();
+    @Path("/trending")
+    @Operation(summary = "Get trending books")
+    public List<Book> getTrendingBooks() {
+        // Placeholder for trending logic
+        return bookService.getAllBooks().stream().limit(5).collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("/genres")
+    @Operation(summary = "Get all book genres")
+    public List<Category> getGenres() {
+        return categoryService.getAllCategories();
     }
 }
