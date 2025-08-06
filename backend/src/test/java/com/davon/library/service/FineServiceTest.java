@@ -1,20 +1,24 @@
 package com.davon.library.service;
 
-import com.davon.library.model.*;
-import com.davon.library.model.enums.CopyStatus;
-import com.davon.library.model.enums.LoanStatus;
-import com.davon.library.repository.*;
+import com.davon.library.model.Fine;
+import com.davon.library.model.Member;
+import com.davon.library.model.enums.FineStatus;
+import com.davon.library.repository.FineRepository;
+import com.davon.library.repository.MemberRepository;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class FineServiceTest {
@@ -22,69 +26,52 @@ class FineServiceTest {
     @Inject
     FineService fineService;
 
-    @Inject
-    LoanRepository loanRepository;
-
-    @Inject
+    @InjectMock
     FineRepository fineRepository;
 
-    @Inject
+    @InjectMock
     MemberRepository memberRepository;
 
-    @Inject
-    BookRepository bookRepository;
-
-    @Inject
-    BookCopyRepository bookCopyRepository;
-
-    @Inject
-    ReservationRepository reservationRepository;
-
+    private Fine fine;
     private Member member;
-    private Book book;
-    private BookCopy bookCopy;
 
     @BeforeEach
-    @Transactional
     void setUp() {
-        fineRepository.deleteAll();
-        loanRepository.deleteAll();
-        memberRepository.deleteAll();
-        reservationRepository.deleteAll();
-        bookCopyRepository.deleteAll();
-        bookRepository.deleteAll();
-
         member = new Member();
-        member.setFineBalance(BigDecimal.ZERO);
-        memberRepository.persist(member);
+        member.setId(1L);
+        member.setFineBalance(new BigDecimal("10.00"));
 
-        book = new Book();
-        book.setTitle("Test Book");
-        book.setIsbn("1234567890123");
-        bookRepository.persist(book);
-
-        bookCopy = new BookCopy();
-        bookCopy.setBook(book);
-        bookCopy.setStatus(CopyStatus.AVAILABLE);
-        bookCopyRepository.persist(bookCopy);
+        fine = new Fine();
+        fine.setId(1L);
+        fine.setMember(member);
+        fine.setAmount(new BigDecimal("10.00"));
+        fine.setStatus(FineStatus.PENDING);
     }
 
     @Test
-    @Transactional
-    void testCreateOverdueFine() {
-        Loan loan = new Loan();
-        loan.setMember(member);
-        loan.setBookCopy(bookCopy);
-        loan.setCheckoutDate(LocalDate.now().minusDays(30));
-        loan.setDueDate(LocalDate.now().minusDays(15));
-        loan.setStatus(LoanStatus.ACTIVE);
-        loanRepository.persist(loan);
+    void testCreateFine() {
+        fineService.createFine(fine);
+        Mockito.verify(fineRepository).persist(any(Fine.class));
+    }
 
-        assertNotNull(loan.getId());
+    @Test
+    void testPayFine() {
+        when(fineRepository.findByIdOptional(1L)).thenReturn(Optional.of(fine));
+        Fine paidFine = fineService.payFine(1L);
+        assertEquals(FineStatus.PAID, paidFine.getStatus());
+        assertEquals(BigDecimal.ZERO, paidFine.getMember().getFineBalance());
+    }
 
-        fineService.createOverdueFine(loan);
+    @Test
+    void testPayFine_notFound() {
+        when(fineRepository.findByIdOptional(1L)).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> fineService.payFine(1L));
+    }
 
-        Fine fine = fineRepository.findByLoan(loan);
-        assertNotNull(fine);
+    @Test
+    void testGetFinesForMember() {
+        when(memberRepository.findByIdOptional(1L)).thenReturn(Optional.of(member));
+        fineService.getFinesForMember(1L);
+        Mockito.verify(fineRepository).findByMember(member);
     }
 }
