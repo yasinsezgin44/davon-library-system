@@ -2,6 +2,7 @@ package com.davon.library.service;
 
 import com.davon.library.model.*;
 import com.davon.library.repository.*;
+import com.davon.library.exception.BusinessException;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -73,7 +74,7 @@ class LoanServiceTest {
 
     @Test
     @Transactional
-    void testCheckoutBook() {
+    void testCheckoutBook() throws BusinessException {
         Loan loan = loanService.checkoutBook(member.getId(), book.getId());
         assertNotNull(loan.getId());
         assertEquals("CHECKED_OUT", bookCopyRepository.findById(bookCopy.getId()).getStatus());
@@ -81,7 +82,7 @@ class LoanServiceTest {
 
     @Test
     @Transactional
-    void testReturnBook() {
+    void testReturnBook() throws BusinessException {
         Loan loan = new Loan();
         loan.setMember(member);
         loan.setBookCopy(bookCopy);

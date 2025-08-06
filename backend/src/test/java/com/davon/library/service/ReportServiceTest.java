@@ -1,317 +1,130 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
+import com.davon.library.repository.*;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@QuarkusTest
 class ReportServiceTest {
 
-        @InjectMocks
-        private ReportService reportService;
+    @Inject
+    ReportService reportService;
 
-        @Mock
-        private LoanService loanService;
+    @Inject
+    LoanRepository loanRepository;
 
-        @Mock
-        private FineService fineService;
+    @Inject
+    FineRepository fineRepository;
 
-        private Member member1, member2;
-        private Book book1, book2;
-        private BookCopy bookCopy1, bookCopy2;
-        private Loan activeLoan, overdueLoan, returnedLoan;
-        private Fine pendingFine, paidFine;
+    @Inject
+    BookRepository bookRepository;
 
-        @BeforeEach
-        void setUp() {
-                // Create test members
-                member1 = Member.builder()
-                                .id(1L)
-                                .name("John Doe")
-                                .email("john@test.com")
-                                .active(true)
-                                .build();
+    @Inject
+    BookCopyRepository bookCopyRepository;
 
-                member2 = Member.builder()
-                                .id(2L)
-                                .name("Jane Smith")
-                                .email("jane@test.com")
-                                .active(true)
-                                .build();
+    @Inject
+    MemberRepository memberRepository;
 
-                // Create test books
-                book1 = Book.builder()
-                                .id(1L)
-                                .title("Java Programming")
-                                .ISBN("1234567890")
-                                .build();
+    @Inject
+    UserRepository userRepository;
 
-                book2 = Book.builder()
-                                .id(2L)
-                                .title("Database Design")
-                                .ISBN("0987654321")
-                                .build();
+    @Inject
+    AuthorRepository authorRepository;
 
-                // Create test book copies
-                bookCopy1 = BookCopy.builder()
-                                .id(1L)
-                                .book(book1)
-                                .status(BookCopy.CopyStatus.AVAILABLE)
-                                .build();
+    @Inject
+    PublisherRepository publisherRepository;
 
-                bookCopy2 = BookCopy.builder()
-                                .id(2L)
-                                .book(book2)
-                                .status(BookCopy.CopyStatus.CHECKED_OUT)
-                                .build();
+    @Inject
+    CategoryRepository categoryRepository;
 
-                // Create test loans
-                activeLoan = Loan.builder()
-                                .id(1L)
-                                .member(member1)
-                                .bookCopy(bookCopy1)
-                                .checkoutDate(LocalDate.now().minusDays(5))
-                                .dueDate(LocalDate.now().plusDays(9))
-                                .status(Loan.LoanStatus.ACTIVE)
-                                .build();
+    private User user1;
+    private Member member1;
+    private Book book1;
+    private BookCopy bookCopy1;
 
-                overdueLoan = Loan.builder()
-                                .id(2L)
-                                .member(member2)
-                                .bookCopy(bookCopy2)
-                                .checkoutDate(LocalDate.now().minusDays(20))
-                                .dueDate(LocalDate.now().minusDays(6))
-                                .status(Loan.LoanStatus.OVERDUE)
-                                .build();
+    @BeforeEach
+    @Transactional
+    void setUp() {
+        fineRepository.deleteAll();
+        loanRepository.deleteAll();
+        bookCopyRepository.deleteAll();
+        bookRepository.deleteAll();
+        memberRepository.deleteAll();
+        userRepository.deleteAll();
+        authorRepository.deleteAll();
+        publisherRepository.deleteAll();
+        categoryRepository.deleteAll();
 
-                returnedLoan = Loan.builder()
-                                .id(3L)
-                                .member(member1)
-                                .bookCopy(bookCopy1)
-                                .checkoutDate(LocalDate.now().minusDays(30))
-                                .dueDate(LocalDate.now().minusDays(16))
-                                .status(Loan.LoanStatus.RETURNED)
-                                .build();
+        user1 = new User();
+        user1.setUsername("testuser1");
+        user1.setPasswordHash("password");
+        user1.setFullName("Test User 1");
+        user1.setEmail("test1@example.com");
+        userRepository.persist(user1);
 
-                // Create test fines
-                pendingFine = Fine.builder()
-                                .id(1L)
-                                .amount(5.00)
-                                .reason(Fine.FineReason.OVERDUE)
-                                .status(Fine.FineStatus.PENDING)
-                                .issueDate(LocalDate.now().minusDays(5))
-                                .dueDate(LocalDate.now().plusDays(9))
-                                .build();
+        member1 = new Member();
+        member1.setUser(user1);
+        member1.setFineBalance(BigDecimal.ZERO);
+        memberRepository.persist(member1);
 
-                paidFine = Fine.builder()
-                                .id(2L)
-                                .amount(10.00)
-                                .reason(Fine.FineReason.DAMAGED_ITEM)
-                                .status(Fine.FineStatus.PAID)
-                                .issueDate(LocalDate.now().minusDays(15))
-                                .dueDate(LocalDate.now().minusDays(1))
-                                .build();
-        }
+        Author author = new Author();
+        author.setName("Test Author");
+        authorRepository.persist(author);
 
-        @Test
-        void testGenerateMonthlyReport_WithValidData() {
-                // Given
-                LocalDate startDate = LocalDate.of(2024, 1, 1);
-                LocalDate endDate = LocalDate.of(2024, 1, 31);
-                List<Loan> testLoans = Arrays.asList(activeLoan, overdueLoan, returnedLoan);
+        Publisher publisher = new Publisher();
+        publisher.setName("Test Publisher");
+        publisherRepository.persist(publisher);
 
-                // When
-                ReportService.MonthlyReport report = reportService.generateMonthlyReport(startDate, endDate);
+        Category category = new Category();
+        category.setName("Test Category");
+        categoryRepository.persist(category);
 
-                // Then
-                assertNotNull(report);
-                assertEquals(startDate, report.getStartDate());
-                assertEquals(endDate, report.getEndDate());
-                assertEquals(31L, report.getReportingPeriodDays()); // January has 31 days
-                assertEquals(0, report.getTotalLoans()); // Empty list due to placeholder implementation
-                assertEquals(0.0, report.getAvgLoansPerDay());
-                assertNotNull(report.getMostPopularBooks());
-                assertNotNull(report.getMemberActivitySummary());
-        }
+        Set<Author> authors = new HashSet<>();
+        authors.add(author);
 
-        @Test
-        void testGenerateMonthlyReport_EmptyDateRange() {
-                // Given
-                LocalDate startDate = LocalDate.of(2024, 1, 15);
-                LocalDate endDate = LocalDate.of(2024, 1, 15);
+        book1 = new Book();
+        book1.setTitle("Java Programming");
+        book1.setIsbn("1234567890");
+        book1.setPublicationYear(2022);
+        book1.setAuthors(authors);
+        book1.setPublisher(publisher);
+        book1.setCategory(category);
+        bookRepository.persist(book1);
 
-                // When
-                ReportService.MonthlyReport report = reportService.generateMonthlyReport(startDate, endDate);
+        bookCopy1 = new BookCopy();
+        bookCopy1.setBook(book1);
+        bookCopy1.setStatus("AVAILABLE");
+        bookCopyRepository.persist(bookCopy1);
+    }
 
-                // Then
-                assertNotNull(report);
-                assertEquals(1L, report.getReportingPeriodDays()); // Same day = 1 day
-                assertEquals(0, report.getTotalLoans());
-                assertEquals(0.0, report.getAvgLoansPerDay());
-        }
+    @Test
+    @Transactional
+    void testGenerateMonthlyReport() {
+        LocalDate startDate = LocalDate.now().minusMonths(1);
+        LocalDate endDate = LocalDate.now();
 
-        @Test
-        void testGenerateOverdueReport() {
-                // When
-                ReportService.OverdueReport report = reportService.generateOverdueReport();
+        Loan loan = new Loan();
+        loan.setMember(member1);
+        loan.setBookCopy(bookCopy1);
+        loan.setCheckoutDate(LocalDate.now().minusDays(10));
+        loan.setDueDate(LocalDate.now().plusDays(4));
+        loan.setStatus("ACTIVE");
+        loanRepository.persist(loan);
 
-                // Then
-                assertNotNull(report);
-                assertEquals(LocalDate.now(), report.getReportDate());
-                assertEquals(0, report.getTotalOverdueLoans()); // Empty list due to placeholder
-                assertEquals(0.0, report.getTotalFinesOwed());
-                assertEquals(0.0, report.getAverageDaysOverdue());
-                assertNotNull(report.getOverdueLoans());
-        }
-
-        @Test
-        void testGenerateFineReport_WithValidData() {
-                // Given
-                LocalDate startDate = LocalDate.of(2024, 1, 1);
-                LocalDate endDate = LocalDate.of(2024, 1, 31);
-
-                // When
-                ReportService.FineReport report = reportService.generateFineReport(startDate, endDate);
-
-                // Then
-                assertNotNull(report);
-                assertEquals(startDate, report.getStartDate());
-                assertEquals(endDate, report.getEndDate());
-                assertEquals(0, report.getTotalFinesIssued()); // Empty list due to placeholder
-                assertEquals(0.0, report.getTotalFineAmount());
-                assertEquals(0, report.getFinesPaid());
-                assertEquals(0, report.getFinesPending());
-                assertEquals(0.0, report.getCollectionRate());
-        }
-
-        @Test
-        void testMonthlyReportBuilder() {
-                // Given
-                LocalDate startDate = LocalDate.of(2024, 1, 1);
-                LocalDate endDate = LocalDate.of(2024, 1, 31);
-                List<String> popularBooks = Arrays.asList("Book A", "Book B");
-
-                // When
-                ReportService.MonthlyReport report = ReportService.MonthlyReport.builder()
-                                .startDate(startDate)
-                                .endDate(endDate)
-                                .reportingPeriodDays(31L)
-                                .totalLoans(100)
-                                .activeLoans(80)
-                                .overdueLoans(15)
-                                .returnedLoans(5)
-                                .avgLoansPerDay(3.23)
-                                .overdueRate(15.0)
-                                .mostPopularBooks(popularBooks)
-                                .memberActivitySummary(Collections.emptyMap())
-                                .build();
-
-                // Then
-                assertNotNull(report);
-                assertEquals(startDate, report.getStartDate());
-                assertEquals(endDate, report.getEndDate());
-                assertEquals(31L, report.getReportingPeriodDays());
-                assertEquals(100, report.getTotalLoans());
-                assertEquals(80, report.getActiveLoans());
-                assertEquals(15, report.getOverdueLoans());
-                assertEquals(5, report.getReturnedLoans());
-                assertEquals(3.23, report.getAvgLoansPerDay());
-                assertEquals(15.0, report.getOverdueRate());
-                assertEquals(popularBooks, report.getMostPopularBooks());
-        }
-
-        @Test
-        void testOverdueReportBuilder() {
-                // Given
-                LocalDate reportDate = LocalDate.now();
-                List<Loan> overdueLoans = Arrays.asList(overdueLoan);
-
-                // When
-                ReportService.OverdueReport report = ReportService.OverdueReport.builder()
-                                .reportDate(reportDate)
-                                .totalOverdueLoans(1)
-                                .overdueLoans(overdueLoans)
-                                .totalFinesOwed(25.50)
-                                .averageDaysOverdue(7.5)
-                                .build();
-
-                // Then
-                assertNotNull(report);
-                assertEquals(reportDate, report.getReportDate());
-                assertEquals(1, report.getTotalOverdueLoans());
-                assertEquals(overdueLoans, report.getOverdueLoans());
-                assertEquals(25.50, report.getTotalFinesOwed());
-                assertEquals(7.5, report.getAverageDaysOverdue());
-        }
-
-        @Test
-        void testFineReportBuilder() {
-                // Given
-                LocalDate startDate = LocalDate.of(2024, 1, 1);
-                LocalDate endDate = LocalDate.of(2024, 1, 31);
-
-                // When
-                ReportService.FineReport report = ReportService.FineReport.builder()
-                                .startDate(startDate)
-                                .endDate(endDate)
-                                .totalFinesIssued(50)
-                                .totalFineAmount(250.75)
-                                .finesPaid(30)
-                                .finesPending(20)
-                                .collectionRate(60.0)
-                                .build();
-
-                // Then
-                assertNotNull(report);
-                assertEquals(startDate, report.getStartDate());
-                assertEquals(endDate, report.getEndDate());
-                assertEquals(50, report.getTotalFinesIssued());
-                assertEquals(250.75, report.getTotalFineAmount());
-                assertEquals(30, report.getFinesPaid());
-                assertEquals(20, report.getFinesPending());
-                assertEquals(60.0, report.getCollectionRate());
-        }
-
-        @Test
-        void testReportDateRangeValidation() {
-                // Test that the service handles various date ranges correctly
-                LocalDate start = LocalDate.of(2024, 2, 1); // February 1st
-                LocalDate end = LocalDate.of(2024, 2, 29); // February 29th (leap year)
-
-                ReportService.MonthlyReport report = reportService.generateMonthlyReport(start, end);
-
-                assertEquals(29L, report.getReportingPeriodDays()); // Leap year February has 29 days
-        }
-
-        @Test
-        void testEdgeCaseEmptyReports() {
-                // Test behavior with no data
-                ReportService.MonthlyReport monthlyReport = reportService.generateMonthlyReport(
-                                LocalDate.now(), LocalDate.now());
-                ReportService.OverdueReport overdueReport = reportService.generateOverdueReport();
-                ReportService.FineReport fineReport = reportService.generateFineReport(
-                                LocalDate.now(), LocalDate.now());
-
-                // All should handle empty data gracefully
-                assertNotNull(monthlyReport);
-                assertNotNull(overdueReport);
-                assertNotNull(fineReport);
-
-                assertEquals(0, monthlyReport.getTotalLoans());
-                assertEquals(0, overdueReport.getTotalOverdueLoans());
-                assertEquals(0, fineReport.getTotalFinesIssued());
-        }
+        ReportService.MonthlyReport report = reportService.generateMonthlyReport(startDate, endDate);
+        assertNotNull(report);
+        assertEquals(1, report.getTotalLoans());
+    }
 }

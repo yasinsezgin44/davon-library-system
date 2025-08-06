@@ -29,7 +29,7 @@ class BookServiceQuarkusTest {
 
     @Test
     @Transactional
-    void testCreateBook() {
+    void testCreateBook() throws BookService.BookServiceException {
         Book book = new Book();
         book.setTitle("Test Book");
         book.setIsbn(generateUniqueISBN());
@@ -85,7 +85,7 @@ class BookServiceQuarkusTest {
 
     @Test
     @Transactional
-    void testUpdateBook() {
+    void testUpdateBook() throws BookService.BookServiceException {
         Book book = new Book();
         book.setTitle("Original Title");
         book.setIsbn(generateUniqueISBN());
@@ -100,7 +100,7 @@ class BookServiceQuarkusTest {
 
     @Test
     @Transactional
-    void testDeleteBook() {
+    void testDeleteBook() throws BookService.BookServiceException {
         Book book = new Book();
         book.setTitle("To Be Deleted");
         book.setIsbn(generateUniqueISBN());

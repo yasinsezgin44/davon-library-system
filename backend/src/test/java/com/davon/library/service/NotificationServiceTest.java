@@ -7,86 +7,70 @@ import org.junit.jupiter.api.AfterEach;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class NotificationServiceTest {
         private NotificationService notificationService;
+        private User user;
         private Member member;
         private Book book;
         private BookCopy bookCopy;
         private Loan loan;
         private Reservation reservation;
 
-        // For capturing console output
         private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         private final PrintStream originalOut = System.out;
 
         @BeforeEach
         void setUp() {
-                // Redirect System.out to capture console output
                 System.setOut(new PrintStream(outContent));
-
                 notificationService = new NotificationService();
 
-                // Create test member
-                member = Member.builder()
-                                .id(1L)
-                                .fullName("Test Member")
-                                .email("member@test.com")
-                                .active(true)
-                                .build();
+                user = new User();
+                user.setEmail("member@test.com");
 
-                // Create test book
-                book = Book.builder()
-                                .id(1L)
-                                .title("Test Book")
-                                .ISBN("1234567890")
-                                .build();
+                member = new Member();
+                member.setId(1L);
+                member.setUser(user);
+                member.setFineBalance(BigDecimal.ZERO);
 
-                // Create test book copy
-                bookCopy = BookCopy.builder()
-                                .id(1L)
-                                .book(book)
-                                .status(BookCopy.CopyStatus.CHECKED_OUT)
-                                .build();
+                book = new Book();
+                book.setId(1L);
+                book.setTitle("Test Book");
+                book.setIsbn("1234567890");
 
-                // Create test loan
-                loan = Loan.builder()
-                                .id(1L)
-                                .member(member)
-                                .bookCopy(bookCopy)
-                                .checkoutDate(LocalDate.now().minusDays(20))
-                                .dueDate(LocalDate.now().minusDays(6))
-                                .status(Loan.LoanStatus.OVERDUE)
-                                .build();
+                bookCopy = new BookCopy();
+                bookCopy.setId(1L);
+                bookCopy.setBook(book);
+                bookCopy.setStatus("CHECKED_OUT");
 
-                // Create test reservation
-                reservation = Reservation.builder()
-                                .id(1L)
-                                .member(member)
-                                .book(book)
-                                .reservationTime(LocalDate.now().minusDays(3).atStartOfDay())
-                                .status(Reservation.ReservationStatus.PENDING)
-                                .build();
+                loan = new Loan();
+                loan.setId(1L);
+                loan.setMember(member);
+                loan.setBookCopy(bookCopy);
+                loan.setCheckoutDate(LocalDate.now().minusDays(20));
+                loan.setDueDate(LocalDate.now().minusDays(6));
+                loan.setStatus("OVERDUE");
+
+                reservation = new Reservation();
+                reservation.setId(1L);
+                reservation.setMember(member);
+                reservation.setBook(book);
+                reservation.setStatus("PENDING");
         }
 
         @AfterEach
         void tearDown() {
-                // Restore original System.out
                 System.setOut(originalOut);
         }
 
         @Test
         void testSendCheckoutConfirmation() {
-                // Call the method
                 notificationService.sendCheckoutConfirmation(member, bookCopy);
-
-                // Check the output contains the expected content
                 String output = outContent.toString();
-
                 assertTrue(output.contains("Notification to member@test.com"));
                 assertTrue(output.contains("You have checked out: Test Book"));
                 assertTrue(output.contains("Due date: " + LocalDate.now().plusDays(14).toString()));
@@ -94,24 +78,16 @@ class NotificationServiceTest {
 
         @Test
         void testSendOverdueNotice() {
-                // Call the method
                 notificationService.sendOverdueNotice(loan);
-
-                // Check the output contains the expected content
                 String output = outContent.toString();
-
                 assertTrue(output.contains("Overdue Notice to member@test.com"));
                 assertTrue(output.contains("The book 'Test Book' is overdue"));
         }
 
         @Test
         void testSendReservationNotification() {
-                // Call the method
                 notificationService.sendReservationNotification(reservation);
-
-                // Check the output contains the expected content
                 String output = outContent.toString();
-
                 assertTrue(output.contains("Reservation Notice to member@test.com"));
                 assertTrue(output.contains("The book 'Test Book' you reserved is now available"));
                 assertTrue(output.contains("Please pick it up within 3 days"));

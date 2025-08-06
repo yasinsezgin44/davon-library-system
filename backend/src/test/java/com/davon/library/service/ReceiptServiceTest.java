@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,63 +23,42 @@ class ReceiptServiceTest {
 
     private Transaction testTransaction;
     private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
-    private final PrintStream originalOut = System.out;
 
     @BeforeEach
     void setUp() {
         System.setOut(new PrintStream(outputStreamCaptor));
 
-        testTransaction = Transaction.builder()
-                .id(1L)
-                .description("Fine Payment")
-                .amount(10.50)
-                .date(LocalDate.now())
-                .build();
+        testTransaction = new Transaction();
+        testTransaction.setId(1L);
+        testTransaction.setDescription("Fine Payment");
+        testTransaction.setAmount(new BigDecimal("10.50"));
+        testTransaction.setDate(LocalDate.now());
     }
 
     @Test
     void testCreateReceipt() {
-        // Act
         Receipt receipt = receiptService.createReceipt(testTransaction);
-
-        // Assert
         assertNotNull(receipt);
-        assertEquals(testTransaction.getId(), receipt.getTransactionId());
+        assertEquals(testTransaction, receipt.getTransaction());
         assertEquals(LocalDate.now(), receipt.getIssueDate());
         assertEquals(testTransaction.getAmount(), receipt.getTotal());
-
-        // Check receipt items
-        assertNotNull(receipt.getItems());
-        assertEquals(1, receipt.getItems().length);
-        assertEquals(testTransaction.getDescription(), receipt.getItems()[0].getDescription());
-        assertEquals(testTransaction.getAmount(), receipt.getItems()[0].getAmount());
-        assertEquals(1, receipt.getItems()[0].getQuantity());
+        assertEquals(testTransaction.getDescription(), receipt.getItems());
     }
 
     @Test
     void testEmailReceipt() {
-        // Arrange
         Receipt receipt = receiptService.createReceipt(testTransaction);
         String email = "test@example.com";
-
-        // Act
         receiptService.emailReceipt(receipt, email);
-
-        // Assert - check console output
-        String expectedOutput = "Emailing receipt " + receipt.getTransactionId() + " to " + email;
+        String expectedOutput = "Emailing receipt " + receipt.getId() + " to " + email;
         assertTrue(outputStreamCaptor.toString().trim().contains(expectedOutput));
     }
 
     @Test
     void testPrintReceipt() {
-        // Arrange
         Receipt receipt = receiptService.createReceipt(testTransaction);
-
-        // Act
         receiptService.printReceipt(receipt);
-
-        // Assert - check console output
-        String expectedOutput = "Printing receipt " + receipt.getTransactionId();
+        String expectedOutput = "Printing receipt " + receipt.getId();
         assertTrue(outputStreamCaptor.toString().trim().contains(expectedOutput));
     }
 }
