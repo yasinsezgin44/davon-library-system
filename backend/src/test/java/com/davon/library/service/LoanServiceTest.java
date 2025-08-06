@@ -1,5 +1,6 @@
 package com.davon.library.service;
 
+import com.davon.library.exception.BusinessException;
 import com.davon.library.model.*;
 import com.davon.library.repository.*;
 import io.quarkus.test.junit.QuarkusTest;
@@ -64,7 +65,7 @@ class LoanServiceTest {
 
     @Test
     @Transactional
-    void testCheckoutBook() {
+    void testCheckoutBook() throws BusinessException {
         Loan loan = loanService.checkoutBook(book.getId(), member.getId());
 
         assertNotNull(loan);
@@ -75,7 +76,7 @@ class LoanServiceTest {
 
     @Test
     @Transactional
-    void testReturnBook() {
+    void testReturnBook() throws BusinessException {
         Loan loan = new Loan();
         loan.setMember(member);
         loan.setBookCopy(bookCopy);
