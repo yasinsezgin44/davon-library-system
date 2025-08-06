@@ -163,4 +163,8 @@ public class UserService {
             super(message, cause);
         }
     }
+
+    public long countUsers() {
+        return userRepository.count();
+    }
 }

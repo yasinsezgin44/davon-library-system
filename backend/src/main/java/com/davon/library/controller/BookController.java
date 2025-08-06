@@ -85,4 +85,12 @@ public class BookController {
     public List<Book> searchBooks(@QueryParam("q") String query) {
         return bookService.searchBooks(query);
     }
+
+    @GET
+    @Path("/count")
+    @Operation(summary = "Count books", description = "Get the total number of books")
+    public Response countBooks() {
+        long count = bookService.countBooks();
+        return Response.ok(Map.of("count", count)).build();
+    }
 }

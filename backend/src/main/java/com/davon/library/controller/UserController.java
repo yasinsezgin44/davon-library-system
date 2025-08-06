@@ -110,4 +110,12 @@ public class UserController {
                     .build();
         }
     }
+
+    @GET
+    @Path("/count")
+    @Operation(summary = "Count users", description = "Get the total number of users")
+    public Response countUsers() {
+        long count = userService.countUsers();
+        return Response.ok(Map.of("count", count)).build();
+    }
 }

@@ -138,6 +138,10 @@ public class BookService {
         return bookCopyRepository.count("book.id = ?1 and status = 'AVAILABLE'", bookId) > 0;
     }
 
+    public long countBooks() {
+        return bookRepository.count();
+    }
+
     public static class BookServiceException extends Exception {
         public BookServiceException(String message) {
             super(message);
