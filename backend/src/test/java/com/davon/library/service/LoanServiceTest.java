@@ -35,6 +35,9 @@ class LoanServiceTest {
     @Inject
     UserRepository userRepository;
 
+    @Inject
+    FineRepository fineRepository;
+
     private User user;
     private Member member;
     private Book book;
@@ -43,6 +46,7 @@ class LoanServiceTest {
     @BeforeEach
     @Transactional
     void setUp() {
+        fineRepository.deleteAll();
         loanRepository.deleteAll();
         bookCopyRepository.deleteAll();
         bookRepository.deleteAll();
@@ -75,7 +79,7 @@ class LoanServiceTest {
     @Test
     @Transactional
     void testCheckoutBook() throws BusinessException {
-        Loan loan = loanService.checkoutBook(member.getId(), book.getId());
+        Loan loan = loanService.checkoutBook(book.getId(), member.getId());
         assertNotNull(loan.getId());
         assertEquals("CHECKED_OUT", bookCopyRepository.findById(bookCopy.getId()).getStatus());
     }

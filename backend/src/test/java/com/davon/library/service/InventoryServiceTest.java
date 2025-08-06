@@ -35,6 +35,12 @@ class InventoryServiceTest {
     @Inject
     CategoryRepository categoryRepository;
 
+    @Inject
+    LoanRepository loanRepository;
+
+    @Inject
+    FineRepository fineRepository;
+
     private Author author;
     private Publisher publisher;
     private Category category;
@@ -43,6 +49,8 @@ class InventoryServiceTest {
     @BeforeEach
     @Transactional
     void setUp() {
+        fineRepository.deleteAll();
+        loanRepository.deleteAll();
         bookCopyRepository.deleteAll();
         bookRepository.deleteAll();
         authorRepository.deleteAll();

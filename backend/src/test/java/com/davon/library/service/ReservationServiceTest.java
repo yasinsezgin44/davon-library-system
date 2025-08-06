@@ -30,6 +30,15 @@ class ReservationServiceTest {
     @Inject
     UserRepository userRepository;
 
+    @Inject
+    BookCopyRepository bookCopyRepository;
+
+    @Inject
+    LoanRepository loanRepository;
+
+    @Inject
+    FineRepository fineRepository;
+
     private User user;
     private Member member;
     private Book book;
@@ -37,7 +46,10 @@ class ReservationServiceTest {
     @BeforeEach
     @Transactional
     void setUp() {
+        fineRepository.deleteAll();
+        loanRepository.deleteAll();
         reservationRepository.deleteAll();
+        bookCopyRepository.deleteAll();
         bookRepository.deleteAll();
         memberRepository.deleteAll();
         userRepository.deleteAll();

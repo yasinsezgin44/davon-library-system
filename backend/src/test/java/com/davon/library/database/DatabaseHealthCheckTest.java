@@ -12,7 +12,7 @@ public class DatabaseHealthCheckTest {
     @Test
     public void testHealthCheckEndpoint() {
         given()
-                .when().get("/q/health/ready")
+                .when().get("/q/health/live")
                 .then()
                 .statusCode(200)
                 .body("status", is("UP"));
