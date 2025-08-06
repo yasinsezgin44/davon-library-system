@@ -164,7 +164,7 @@ class NewBookServiceQuarkusTest {
                 () -> bookService.updateBook(999L, updatedDetails),
                 "Expected BookServiceException for non-existent book"
         );
-        assertEquals("Book with id 999 not found.", exception.getMessage());
+        assertEquals("Book not found with ID: 999", exception.getMessage());
     }
 
     @Test
@@ -188,6 +188,6 @@ class NewBookServiceQuarkusTest {
                 () -> bookService.deleteBook(999L),
                 "Expected BookServiceException for non-existent book"
         );
-        assertEquals("Book with id 999 not found.", exception.getMessage());
+        assertEquals("Book not found with ID: 999", exception.getMessage());
     }
 }

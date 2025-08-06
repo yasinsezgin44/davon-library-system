@@ -22,7 +22,7 @@ public class Book {
     @Column(nullable = false)
     private String title;
 
-    @Column(unique = true, nullable = false, length = 20)
+    @Column(unique = true, nullable = false, length = 255)
     private String isbn;
 
     @Column(name = "publication_year")
