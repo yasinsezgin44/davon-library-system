@@ -1,6 +1,8 @@
 package com.davon.library.service;
 
 import com.davon.library.model.Loan;
+import com.davon.library.model.Reservation;
+import com.davon.library.model.enums.ReservationStatus;
 import com.davon.library.repository.ReservationRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
@@ -10,6 +12,7 @@ import org.mockito.Mockito;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 

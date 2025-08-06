@@ -1,6 +1,7 @@
 package com.davon.library.service;
 
 import com.davon.library.model.BookCopy;
+import com.davon.library.model.Fine;
 import com.davon.library.model.Loan;
 import com.davon.library.model.Member;
 import com.davon.library.model.enums.CopyStatus;
