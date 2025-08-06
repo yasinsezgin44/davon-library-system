@@ -1,6 +1,7 @@
 package com.davon.library.service;
 
 import com.davon.library.model.Book;
+import com.davon.library.repository.BookCopyRepository;
 import com.davon.library.repository.BookRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -21,12 +22,16 @@ class NewBookServiceQuarkusTest {
     @Inject
     BookRepository bookRepository;
 
+    @Inject
+    BookCopyRepository bookCopyRepository;
+
     private static final String VALID_ISBN = "978-3-16-148410-0";
     private static final String ANOTHER_VALID_ISBN = "978-1-56619-909-4";
 
     @BeforeEach
     @Transactional
     void setUp() {
+        bookCopyRepository.deleteAll();
         bookRepository.deleteAll();
     }
 

@@ -76,6 +76,7 @@ class NewBookControllerTest {
     }
 
     @Test
+    @Transactional
     void testCreateBook_Success() {
         String bookJson = String.format("""
             {
@@ -99,6 +100,7 @@ class NewBookControllerTest {
     }
 
     @Test
+    @Transactional
     void testCreateBook_InvalidData_ShouldReturnBadRequest() {
         String invalidBookJson = """
             {
@@ -116,6 +118,7 @@ class NewBookControllerTest {
     }
 
     @Test
+    @Transactional
     void testGetBookById_Found() {
         Book book = Book.builder().title("Test Driven Development").isbn(VALID_ISBN).build();
         bookRepository.persist(book);
@@ -138,6 +141,7 @@ class NewBookControllerTest {
     }
 
     @Test
+    @Transactional
     void testUpdateBook_Success() {
         Book book = Book.builder().title("Refactoring").isbn(ANOTHER_VALID_ISBN).build();
         bookRepository.persist(book);
@@ -171,6 +175,7 @@ class NewBookControllerTest {
     }
 
     @Test
+    @Transactional
     void testUpdateBook_NotFound() {
         given()
                 .contentType(ContentType.JSON)
@@ -181,6 +186,7 @@ class NewBookControllerTest {
     }
 
     @Test
+    @Transactional
     void testDeleteBook_Success() {
         Book book = Book.builder().title("The Pragmatic Programmer").isbn(VALID_ISBN).build();
         bookRepository.persist(book);
@@ -197,6 +203,7 @@ class NewBookControllerTest {
     }
 
     @Test
+    @Transactional
     void testDeleteBook_NotFound() {
         given()
                 .when().delete("/api/books/99999")

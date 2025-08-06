@@ -53,6 +53,7 @@ class LibrarianServiceTest {
         member = new Member();
         member.setUser(user);
         member.setFineBalance(BigDecimal.ZERO);
+        user.setMember(member); 
 
         testBook = new Book();
         testBook.setId(1L);
