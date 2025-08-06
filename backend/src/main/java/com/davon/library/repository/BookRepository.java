@@ -4,35 +4,33 @@ import com.davon.library.model.Book;
 import com.davon.library.model.Category;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Parameters;
-import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
 import java.util.Optional;
 
-@ApplicationScoped
-public class BookRepository implements PanacheRepository<Book> {
+public interface BookRepository extends PanacheRepository<Book> {
 
-    public Optional<Book> findByIsbn(String isbn) {
+    default Optional<Book> findByIsbn(String isbn) {
         return find("isbn", isbn).firstResultOptional();
     }
 
-    public List<Book> findByTitleContaining(String title) {
+    default List<Book> findByTitleContaining(String title) {
         return list("LOWER(title) LIKE LOWER(?1)", "%" + title + "%");
     }
 
-    public List<Book> findByCategory(Category category) {
+    default List<Book> findByCategory(Category category) {
         return list("category", category);
     }
 
-    public List<Book> findByPublicationYear(int year) {
+    default List<Book> findByPublicationYear(int year) {
         return list("publicationYear", year);
     }
 
-    public List<Book> findAvailableBooks() {
+    default List<Book> findAvailableBooks() {
         return list("SELECT b FROM Book b JOIN b.copies c WHERE c.status = 'AVAILABLE'");
     }
 
-    public List<Book> search(String query) {
+    default List<Book> search(String query) {
         return list("LOWER(title) LIKE :query OR LOWER(isbn) LIKE :query OR authors.name LIKE :query",
                 Parameters.with("query", "%" + query.toLowerCase() + "%"));
     }

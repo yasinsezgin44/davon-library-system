@@ -9,7 +9,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.time.LocalDate;
 import java.util.List;
 
-@ApplicationScoped
 public interface LoanRepository extends PanacheRepository<Loan> {
 
     default List<Loan> findByMember(Member member) {

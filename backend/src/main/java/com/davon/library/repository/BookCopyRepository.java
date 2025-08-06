@@ -9,7 +9,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Optional;
 
-@ApplicationScoped
 public interface BookCopyRepository extends PanacheRepository<BookCopy> {
 
     default Optional<BookCopy> findAvailableByBook(Book book) {

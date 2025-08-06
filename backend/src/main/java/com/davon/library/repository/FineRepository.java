@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@ApplicationScoped
 public interface FineRepository extends PanacheRepository<Fine> {
 
     default List<Fine> findByMember(Member member) {

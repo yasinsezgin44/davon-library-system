@@ -9,7 +9,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
 
-@ApplicationScoped
 public interface ReservationRepository extends PanacheRepository<Reservation> {
 
     default List<Reservation> findByMember(Member member) {
