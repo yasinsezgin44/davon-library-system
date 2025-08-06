@@ -1,7 +1,7 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
-
+import com.davon.library.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.LocalDateTime;
@@ -11,10 +11,6 @@ import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-/**
- * Service for handling authentication operations.
- * Uses DAO pattern following SOLID principles.
- */
 @ApplicationScoped
 public class AuthenticationService {
 
@@ -29,21 +25,18 @@ public class AuthenticationService {
     @Inject
     private SecurityService securityService;
 
-    // Map to store active sessions (in a real app, this would be in a
-    // database/cache)
-    private final Map<String, UserSession> activeSessions = new HashMap<>();
+    @Inject
+    private UserRepository userRepository;
 
-    // Map to track failed login attempts
+    private final Map<String, UserSession> activeSessions = new HashMap<>();
     private final Map<String, Integer> failedLoginAttempts = new HashMap<>();
     private static final int MAX_FAILED_ATTEMPTS = 5;
 
     public LoginResult login(String username, String password) {
-        // Check if account is locked
         if (securityService.isAccountLocked(username)) {
             return new LoginResult(false, null, "Account is locked");
         }
 
-        // Authenticate user
         User user = userService.authenticateUser(username, securityService.hashPassword(password));
 
         if (user == null) {
@@ -51,10 +44,8 @@ public class AuthenticationService {
             return new LoginResult(false, null, "Invalid credentials");
         }
 
-        // Reset failed attempts on successful login
         failedLoginAttempts.remove(username);
 
-        // Create session
         String sessionId = UUID.randomUUID().toString();
         UserSession session = new UserSession(user.getId(), username, LocalDateTime.now());
         activeSessions.put(sessionId, session);
@@ -72,34 +63,22 @@ public class AuthenticationService {
             return false;
         }
 
-        // Check if session is expired (e.g., 30 minutes)
         if (session.getCreatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
             activeSessions.remove(sessionId);
             return false;
         }
 
-        // Update last access time
         session.setLastAccessedAt(LocalDateTime.now());
         return true;
     }
 
     public boolean registerAccount(User newUser, String password) throws AuthenticationException {
         try {
-            // Hash the password
             newUser.setPasswordHash(securityService.hashPassword(password));
-
-            // Create inactive user (pending email verification)
             newUser.setActive(false);
-
-            // Save user
             User createdUser = userService.createUser(newUser);
-
-            // Generate verification token
             String verificationToken = securityService.generateVerificationToken(createdUser.getId());
-
-            // Send verification email
             emailService.sendVerificationEmail(createdUser.getEmail(), verificationToken);
-
             return createdUser != null;
         } catch (UserService.UserServiceException e) {
             logger.log(Level.SEVERE, "Failed to register account", e);
@@ -113,9 +92,13 @@ public class AuthenticationService {
             if (userId == null) {
                 return false;
             }
-
-            // Activate user
-            return userService.activateUser(userId);
+            User user = userService.findById(userId);
+            if (user != null) {
+                user.setActive(true);
+                userService.updateUser(userId, user);
+                return true;
+            }
+            return false;
         } catch (UserService.UserServiceException e) {
             logger.log(Level.SEVERE, "Failed to verify email", e);
             throw new AuthenticationException("Failed to verify email: " + e.getMessage(), e);
@@ -123,17 +106,12 @@ public class AuthenticationService {
     }
 
     public boolean resetPassword(String email) {
-        User user = userService.findUserByEmail(email);
+        User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
             return false;
         }
-
-        // Generate password reset token
         String resetToken = securityService.generatePasswordResetToken(user.getId());
-
-        // Send reset email
         emailService.sendPasswordResetEmail(email, resetToken);
-
         return true;
     }
 
@@ -143,16 +121,11 @@ public class AuthenticationService {
             if (user == null) {
                 return false;
             }
-
-            // Verify old password
             if (!securityService.verifyPassword(oldPassword, user.getPasswordHash())) {
                 return false;
             }
-
-            // Update password
             user.setPasswordHash(securityService.hashPassword(newPassword));
             userService.updateUser(userId, user);
-
             return true;
         } catch (UserService.UserServiceException e) {
             logger.log(Level.SEVERE, "Failed to change password", e);
@@ -160,9 +133,6 @@ public class AuthenticationService {
         }
     }
 
-    /**
-     * Custom exception for authentication service operations.
-     */
     public static class AuthenticationException extends Exception {
         public AuthenticationException(String message) {
             super(message);
@@ -184,7 +154,6 @@ public class AuthenticationService {
         }
     }
 
-    // Inner classes for authentication data structures
     public static class LoginResult {
         private boolean success;
         private String sessionId;

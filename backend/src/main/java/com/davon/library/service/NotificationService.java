@@ -8,13 +8,11 @@ import java.time.LocalDate;
 public class NotificationService {
 
     public void sendCheckoutConfirmation(Member member, BookCopy bookCopy) {
-        // Send checkout confirmation
         String message = String.format("You have checked out: %s. Due date: %s",
                 bookCopy.getBook().getTitle(),
                 LocalDate.now().plusDays(14).toString());
 
-        // Send notification logic
-        System.out.println("Notification to " + member.getEmail() + ": " + message);
+        System.out.println("Notification to " + member.getUser().getEmail() + ": " + message);
     }
 
     public void sendOverdueNotice(Loan loan) {
@@ -24,8 +22,7 @@ public class NotificationService {
         String message = String.format("The book '%s' is overdue. Please return it as soon as possible.",
                 bookCopy.getBook().getTitle());
 
-        // Send notification logic
-        System.out.println("Overdue Notice to " + member.getEmail() + ": " + message);
+        System.out.println("Overdue Notice to " + member.getUser().getEmail() + ": " + message);
     }
 
     public void sendReservationNotification(Reservation reservation) {
@@ -35,8 +32,7 @@ public class NotificationService {
         String message = String.format("The book '%s' you reserved is now available. Please pick it up within 3 days.",
                 book.getTitle());
 
-        // Send notification logic
-        System.out.println("Reservation Notice to " + member.getEmail() + ": " + message);
+        System.out.println("Reservation Notice to " + member.getUser().getEmail() + ": " + message);
     }
 
     public void sendCheckoutNotification(Member member, Loan loan) {
@@ -44,16 +40,14 @@ public class NotificationService {
                 loan.getBookCopy().getBook().getTitle(),
                 loan.getDueDate().toString());
 
-        // Send notification logic
-        System.out.println("Checkout Notification to " + member.getEmail() + ": " + message);
+        System.out.println("Checkout Notification to " + member.getUser().getEmail() + ": " + message);
     }
 
     public void sendReturnNotification(Member member, Loan loan) {
         String message = String.format("You have successfully returned: %s. Thank you!",
                 loan.getBookCopy().getBook().getTitle());
 
-        // Send notification logic
-        System.out.println("Return Notification to " + member.getEmail() + ": " + message);
+        System.out.println("Return Notification to " + member.getUser().getEmail() + ": " + message);
     }
 
     public void sendRenewalNotification(Member member, Loan loan) {
@@ -61,7 +55,6 @@ public class NotificationService {
                 loan.getBookCopy().getBook().getTitle(),
                 loan.getDueDate().toString());
 
-        // Send notification logic
-        System.out.println("Renewal Notification to " + member.getEmail() + ": " + message);
+        System.out.println("Renewal Notification to " + member.getUser().getEmail() + ": " + message);
     }
 }

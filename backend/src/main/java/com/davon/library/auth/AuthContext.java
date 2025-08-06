@@ -5,7 +5,6 @@ import com.davon.library.service.AuthenticationService;
 import lombok.Data;
 import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
-import com.davon.library.model.Member;
 
 @Data
 public class AuthContext {
@@ -26,7 +25,6 @@ public class AuthContext {
                 AuthenticationService.LoginResult result = authService.login(email, password);
                 if (result.isSuccess()) {
                     this.token = result.getSessionId();
-                    // In a real implementation, you would get the user and set expiry
                     this.authError = null;
                     return true;
                 } else {
@@ -40,14 +38,10 @@ public class AuthContext {
         });
     }
 
-    public CompletableFuture<Boolean> register(Object userData) {
+    public CompletableFuture<Boolean> register(User newUser, String password) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Fix the User instantiation issue - must instantiate a concrete class
-                Member newUser = new Member(); // Changed from abstract User
-                // Set user properties from userData
-
-                return authService.registerAccount(newUser, "password");
+                return authService.registerAccount(newUser, password);
             } catch (Exception e) {
                 this.authError = "Registration error: " + e.getMessage();
                 return false;

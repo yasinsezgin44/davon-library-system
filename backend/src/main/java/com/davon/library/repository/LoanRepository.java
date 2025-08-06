@@ -4,6 +4,7 @@ import com.davon.library.model.Loan;
 import com.davon.library.model.Member;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.time.LocalDate;
 import java.util.List;
 
 @ApplicationScoped
@@ -23,5 +24,9 @@ public class LoanRepository implements PanacheRepository<Loan> {
 
     public List<Loan> findOverdueLoans() {
         return find("dueDate < current_date and status = 'ACTIVE'").list();
+    }
+
+    public List<Loan> findByCheckoutDateBetween(LocalDate startDate, LocalDate endDate) {
+        return find("checkoutDate >= ?1 and checkoutDate <= ?2", startDate, endDate).list();
     }
 }

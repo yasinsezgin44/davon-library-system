@@ -2,10 +2,10 @@ package com.davon.library.service;
 
 import com.davon.library.model.*;
 import com.davon.library.exception.BusinessException;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -19,19 +19,14 @@ public class LibrarianService {
 
     @Inject
     private CatalogingService catalogingService;
-
     @Inject
     private UserService userService;
-
     @Inject
     private InventoryService inventoryService;
-
     @Inject
     private TransactionService transactionService;
-
     @Inject
     private LoanService loanService;
-
     @Inject
     private BookService bookService;
 
@@ -47,34 +42,34 @@ public class LibrarianService {
     public Book updateBookCatalog(Long bookId, Book updatedBook) throws LibrarianServiceException {
         try {
             logger.info("Book catalog updated for ID: " + bookId);
-            return updatedBook;
+            return bookService.updateBook(bookId, updatedBook);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to update book catalog", e);
             throw new LibrarianServiceException("Failed to update book catalog: " + e.getMessage(), e);
         }
     }
 
-    public boolean removeBookFromCatalog(Long bookId) throws LibrarianServiceException {
+    public void removeBookFromCatalog(Long bookId) throws LibrarianServiceException {
         try {
-            return inventoryService.removeBook(bookId);
+            inventoryService.removeBook(bookId);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to remove book from catalog", e);
             throw new LibrarianServiceException("Failed to remove book from catalog: " + e.getMessage(), e);
         }
     }
 
-    public Member registerMember(Member newMember) throws LibrarianServiceException {
+    public User registerMember(User user) throws LibrarianServiceException {
         try {
-            return (Member) userService.createUser(newMember);
+            return userService.createUser(user);
         } catch (UserService.UserServiceException e) {
             logger.log(Level.SEVERE, "Failed to register member", e);
             throw new LibrarianServiceException("Failed to register member: " + e.getMessage(), e);
         }
     }
 
-    public Member updateMemberInfo(Long memberId, Member updatedMember) throws LibrarianServiceException {
+    public User updateMemberInfo(Long memberId, User updatedMember) throws LibrarianServiceException {
         try {
-            return (Member) userService.updateUser(memberId, updatedMember);
+            return userService.updateUser(memberId, updatedMember);
         } catch (UserService.UserServiceException e) {
             logger.log(Level.SEVERE, "Failed to update member", e);
             throw new LibrarianServiceException("Failed to update member: " + e.getMessage(), e);
@@ -118,14 +113,12 @@ public class LibrarianService {
             if (!hasFinancialAccess(staffId)) {
                 throw new SecurityException("Staff member does not have financial access");
             }
-
             Transaction transaction = new Transaction();
             transaction.setAmount(BigDecimal.valueOf(amount));
             transaction.setPaymentMethod(method);
             transaction.setDescription(description);
             transaction.setDate(LocalDate.now());
             transaction.setType("FINE_PAYMENT");
-
             transactionService.createTransaction(transaction);
             logger.info("Payment processed: " + amount + " via " + method);
             return transaction;
@@ -142,24 +135,21 @@ public class LibrarianService {
     @Transactional
     public Loan checkoutBook(Long bookId, Long memberId) throws LibrarianServiceException {
         try {
-            Member member = (Member) userService.findById(memberId);
-            if (member == null) {
+            User user = userService.findById(memberId);
+            if (user == null || user.getMember() == null) {
                 throw new LibrarianServiceException("Member not found");
             }
-
+            Member member = user.getMember();
             if (member.getFineBalance().doubleValue() > 0) {
                 throw new LibrarianServiceException("outstanding fines");
             }
-
             Book book = bookService.getBookById(bookId);
             if (book == null) {
                 throw new LibrarianServiceException("Book not found");
             }
-
             if (!bookService.isBookAvailable(bookId)) {
                 throw new LibrarianServiceException("Book not available");
             }
-
             Loan loan = loanService.checkoutBook(bookId, memberId);
             logger.info("Book checked out by librarian - Member: " + memberId + ", Book: " + bookId + ", Loan: "
                     + loan.getId());
@@ -167,9 +157,6 @@ public class LibrarianService {
         } catch (BusinessException e) {
             logger.severe("Failed to checkout book: " + e.getMessage());
             throw new LibrarianServiceException(e.getMessage());
-        } catch (LibrarianServiceException e) {
-            logger.severe("Failed to checkout book: " + e.getMessage());
-            throw e;
         } catch (Exception e) {
             logger.severe("Failed to checkout book: " + e.getMessage());
             throw new LibrarianServiceException("Failed to checkout book due to system error");
@@ -184,9 +171,6 @@ public class LibrarianService {
         } catch (BusinessException e) {
             logger.severe("Failed to return book: " + e.getMessage());
             throw new LibrarianServiceException(e.getMessage());
-        } catch (Exception e) {
-            logger.severe("Failed to return book: " + e.getMessage());
-            throw new LibrarianServiceException("Failed to return book due to system error");
         }
     }
 
@@ -207,9 +191,6 @@ public class LibrarianService {
         } catch (BusinessException e) {
             logger.severe("Failed to renew loan: " + e.getMessage());
             throw new LibrarianServiceException(e.getMessage());
-        } catch (Exception e) {
-            logger.severe("Failed to renew loan: " + e.getMessage());
-            throw new LibrarianServiceException("Failed to renew loan due to system error");
         }
     }
 
