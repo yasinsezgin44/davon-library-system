@@ -7,13 +7,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8
 export async function fetchApi(url: string, options: RequestInit = {}) {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   
-  const headers: HeadersInit = {
+  const headers = new Headers({
     'Content-Type': 'application/json',
     ...options.headers,
-  };
+  });
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.append('Authorization', `Bearer ${token}`);
   }
 
   const response = await fetch(`${API_BASE_URL}${url}`, {
@@ -46,7 +46,9 @@ export const deleteBook = (id: number) => fetchApi(`/books/${id}`, { method: 'DE
 
 // Admin API (Users)
 export const getAllUsers = () => fetchApi('/admin/users');
+export const getUserById = (id: number) => fetchApi(`/users/${id}`);
 export const createUser = (user: any) => fetchApi('/admin/users', { method: 'POST', body: JSON.stringify(user) });
+export const updateUser = (id: number, user: User) => fetchApi(`/users/${id}`, { method: 'PUT', body: JSON.stringify(user) });
 export const deleteUser = (id: number) => fetchApi(`/admin/users/${id}`, { method: 'DELETE' });
 export const assignRoleToUser = (userId: number, roleName: string) => fetchApi(`/admin/users/${userId}/roles/${roleName}`, { method: 'POST' });
 
@@ -54,5 +56,8 @@ export const assignRoleToUser = (userId: number, roleName: string) => fetchApi(`
 export const reserveBook = (bookId: number) => fetchApi('/reservations', { method: 'POST', body: JSON.stringify({ bookId }) });
 export const getMyLoans = () => fetchApi('/dashboard/loans');
 export const getMyReservations = () => fetchApi('/dashboard/reservations');
+export const returnLoan = (loanId: number) => fetchApi(`/loans/${loanId}/return`, { method: 'POST' });
+export const cancelReservation = (reservationId: number) => fetchApi(`/reservations/${reservationId}/cancel`, { method: 'POST' });
 export const getMyProfile = () => fetchApi('/profile');
 export const updateMyProfile = (profile: any) => fetchApi('/profile', { method: 'PUT', body: JSON.stringify(profile) });
+export const getNotifications = () => fetchApi('/notifications');

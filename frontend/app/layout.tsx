@@ -1,26 +1,25 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { ToastProvider } from "@/components/toast-notification"
+"use client";
 
-const inter = Inter({ subsets: ["latin"] })
+import type React from "react";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ToastProvider } from "@/components/toast-notification";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-export const metadata: Metadata = {
-  title: "Davon Library - Modern Library Management",
-  description: "A modern library management system with clean design and powerful features",
-}
+const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  readonly children: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ToastProvider>{children}</ToastProvider>
+        <AuthProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthProvider>
       </body>
     </html>
-  )
+  );
 }
