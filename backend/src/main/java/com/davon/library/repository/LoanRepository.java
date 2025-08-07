@@ -9,25 +9,26 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface LoanRepository extends PanacheRepository<Loan> {
+@ApplicationScoped
+public class LoanRepository implements PanacheRepository<Loan> {
 
-    default List<Loan> findByMember(Member member) {
+    public List<Loan> findByMember(Member member) {
         return list("member", member);
     }
 
-    default List<Loan> findActiveLoansByMember(Member member) {
+    public List<Loan> findActiveLoansByMember(Member member) {
         return list("member = ?1 and status = ?2", member, LoanStatus.ACTIVE);
     }
 
-    default long countActiveLoansByMember(Member member) {
+    public long countActiveLoansByMember(Member member) {
         return count("member = ?1 and status = ?2", member, LoanStatus.ACTIVE);
     }
 
-    default List<Loan> findOverdueLoans() {
+    public List<Loan> findOverdueLoans() {
         return list("dueDate < ?1 and status = ?2", LocalDate.now(), LoanStatus.ACTIVE);
     }
 
-    default List<Loan> findByCheckoutDateBetween(LocalDate startDate, LocalDate endDate) {
+    public List<Loan> findByCheckoutDateBetween(LocalDate startDate, LocalDate endDate) {
         return list("checkoutDate >= ?1 and checkoutDate <= ?2", startDate, endDate);
     }
 }

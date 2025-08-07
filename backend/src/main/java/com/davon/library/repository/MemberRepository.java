@@ -4,5 +4,6 @@ import com.davon.library.model.Member;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
-public interface MemberRepository extends PanacheRepository<Member> {
+@ApplicationScoped
+public class MemberRepository implements PanacheRepository<Member> {
 }

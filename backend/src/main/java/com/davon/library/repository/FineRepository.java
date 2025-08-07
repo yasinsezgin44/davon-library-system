@@ -11,25 +11,26 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface FineRepository extends PanacheRepository<Fine> {
+@ApplicationScoped
+public class FineRepository implements PanacheRepository<Fine> {
 
-    default List<Fine> findByMember(Member member) {
+    public List<Fine> findByMember(Member member) {
         return list("member", member);
     }
 
-    default Optional<Fine> findByLoan(Loan loan) {
+    public Optional<Fine> findByLoan(Loan loan) {
         return find("loan", loan).firstResultOptional();
     }
 
-    default List<Fine> findPendingByMember(Member member) {
+    public List<Fine> findPendingByMember(Member member) {
         return list("member = ?1 AND status = ?2", member, FineStatus.PENDING);
     }
 
-    default List<Fine> findOverdueFines() {
+    public List<Fine> findOverdueFines() {
         return list("dueDate < ?1 AND status = ?2", LocalDate.now(), FineStatus.PENDING);
     }
 
-    default List<Fine> findByIssueDateBetween(LocalDate startDate, LocalDate endDate) {
+    public List<Fine> findByIssueDateBetween(LocalDate startDate, LocalDate endDate) {
         return list("issueDate >= ?1 and issueDate <= ?2", startDate, endDate);
     }
 }

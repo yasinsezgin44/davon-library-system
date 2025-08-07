@@ -4,5 +4,6 @@ import com.davon.library.model.Role;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
-public interface RoleRepository extends PanacheRepository<Role> {
+@ApplicationScoped
+public class RoleRepository implements PanacheRepository<Role> {
 }

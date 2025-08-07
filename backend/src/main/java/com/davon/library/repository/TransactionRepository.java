@@ -4,5 +4,6 @@ import com.davon.library.model.Transaction;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
-public interface TransactionRepository extends PanacheRepository<Transaction> {
+@ApplicationScoped
+public class TransactionRepository implements PanacheRepository<Transaction> {
 }

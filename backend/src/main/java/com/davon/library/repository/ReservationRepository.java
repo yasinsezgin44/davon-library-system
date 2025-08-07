@@ -9,13 +9,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
 
-public interface ReservationRepository extends PanacheRepository<Reservation> {
+@ApplicationScoped
+public class ReservationRepository implements PanacheRepository<Reservation> {
 
-    default List<Reservation> findByMember(Member member) {
+    public List<Reservation> findByMember(Member member) {
         return list("member", member);
     }
 
-    default List<Reservation> findPendingReservationsByBook(Book book) {
+    public List<Reservation> findPendingReservationsByBook(Book book) {
         return list("book = ?1 and status = ?2", book, ReservationStatus.PENDING);
     }
 }

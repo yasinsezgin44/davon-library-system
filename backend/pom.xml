@@ -16,6 +16,7 @@
     <description>Backend API for Davon Library Management System</description>
 
     <properties>
+        <quarkus.platform.version>3.22.3</quarkus.platform.version>
         <compiler-plugin.version>3.12.1</compiler-plugin.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
@@ -24,7 +25,7 @@
         <quarkus.native.container-build>true</quarkus.native.container-build>
         <quarkus.native.container-runtime>docker</quarkus.native.container-runtime>
         <skipITs>true</skipITs>
-        <surefire-plugin.version>3.1.2</surefire-plugin.version>
+        <surefire-plugin.version>3.2.5</surefire-plugin.version>
     </properties>
 
     <dependencies>
@@ -136,6 +137,11 @@
             <artifactId>quarkus-test-security</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-h2</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -175,6 +181,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
                 <configuration>
+                    <failIfNoTests>false</failIfNoTests>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>

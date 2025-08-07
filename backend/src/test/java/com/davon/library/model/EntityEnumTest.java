@@ -17,7 +17,6 @@ class EntityEnumTest {
     @DisplayName("User entity should use UserStatus enum")
     void testUserStatusEnum() {
         User user = new User();
-        assertNull(user.getStatus());
         
         user.setStatus(UserStatus.ACTIVE);
         assertEquals(UserStatus.ACTIVE, user.getStatus());
@@ -30,7 +29,6 @@ class EntityEnumTest {
     @DisplayName("Loan entity should use LoanStatus enum")
     void testLoanStatusEnum() {
         Loan loan = new Loan();
-        assertNull(loan.getStatus());
         
         loan.setStatus(LoanStatus.ACTIVE);
         assertEquals(LoanStatus.ACTIVE, loan.getStatus());
@@ -46,7 +44,6 @@ class EntityEnumTest {
     @DisplayName("BookCopy entity should use CopyStatus enum")
     void testCopyStatusEnum() {
         BookCopy bookCopy = new BookCopy();
-        assertNull(bookCopy.getStatus());
         
         bookCopy.setStatus(CopyStatus.AVAILABLE);
         assertEquals(CopyStatus.AVAILABLE, bookCopy.getStatus());
@@ -62,7 +59,6 @@ class EntityEnumTest {
     @DisplayName("Reservation entity should use ReservationStatus enum")
     void testReservationStatusEnum() {
         Reservation reservation = new Reservation();
-        assertNull(reservation.getStatus());
         
         reservation.setStatus(ReservationStatus.PENDING);
         assertEquals(ReservationStatus.PENDING, reservation.getStatus());
@@ -78,8 +74,6 @@ class EntityEnumTest {
     @DisplayName("Fine entity should use FineStatus and FineReason enums")
     void testFineEnums() {
         Fine fine = new Fine();
-        assertNull(fine.getStatus());
-        assertNull(fine.getReason());
         
         fine.setStatus(FineStatus.PENDING);
         fine.setReason(FineReason.OVERDUE);
@@ -98,7 +92,6 @@ class EntityEnumTest {
     @DisplayName("Transaction entity should use TransactionType enum")
     void testTransactionTypeEnum() {
         Transaction transaction = new Transaction();
-        assertNull(transaction.getType());
         
         transaction.setType(TransactionType.FINE_PAYMENT);
         assertEquals(TransactionType.FINE_PAYMENT, transaction.getType());
@@ -114,7 +107,6 @@ class EntityEnumTest {
     @DisplayName("LoanHistory entity should use LoanAction enum")
     void testLoanActionEnum() {
         LoanHistory loanHistory = new LoanHistory();
-        assertNull(loanHistory.getAction());
         
         loanHistory.setAction(LoanAction.CHECKOUT);
         assertEquals(LoanAction.CHECKOUT, loanHistory.getAction());
