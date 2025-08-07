@@ -72,13 +72,13 @@ public class ReportService {
 
     private int countLoansByStatus(List<Loan> loans, String status) {
         return (int) loans.stream()
-                .filter(loan -> status.equals(loan.getStatus()))
+                .filter(loan -> status.equals(loan.getStatus().name()))
                 .count();
     }
 
     private int countFinesByStatus(List<Fine> fines, String status) {
         return (int) fines.stream()
-                .filter(fine -> status.equals(fine.getStatus()))
+                .filter(fine -> status.equals(fine.getStatus().name()))
                 .count();
     }
 
@@ -90,7 +90,7 @@ public class ReportService {
         if (loans.isEmpty())
             return 0.0;
         long overdueCount = loans.stream()
-                .filter(loan -> "OVERDUE".equals(loan.getStatus()))
+                .filter(loan -> "OVERDUE".equals(loan.getStatus().name()))
                 .count();
         return (double) overdueCount / loans.size() * 100;
     }
@@ -144,7 +144,7 @@ public class ReportService {
             return 0.0;
 
         long paidFines = fines.stream()
-                .filter(fine -> "PAID".equals(fine.getStatus()))
+                .filter(fine -> "PAID".equals(fine.getStatus().name()))
                 .count();
 
         return (double) paidFines / fines.size() * 100;
