@@ -1,0 +1,128 @@
+import com.davon.library.model.Book;
+import com.davon.library.repository.BookRepository;
+import com.davon.library.repository.BookCopyRepository;
+import com.davon.library.repository.CategoryRepository;
+import com.davon.library.service.BookService;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
+import jakarta.ws.rs.NotFoundException;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import jakarta.inject.Inject;
+
+@QuarkusTest
+class BookServiceTest {
+
+    @InjectMock
+    BookRepository bookRepository;
+
+    @InjectMock
+    BookCopyRepository bookCopyRepository;
+
+    @InjectMock
+    CategoryRepository categoryRepository;
+
+    @Inject
+    BookService bookService;
+
+    @Test
+    void testCreateBook() {
+        Book book = new Book();
+        book.setIsbn("1234567890");
+
+        when(bookRepository.findByIsbn("1234567890")).thenReturn(Optional.empty());
+
+        Book created = bookService.createBook(book);
+
+        verify(bookRepository).persist(book);
+        assertEquals(book, created);
+    }
+
+    @Test
+    void testCreateBookDuplicateIsbn() {
+        Book book = new Book();
+        book.setIsbn("duplicate");
+
+        when(bookRepository.findByIsbn("duplicate")).thenReturn(Optional.of(new Book()));
+
+        assertThrows(IllegalArgumentException.class, () -> bookService.createBook(book));
+    }
+
+    @Test
+    void testUpdateBook() {
+        Book existing = new Book();
+        existing.setId(1L);
+        existing.setTitle("Old Title");
+
+        Book updated = new Book();
+        updated.setTitle("New Title");
+
+        when(bookRepository.findByIdOptional(1L)).thenReturn(Optional.of(existing));
+
+        Book result = bookService.updateBook(1L, updated);
+
+        assertEquals("New Title", result.getTitle());
+    }
+
+    @Test
+    void testUpdateBookNotFound() {
+        when(bookRepository.findByIdOptional(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> bookService.updateBook(99L, new Book()));
+    }
+
+    @Test
+    void testDeleteBook() {
+        Book book = new Book();
+        book.setId(1L);
+
+        when(bookRepository.findByIdOptional(1L)).thenReturn(Optional.of(book));
+
+        bookService.deleteBook(1L);
+
+        verify(bookCopyRepository).delete("book.id", 1L);
+        verify(bookRepository).delete(book);
+    }
+
+    @Test
+    void testGetAllBooks() {
+        List<Book> books = new ArrayList<>();
+        books.add(new Book());
+
+        when(bookRepository.listAll()).thenReturn(books);
+
+        List<Book> result = bookService.getAllBooks();
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void testGetBookById() {
+        Book book = new Book();
+        book.setId(1L);
+
+        when(bookRepository.findByIdOptional(1L)).thenReturn(Optional.of(book));
+
+        Optional<Book> result = bookService.getBookById(1L);
+
+        assertTrue(result.isPresent());
+        assertEquals(book, result.get());
+    }
+
+    @Test
+    void testIsBookAvailable() {
+        when(bookCopyRepository.count("book.id = ?1 and status = 'AVAILABLE'", 1L)).thenReturn(1L);
+
+        boolean available = bookService.isBookAvailable(1L);
+
+        assertTrue(available);
+    }
+}
