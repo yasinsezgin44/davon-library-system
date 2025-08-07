@@ -4,6 +4,8 @@ import com.davon.library.model.enums.FineReason;
 import com.davon.library.model.enums.FineStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -47,9 +49,11 @@ public class Fine {
     @Builder.Default
     private FineStatus status = FineStatus.PENDING;
 
-    @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }
