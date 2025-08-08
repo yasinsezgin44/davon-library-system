@@ -2,41 +2,33 @@
 
 import { useState } from "react";
 
-// Mock data for books - replace with API call
-const initialBooks = [
+// Mock data for users - replace with API call
+const initialUsers = [
   {
     id: 1,
-    title: "The Lord of the Rings",
-    author: "J.R.R. Tolkien",
-    isbn: "978-0-618-64015-7",
-    stock: 5,
+    name: "Yasin Sezgin",
+    email: "yasin.s@example.com",
+    roles: ["Member", "Admin"],
   },
   {
     id: 2,
-    title: "Pride and Prejudice",
-    author: "Jane Austen",
-    isbn: "978-0-141-43951-8",
-    stock: 3,
+    name: "Jane Doe",
+    email: "jane.d@example.com",
+    roles: ["Librarian"],
   },
-  {
-    id: 3,
-    title: "The Diary of a Young Girl",
-    author: "Anne Frank",
-    isbn: "978-0-553-29698-3",
-    stock: 8,
-  },
+  { id: 3, name: "John Smith", email: "john.s@example.com", roles: ["Member"] },
 ];
 
-const BookManagementTable = () => {
-  const [books, setBooks] = useState(initialBooks);
+const UserManagementTable = () => {
+  const [users, setUsers] = useState(initialUsers);
   // Add states for modals: const [isCreateModalOpen, setCreateModalOpen] = useState(false); etc.
 
   return (
     <div className="mt-8">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Book Management</h2>
+        <h2 className="text-2xl font-bold">User Management</h2>
         <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-          Add New Book
+          Add New User
         </button>
       </div>
       <div className="bg-white shadow-md rounded-lg overflow-x-auto">
@@ -44,16 +36,13 @@ const BookManagementTable = () => {
           <thead>
             <tr>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Title
+                Name
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Author
+                Email
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                ISBN
-              </th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Stock
+                Roles
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Actions
@@ -61,26 +50,21 @@ const BookManagementTable = () => {
             </tr>
           </thead>
           <tbody>
-            {books.map((book) => (
-              <tr key={book.id}>
+            {users.map((user) => (
+              <tr key={user.id}>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">
-                    {book.title}
+                    {user.name}
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">
-                    {book.author}
+                    {user.email}
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">
-                    {book.isbn}
-                  </p>
-                </td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  <p className="text-gray-900 whitespace-no-wrap">
-                    {book.stock}
+                    {user.roles.join(", ")}
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
@@ -101,4 +85,4 @@ const BookManagementTable = () => {
   );
 };
 
-export default BookManagementTable;
+export default UserManagementTable;

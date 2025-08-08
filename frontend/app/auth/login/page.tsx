@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState } from "react";
+import Link from "next/link";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,8 +64,11 @@ const LoginPage = () => {
           </div>
         </form>
         <p className="text-sm text-center text-gray-600">
-          Not a member?{' '}
-          <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
+          Not a member?{" "}
+          <Link
+            href="/auth/register"
+            className="font-medium text-blue-600 hover:text-blue-500"
+          >
             Sign up
           </Link>
         </p>
@@ -75,4 +78,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-

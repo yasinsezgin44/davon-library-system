@@ -7,13 +7,19 @@ const Footer = () => {
             <h5 className="uppercase mb-6 font-bold">Links</h5>
             <ul className="mb-4">
               <li className="mt-2">
-                <a href="#" className="hover:underline">FAQ</a>
+                <a href="#" className="hover:underline">
+                  FAQ
+                </a>
               </li>
               <li className="mt-2">
-                <a href="#" className="hover:underline">Help</a>
+                <a href="#" className="hover:underline">
+                  Help
+                </a>
               </li>
               <li className="mt-2">
-                <a href="#" className="hover:underline">Support</a>
+                <a href="#" className="hover:underline">
+                  Support
+                </a>
               </li>
             </ul>
           </div>
@@ -21,10 +27,14 @@ const Footer = () => {
             <h5 className="uppercase mb-6 font-bold">Legal</h5>
             <ul className="mb-4">
               <li className="mt-2">
-                <a href="#" className="hover:underline">Terms</a>
+                <a href="#" className="hover:underline">
+                  Terms
+                </a>
               </li>
               <li className="mt-2">
-                <a href="#" className="hover:underline">Privacy</a>
+                <a href="#" className="hover:underline">
+                  Privacy
+                </a>
               </li>
             </ul>
           </div>
@@ -32,13 +42,19 @@ const Footer = () => {
             <h5 className="uppercase mb-6 font-bold">Social</h5>
             <ul className="mb-4">
               <li className="mt-2">
-                <a href="#" className="hover:underline">Facebook</a>
+                <a href="#" className="hover:underline">
+                  Facebook
+                </a>
               </li>
               <li className="mt-2">
-                <a href="#" className="hover:underline">Linkedin</a>
+                <a href="#" className="hover:underline">
+                  Linkedin
+                </a>
               </li>
               <li className="mt-2">
-                <a href="#" className="hover:underline">Twitter</a>
+                <a href="#" className="hover:underline">
+                  Twitter
+                </a>
               </li>
             </ul>
           </div>
@@ -46,10 +62,14 @@ const Footer = () => {
             <h5 className="uppercase mb-6 font-bold">Company</h5>
             <ul className="mb-4">
               <li className="mt-2">
-                <a href="#" className="hover:underline">About Us</a>
+                <a href="#" className="hover:underline">
+                  About Us
+                </a>
               </li>
               <li className="mt-2">
-                <a href="#" className="hover:underline">Contact</a>
+                <a href="#" className="hover:underline">
+                  Contact
+                </a>
               </li>
             </ul>
           </div>
@@ -63,4 +83,3 @@ const Footer = () => {
 };
 
 export default Footer;
-

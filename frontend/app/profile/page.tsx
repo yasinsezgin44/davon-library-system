@@ -1,17 +1,17 @@
 "use client";
 
-import { useAuth } from '@/context/AuthContext';
-import { useEffect } from 'react';
+import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
 
 const ProfilePage = () => {
   const { user, isAuthenticated, login } = useAuth();
 
   // Mock user data for demonstration
   const mockUser = {
-    id: '1',
-    name: 'Yasin Sezgin',
-    email: 'yasin.s@example.com',
-    roles: ['Member', 'Admin'],
+    id: "1",
+    name: "Yasin Sezgin",
+    email: "yasin.s@example.com",
+    roles: ["Member", "Admin"],
   };
 
   // Simulate login for demonstration purposes
@@ -23,7 +23,7 @@ const ProfilePage = () => {
     return (
       <div className="text-center py-10">
         <p>Please log in to view your profile.</p>
-        <button 
+        <button
           onClick={handleLogin}
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
@@ -44,7 +44,8 @@ const ProfilePage = () => {
           <strong className="font-semibold">Email:</strong> {user?.email}
         </div>
         <div>
-          <strong className="font-semibold">Roles:</strong> {user?.roles.join(', ')}
+          <strong className="font-semibold">Roles:</strong>{" "}
+          {user?.roles.join(", ")}
         </div>
       </div>
     </div>
@@ -52,4 +53,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-

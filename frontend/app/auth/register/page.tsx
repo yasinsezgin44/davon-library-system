@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState } from "react";
+import Link from "next/link";
 
 const RegisterPage = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,8 +83,11 @@ const RegisterPage = () => {
           </div>
         </form>
         <p className="text-sm text-center text-gray-600">
-          Already have an account?{' '}
-          <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
+          Already have an account?{" "}
+          <Link
+            href="/auth/login"
+            className="font-medium text-blue-600 hover:text-blue-500"
+          >
             Sign in
           </Link>
         </p>
@@ -94,4 +97,3 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
-
