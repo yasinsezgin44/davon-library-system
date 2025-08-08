@@ -27,7 +27,11 @@ const TrendingBooks = () => {
           <BookCard
             key={book.id}
             title={book.title}
-            author={book.authors && book.authors.length > 0 ? book.authors[0].name : "Unknown Author"}
+            author={
+              book.authors && book.authors.length > 0
+                ? book.authors[0].name
+                : "Unknown Author"
+            }
             imageUrl={book.coverImageUrl}
           />
         ))}
