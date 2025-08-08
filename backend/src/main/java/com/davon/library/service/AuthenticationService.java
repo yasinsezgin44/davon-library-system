@@ -27,7 +27,7 @@ public class AuthenticationService {
             throw new NotAuthorizedException("Invalid credentials");
         }
 
-        if (!user.getActive()) {
+        if (user.getActive() == null || !user.getActive()) {
             throw new NotAuthorizedException("User account is not active");
         }
 
