@@ -41,12 +41,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     const { token } = response.data;
     localStorage.setItem("token", token);
+    apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
     setUser({ username: decoded.sub ?? "", roles: decoded.groups });
   };
 
   const logout = () => {
     localStorage.removeItem("token");
+    delete apiClient.defaults.headers.common["Authorization"];
     setUser(null);
   };
 

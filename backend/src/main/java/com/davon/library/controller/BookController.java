@@ -54,7 +54,7 @@ public class BookController {
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed({"ADMIN", "LIBRARIAN"})
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Update a book's details")
     @SecurityRequirement(name = "jwt")
     public Response updateBook(@PathParam("id") Long id, Book book) {
@@ -64,7 +64,7 @@ public class BookController {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({"ADMIN", "LIBRARIAN"})
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Delete a book")
     @SecurityRequirement(name = "jwt")
     public Response deleteBook(@PathParam("id") Long id) {
