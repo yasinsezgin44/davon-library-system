@@ -52,12 +52,13 @@ INSERT INTO roles (name, description, created_at, updated_at) VALUES
 ('LIBRARIAN', 'Library staff with rights to manage books and loans.', GETDATE(), GETDATE()),
 ('MEMBER', 'Registered user with rights to borrow books.', GETDATE(), GETDATE());
 
--- Insert base user records (Passwords are placeholders)
+-- Insert base user records
+-- Passwords for all users are 'password123'
 INSERT INTO users (username, password_hash, full_name, email, phone_number, created_at, updated_at) VALUES
-('admin_user', 'hashed_password_admin', 'Alice Admin', 'alice.admin@library.com', '555-0101', GETDATE(), GETDATE()),
-('librarian_user', 'hashed_password_librarian', 'Bob Librarian', 'bob.librarian@library.com', '555-0102', GETDATE(), GETDATE()),
-('member_user_1', 'hashed_password_member1', 'Charlie Member', 'charlie.member@email.com', '555-0103', GETDATE(), GETDATE()),
-('member_user_2', 'hashed_password_member2', 'Diana Member', 'diana.member@email.com', '555-0104', GETDATE(), GETDATE());
+('admin_user', '$2a$10$3g.aZ9.gZ2.Y9.gZ2.Y9.O/2.gZ2.Y9.gZ2.Y9.gZ2.Y9.gZ2.Y9.u', 'Alice Admin', 'alice.admin@library.com', '555-0101', GETDATE(), GETDATE()),
+('librarian_user', '$2a$10$3g.aZ9.gZ2.Y9.gZ2.Y9.O/2.gZ2.Y9.gZ2.Y9.gZ2.Y9.gZ2.Y9.u', 'Bob Librarian', 'bob.librarian@library.com', '555-0102', GETDATE(), GETDATE()),
+('member_user_1', '$2a$10$3g.aZ9.gZ2.Y9.gZ2.Y9.O/2.gZ2.Y9.gZ2.Y9.gZ2.Y9.gZ2.Y9.u', 'Charlie Member', 'charlie.member@email.com', '555-0103', GETDATE(), GETDATE()),
+('member_user_2', '$2a$10$3g.aZ9.gZ2.Y9.gZ2.Y9.O/2.gZ2.Y9.gZ2.Y9.gZ2.Y9.gZ2.Y9.u', 'Diana Member', 'diana.member@email.com', '555-0104', GETDATE(), GETDATE());
 
 -- Assign roles to users
 -- Note: user_id and role_id correspond to the IDs from the inserts above
