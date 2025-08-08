@@ -9,7 +9,7 @@ const TrendingBooks = () => {
   useEffect(() => {
     const fetchTrendingBooks = async () => {
       try {
-        const response = await apiClient.get("/books/trending");
+        const response = await apiClient.get("/api/books/trending");
 
         setBooks(response.data);
       } catch (error) {

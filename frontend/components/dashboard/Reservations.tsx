@@ -8,7 +8,7 @@ const Reservations = () => {
   useEffect(() => {
     const fetchReservations = async () => {
       try {
-        const response = await apiClient.get("/dashboard/reservations");
+        const response = await apiClient.get("/api/dashboard/reservations");
         setReservations(response.data);
       } catch (error) {
         console.error("Failed to fetch reservations:", error);

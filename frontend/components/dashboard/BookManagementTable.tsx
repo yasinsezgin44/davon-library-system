@@ -10,7 +10,7 @@ const BookManagementTable = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await apiClient.get("/books");
+        const response = await apiClient.get("/api/books");
         setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch books:", error);

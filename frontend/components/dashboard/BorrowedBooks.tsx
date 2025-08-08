@@ -8,7 +8,7 @@ const BorrowedBooks = () => {
   useEffect(() => {
     const fetchBorrowedBooks = async () => {
       try {
-        const response = await apiClient.get("/dashboard/loans");
+        const response = await apiClient.get("/api/dashboard/loans");
         setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch borrowed books:", error);
