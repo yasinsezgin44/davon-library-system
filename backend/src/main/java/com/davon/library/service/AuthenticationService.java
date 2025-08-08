@@ -24,10 +24,12 @@ public class AuthenticationService {
                 .orElseThrow(() -> new NotAuthorizedException("Invalid credentials"));
 
         if (!BcryptUtil.matches(password, user.getPasswordHash())) {
+            log.error("Invalid credentials for user: {}", username);
             throw new NotAuthorizedException("Invalid credentials");
         }
 
         if (user.getActive() == null || !user.getActive()) {
+            log.error("User account is not active: {}", username);
             throw new NotAuthorizedException("User account is not active");
         }
 
