@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from '@/context/AuthContext';
-import { useEffect } from 'react';
+import BookManagementTable from '@/components/dashboard/BookManagementTable';
 
 const LibrarianDashboardPage = () => {
   const { user, isAuthenticated, login } = useAuth();
@@ -38,8 +38,9 @@ const LibrarianDashboardPage = () => {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Librarian Dashboard</h1>
-      <p>Welcome, {user.name}!</p>
-      {/* Book Management Table will go here */}
+      <p className="mb-8">Welcome, {user.name}!</p>
+      
+      <BookManagementTable />
     </div>
   );
 };
