@@ -1,27 +1,50 @@
 "use client";
 
-import { useState } from "react";
-
-// Mock data for users - replace with API call
-const initialUsers = [
-  {
-    id: 1,
-    name: "Yasin Sezgin",
-    email: "yasin.s@example.com",
-    roles: ["Member", "Admin"],
-  },
-  {
-    id: 2,
-    name: "Jane Doe",
-    email: "jane.d@example.com",
-    roles: ["Librarian"],
-  },
-  { id: 3, name: "John Smith", email: "john.s@example.com", roles: ["Member"] },
-];
+import { useState, useEffect } from "react";
+import apiClient from '../../lib/apiClient';
 
 const UserManagementTable = () => {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
   // Add states for modals: const [isCreateModalOpen, setCreateModalOpen] = useState(false); etc.
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await apiClient.get('/admin/users');
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  const handleCreate = async (userData) => {
+    try {
+      const response = await apiClient.post('/admin/users', userData);
+      setUsers([...users, response.data]);
+    } catch (error) {
+      console.error("Failed to create user:", error);
+    }
+  };
+
+  const handleUpdate = async (id, userData) => {
+    try {
+      const response = await apiClient.put(`/users/${id}`, userData);
+      setUsers(users.map(user => user.id === id ? response.data : user));
+    } catch (error) {
+      console.error("Failed to update user:", error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await apiClient.delete(`/admin/users/${id}`);
+      setUsers(users.filter(user => user.id !== id));
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+    }
+  };
 
   return (
     <div className="mt-8">
@@ -54,7 +77,7 @@ const UserManagementTable = () => {
               <tr key={user.id}>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">
-                    {user.name}
+                    {user.fullName}
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
@@ -64,14 +87,14 @@ const UserManagementTable = () => {
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">
-                    {user.roles.join(", ")}
+                    {user.roles.map(role => role.name).join(", ")}
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <button className="text-indigo-600 hover:text-indigo-900 mr-4">
                     Edit
                   </button>
-                  <button className="text-red-600 hover:text-red-900">
+                  <button onClick={() => handleDelete(user.id)} className="text-red-600 hover:text-red-900">
                     Delete
                   </button>
                 </td>
