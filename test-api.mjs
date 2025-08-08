@@ -4,7 +4,20 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8083/
 
 const testEndpoints = async () => {
   try {
-    console.log('--- Testing GET /books/trending ---');
+    console.log('--- Registering new user ---');
+    await axios.post(`${BASE_URL}/auth/register`, {
+      username: 'testuser',
+      password: 'password',
+      fullName: 'Test User',
+      email: 'testuser@example.com',
+    });
+    console.log('User registered successfully');
+  } catch (error) {
+    console.error('Error registering user:', error.message);
+  }
+
+  try {
+    console.log('\n--- Testing GET /books/trending ---');
     const trendingBooks = await axios.get(`${BASE_URL}/books/trending`);
     console.log('Status:', trendingBooks.status);
     console.log('Data:', trendingBooks.data);

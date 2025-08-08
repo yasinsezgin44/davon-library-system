@@ -25,6 +25,15 @@ import java.util.stream.Collectors;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Authentication", description = "User authentication operations")
+import com.davon.library.dto.RegisterRequest;
+import com.davon.library.dto.AuthResponse;
+
+// ... imports
+
+@Path("/api/auth")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Authentication", description = "User authentication operations")
 public class AuthController {
 
     @Inject
@@ -32,6 +41,18 @@ public class AuthController {
 
     @ConfigProperty(name = "mp.jwt.verify.issuer")
     String issuer;
+
+    @POST
+    @Path("/register")
+    public Response register(RegisterRequest request) {
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        
+        authenticationService.register(user, request.getPassword());
+        return Response.status(Response.Status.CREATED).build();
+    }
 
     @POST
     @Path("/login")
