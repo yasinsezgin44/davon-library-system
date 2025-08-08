@@ -1,5 +1,7 @@
 package com.davon.library.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -41,5 +43,6 @@ public class Author {
 
     @ManyToMany(mappedBy = "authors")
     @Builder.Default
+    @JsonBackReference
     private Set<Book> books = new HashSet<>();
 }
