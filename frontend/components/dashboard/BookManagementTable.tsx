@@ -1,35 +1,51 @@
 "use client";
 
-import { useState } from "react";
-
-// Mock data for books - replace with API call
-const initialBooks = [
-  {
-    id: 1,
-    title: "The Lord of the Rings",
-    author: "J.R.R. Tolkien",
-    isbn: "978-0-618-64015-7",
-    stock: 5,
-  },
-  {
-    id: 2,
-    title: "Pride and Prejudice",
-    author: "Jane Austen",
-    isbn: "978-0-141-43951-8",
-    stock: 3,
-  },
-  {
-    id: 3,
-    title: "The Diary of a Young Girl",
-    author: "Anne Frank",
-    isbn: "978-0-553-29698-3",
-    stock: 8,
-  },
-];
+import { useState, useEffect } from "react";
+import apiClient from '../../lib/apiClient';
 
 const BookManagementTable = () => {
-  const [books, setBooks] = useState(initialBooks);
+  const [books, setBooks] = useState([]);
   // Add states for modals: const [isCreateModalOpen, setCreateModalOpen] = useState(false); etc.
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const response = await apiClient.get('/books');
+        setBooks(response.data);
+      } catch (error) {
+        console.error("Failed to fetch books:", error);
+      }
+    };
+    fetchBooks();
+  }, []);
+
+  const handleCreate = async (bookData) => {
+    try {
+      const response = await apiClient.post('/books', bookData);
+      setBooks([...books, response.data]);
+    } catch (error) {
+      console.error("Failed to create book:", error);
+    }
+  };
+
+  const handleUpdate = async (id, bookData) => {
+    try {
+      const response = await apiClient.put(`/books/${id}`, bookData);
+      setBooks(books.map(book => book.id === id ? response.data : book));
+    } catch (error) {
+      console.error("Failed to update book:", error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await apiClient.delete(`/books/${id}`);
+      setBooks(books.filter(book => book.id !== id));
+    } catch (error) {
+      console.error("Failed to delete book:", error);
+    }
+  };
+
 
   return (
     <div className="mt-8">
@@ -70,7 +86,7 @@ const BookManagementTable = () => {
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">
-                    {book.author}
+                    {book.authorName}
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
@@ -80,14 +96,14 @@ const BookManagementTable = () => {
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">
-                    {book.stock}
+                    {book.quantity}
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <button className="text-indigo-600 hover:text-indigo-900 mr-4">
                     Edit
                   </button>
-                  <button className="text-red-600 hover:text-red-900">
+                  <button onClick={() => handleDelete(book.id)} className="text-red-600 hover:text-red-900">
                     Delete
                   </button>
                 </td>
@@ -102,4 +118,5 @@ const BookManagementTable = () => {
 };
 
 export default BookManagementTable;
+
 
