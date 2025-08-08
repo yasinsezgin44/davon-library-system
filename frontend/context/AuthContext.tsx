@@ -1,47 +1,40 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import apiClient from '../lib/apiClient';
+import { jwtDecode } from "jwt-decode";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  roles: string[];
-}
+const AuthContext = createContext(null);
 
-interface AuthContextType {
-  user: User | null;
-  login: (userData: User) => void;
-  logout: () => void;
-  isAuthenticated: boolean;
-}
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decoded = jwtDecode(token);
+      setUser({ username: decoded.sub, roles: decoded.groups });
+    }
+  }, []);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-
-  const login = (userData: User) => {
-    setUser(userData);
+  const login = async (username, password) => {
+    const response = await apiClient.post('/auth/login', { username, password });
+    const { token } = response.data;
+    localStorage.setItem('token', token);
+    const decoded = jwtDecode(token);
+    setUser({ username: decoded.sub, roles: decoded.groups });
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
     setUser(null);
   };
 
-  const isAuthenticated = !!user;
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);

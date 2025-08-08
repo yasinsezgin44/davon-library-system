@@ -1,36 +1,33 @@
 "use client";
 
-import { useAuth } from "@/context/AuthContext";
-import { useEffect } from "react";
+import { useAuth } from '../../context/AuthContext';
+import { useEffect, useState } from "react";
+import apiClient from '../../lib/apiClient';
 
 const ProfilePage = () => {
-  const { user, isAuthenticated, login } = useAuth();
+  const { user } = useAuth();
+  const [profile, setProfile] = useState(null);
 
-  // Mock user data for demonstration
-  const mockUser = {
-    id: "1",
-    name: "Yasin Sezgin",
-    email: "yasin.s@example.com",
-    roles: ["Member", "Admin"],
-  };
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        try {
+          const response = await apiClient.get('/profile');
+          setProfile(response.data);
+        } catch (error) {
+          console.error('Failed to fetch profile:', error);
+        }
+      }
+    };
+    fetchProfile();
+  }, [user]);
 
-  // Simulate login for demonstration purposes
-  const handleLogin = () => {
-    login(mockUser);
-  };
+  if (!user) {
+    return <p>Loading...</p>;
+  }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="text-center py-10">
-        <p>Please log in to view your profile.</p>
-        <button
-          onClick={handleLogin}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Simulate Login
-        </button>
-      </div>
-    );
+  if (!profile) {
+    return <p>Please log in to view your profile.</p>;
   }
 
   return (
@@ -38,14 +35,14 @@ const ProfilePage = () => {
       <h1 className="text-3xl font-bold mb-6">Profile</h1>
       <div className="bg-white shadow-md rounded-lg p-6">
         <div className="mb-4">
-          <strong className="font-semibold">Name:</strong> {user?.name}
+          <strong className="font-semibold">Name:</strong> {profile.fullName}
         </div>
         <div className="mb-4">
-          <strong className="font-semibold">Email:</strong> {user?.email}
+          <strong className="font-semibold">Email:</strong> {profile.email}
         </div>
         <div>
           <strong className="font-semibold">Roles:</strong>{" "}
-          {user?.roles.join(", ")}
+          {profile.roles.map(role => role.name).join(", ")}
         </div>
       </div>
     </div>
@@ -53,3 +50,5 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+
+
