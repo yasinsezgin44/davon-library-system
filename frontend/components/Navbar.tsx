@@ -3,11 +3,21 @@
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const isAuthenticated = !!user;
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?query=${searchQuery}`);
+    }
+  };
 
   return (
     <nav className="bg-white shadow-md">
@@ -21,7 +31,7 @@ const Navbar = () => {
           </Link>
         </div>
 
-        <div className="relative mt-3 md:mt-0">
+        <form onSubmit={handleSearchSubmit} className="relative mt-3 md:mt-0">
           <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
             <svg
               className="h-5 w-5 text-gray-500"
@@ -41,8 +51,10 @@ const Navbar = () => {
             type="text"
             className="w-full bg-gray-200 text-sm rounded-md pl-10 pr-4 py-2 focus:outline-none focus:bg-white focus:text-gray-900"
             placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
+        </form>
 
         <div className="mt-3 md:mt-0">
           {isAuthenticated ? (
