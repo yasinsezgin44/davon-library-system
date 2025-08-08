@@ -15,7 +15,31 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       await login(username, password);
-      router.push("/");
+      // After login, read role(s) from context/localStorage token and redirect accordingly
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      let destination = "/";
+      if (token) {
+        // lightweight runtime decode to decide redirect without importing in this file
+        try {
+          const payloadBase64Url = token.split(".")[1];
+          const payloadBase64 = payloadBase64Url
+            .replace(/-/g, "+")
+            .replace(/_/g, "/");
+          const payloadJson = JSON.parse(atob(payloadBase64));
+          const groups: string[] = payloadJson?.groups || [];
+          const primaryRole = groups[0];
+          if (primaryRole === "ADMIN") destination = "/dashboard/admin";
+          else if (primaryRole === "LIBRARIAN")
+            destination = "/dashboard/librarian";
+        } catch (decodeError) {
+          console.warn(
+            "Failed to decode JWT payload for redirect; defaulting to homepage.",
+            decodeError
+          );
+        }
+      }
+      router.push(destination);
     } catch (error) {
       console.error("Login failed:", error);
     }

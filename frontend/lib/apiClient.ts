@@ -11,6 +11,15 @@ apiClient.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+      // Trace outgoing requests for debugging auth header presence (no token body)
+      try {
+        // eslint-disable-next-line no-console
+        console.log('[apiClient] Request', {
+          url: config.url,
+          method: config.method,
+          hasAuth: Boolean(config.headers.Authorization),
+        });
+      } catch {}
     }
     return config;
   },
