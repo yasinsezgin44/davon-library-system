@@ -56,12 +56,12 @@ public class Book {
                joinColumns = @JoinColumn(name = "book_id"),
                inverseJoinColumns = @JoinColumn(name = "author_id"))
     @Builder.Default
-    @JsonManagedReference
+    @JsonManagedReference("book-author")
     private Set<Author> authors = new HashSet<>();
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    @JsonManagedReference
+    @JsonManagedReference("book-copy")
     private Set<BookCopy> copies = new HashSet<>();
 
     @CreationTimestamp
