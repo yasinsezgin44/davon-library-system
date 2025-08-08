@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import apiClient from "../lib/apiClient";
+import apiClient from "../lib/apiClient.ts";
 
 const CategoryScroller = () => {
   const [categories, setCategories] = useState([]);

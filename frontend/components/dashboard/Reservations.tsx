@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient";
+import apiClient from "../../lib/apiClient.ts";
 
 const Reservations = () => {
   const [reservations, setReservations] = useState([]);

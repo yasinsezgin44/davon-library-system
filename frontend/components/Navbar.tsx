@@ -5,7 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 
 const Navbar = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { user, logout } = useAuth();
+  const isAuthenticated = !!user;
   const [isDropdownOpen, setDropdownOpen] = useState(false);
 
   return (

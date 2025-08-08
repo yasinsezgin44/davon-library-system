@@ -1,19 +1,36 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import apiClient from "../lib/apiClient";
-import { jwtDecode } from "jwt-decode";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import apiClient from "../lib/apiClient.ts";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 
-const AuthContext = createContext(null);
+interface User {
+  username: string;
+  roles: string[];
+}
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+interface AuthContextType {
+  user: User | null;
+  login: (username, password) => Promise<void>;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      const decoded = jwtDecode(token);
-      setUser({ username: decoded.sub, roles: decoded.groups });
+      const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
+      setUser({ username: decoded.sub ?? "", roles: decoded.groups });
     }
   }, []);
 
@@ -24,8 +41,8 @@ export const AuthProvider = ({ children }) => {
     });
     const { token } = response.data;
     localStorage.setItem("token", token);
-    const decoded = jwtDecode(token);
-    setUser({ username: decoded.sub, roles: decoded.groups });
+    const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
+    setUser({ username: decoded.sub ?? "", roles: decoded.groups });
   };
 
   const logout = () => {
