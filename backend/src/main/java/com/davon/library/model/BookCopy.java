@@ -24,7 +24,6 @@ public class BookCopy {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "book_id", nullable = false)
-    @JsonBackReference("book-copy")
     private Book book;
 
     @Column(name = "acquisition_date")

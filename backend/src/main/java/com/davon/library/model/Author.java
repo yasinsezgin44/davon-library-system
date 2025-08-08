@@ -46,6 +46,6 @@ public class Author {
 
     @ManyToMany(mappedBy = "authors")
     @Builder.Default
-    @JsonBackReference("book-author")
+    @JsonIgnoreProperties("authors")
     private Set<Book> books = new HashSet<>();
 }
