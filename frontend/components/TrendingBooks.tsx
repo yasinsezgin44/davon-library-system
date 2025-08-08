@@ -10,7 +10,7 @@ const TrendingBooks = () => {
     const fetchTrendingBooks = async () => {
       try {
         const response = await apiClient.get("/books/trending");
-        console.log("Trending Books Response:", response.data);
+
         setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch trending books:", error);
@@ -27,7 +27,7 @@ const TrendingBooks = () => {
           <BookCard
             key={book.id}
             title={book.title}
-            author={book.authorName}
+            author={book.authors && book.authors.length > 0 ? book.authors[0].name : "Unknown Author"}
             imageUrl={book.coverImageUrl}
           />
         ))}
