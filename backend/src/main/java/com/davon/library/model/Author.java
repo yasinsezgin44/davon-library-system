@@ -14,10 +14,13 @@ import java.util.Set;
 
 @Entity
 @Table(name = "authors")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
+@ToString(exclude = "books")
 public class Author {
 
     @Id
