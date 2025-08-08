@@ -15,7 +15,7 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       await login(username, password);
-      router.push("/profile");
+      router.push("/");
     } catch (error) {
       console.error("Login failed:", error);
     }

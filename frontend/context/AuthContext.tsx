@@ -43,7 +43,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("token", token);
     const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
     setUser({ username: decoded.sub ?? "", roles: decoded.groups });
-    window.location.reload();
   };
 
   const logout = () => {

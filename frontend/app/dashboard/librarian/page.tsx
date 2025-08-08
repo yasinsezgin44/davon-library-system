@@ -2,6 +2,7 @@
 
 import { useAuth } from "../../../context/AuthContext";
 import BookManagementTable from "../../../components/dashboard/BookManagementTable";
+import ReservationsManagement from "../../../components/dashboard/ReservationsManagement";
 
 const LibrarianDashboardPage = () => {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ const LibrarianDashboardPage = () => {
       <p className="mb-8">Welcome, {user.username}!</p>
 
       <BookManagementTable />
+      <ReservationsManagement />
     </div>
   );
 };

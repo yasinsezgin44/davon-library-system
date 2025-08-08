@@ -22,12 +22,8 @@ const ProfilePage = () => {
     fetchProfile();
   }, [user]);
 
-  if (!user) {
+  if (!user || !profile) {
     return <p>Loading...</p>;
-  }
-
-  if (!profile) {
-    return <p>Please log in to view your profile.</p>;
   }
 
   return (
