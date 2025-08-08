@@ -9,6 +9,7 @@ const CategoryScroller = () => {
     const fetchCategories = async () => {
       try {
         const response = await apiClient.get("/books/genres");
+        console.log("Categories Response:", response.data);
         setCategories(response.data);
       } catch (error) {
         console.error("Failed to fetch categories:", error);

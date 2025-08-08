@@ -11,6 +11,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.NotAuthorizedException;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -34,18 +36,22 @@ public class AuthController {
     @POST
     @Path("/login")
     public Response login(LoginRequest request) {
-        User user = authenticationService.authenticate(request.getUsername(), request.getPassword());
-        
-        Set<String> roles = user.getRoles().stream()
-                .map(role -> role.getName())
-                .collect(Collectors.toSet());
+        try {
+            User user = authenticationService.authenticate(request.getUsername(), request.getPassword());
+            
+            Set<String> roles = user.getRoles().stream()
+                    .map(role -> role.getName())
+                    .collect(Collectors.toSet());
 
-        String token = Jwt.issuer(issuer)
-                .subject(user.getUsername())
-                .groups(new HashSet<>(roles))
-                .expiresIn(Duration.ofHours(1))
-                .sign();
+            String token = Jwt.issuer(issuer)
+                    .subject(user.getUsername())
+                    .groups(new HashSet<>(roles))
+                    .expiresIn(Duration.ofHours(1))
+                    .sign();
 
-        return Response.ok(new AuthResponse(token)).build();
+            return Response.ok(new AuthResponse(token)).build();
+        } catch (NotAuthorizedException e) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(e.getMessage()).build();
+        }
     }
 }

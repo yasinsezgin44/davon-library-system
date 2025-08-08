@@ -10,6 +10,7 @@ const TrendingBooks = () => {
     const fetchTrendingBooks = async () => {
       try {
         const response = await apiClient.get("/books/trending");
+        console.log("Trending Books Response:", response.data);
         setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch trending books:", error);
