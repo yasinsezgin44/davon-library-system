@@ -62,13 +62,17 @@ const ReservationsManagement = () => {
                 <td className="py-2 px-4 border-b">{reservation.status}</td>
                 <td className="py-2 px-4 border-b">
                   <button
-                    onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
+                    onClick={() =>
+                      handleUpdateStatus(reservation.id, "COMPLETED")
+                    }
                     className="bg-green-500 text-white px-2 py-1 rounded mr-2"
                   >
                     Complete
                   </button>
                   <button
-                    onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
+                    onClick={() =>
+                      handleUpdateStatus(reservation.id, "CANCELLED")
+                    }
                     className="bg-red-500 text-white px-2 py-1 rounded"
                   >
                     Cancel
@@ -84,4 +88,3 @@ const ReservationsManagement = () => {
 };
 
 export default ReservationsManagement;
-

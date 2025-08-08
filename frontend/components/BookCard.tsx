@@ -30,4 +30,3 @@ const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
 };
 
 export default BookCard;
-

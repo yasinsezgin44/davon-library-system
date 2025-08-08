@@ -58,4 +58,3 @@ const ReservationsOverview = () => {
 };
 
 export default ReservationsOverview;
-
