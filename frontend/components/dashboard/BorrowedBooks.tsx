@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../../lib/apiClient';
+import React, { useState, useEffect } from "react";
+import apiClient from "../../lib/apiClient";
 
 const BorrowedBooks = () => {
   const [books, setBooks] = useState([]);
@@ -7,10 +7,10 @@ const BorrowedBooks = () => {
   useEffect(() => {
     const fetchBorrowedBooks = async () => {
       try {
-        const response = await apiClient.get('/dashboard/loans');
+        const response = await apiClient.get("/dashboard/loans");
         setBooks(response.data);
       } catch (error) {
-        console.error('Failed to fetch borrowed books:', error);
+        console.error("Failed to fetch borrowed books:", error);
       }
     };
     fetchBorrowedBooks();
@@ -25,7 +25,8 @@ const BorrowedBooks = () => {
             <h3 className="font-bold">{loan.book.title}</h3>
             <p className="text-sm text-gray-600">{loan.book.authorName}</p>
             <p className="text-sm mt-2">
-              <strong>Due Date:</strong> {new Date(loan.dueDate).toLocaleDateString()}
+              <strong>Due Date:</strong>{" "}
+              {new Date(loan.dueDate).toLocaleDateString()}
             </p>
             <button className="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors duration-300">
               Return
@@ -38,5 +39,3 @@ const BorrowedBooks = () => {
 };
 
 export default BorrowedBooks;
-
-

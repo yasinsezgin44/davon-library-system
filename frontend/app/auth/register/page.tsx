@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from 'next/navigation';
-import apiClient from '../../../lib/apiClient';
+import { useRouter } from "next/navigation";
+import apiClient from "../../../lib/apiClient";
 
 const RegisterPage = () => {
   const [fullName, setFullName] = useState("");
@@ -15,10 +15,10 @@ const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.post('/users', { fullName, email, password, username });
-      router.push('/auth/login');
+      await apiClient.post("/users", { fullName, email, password, username });
+      router.push("/auth/login");
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error("Registration failed:", error);
     }
   };
 
@@ -123,4 +123,3 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
-

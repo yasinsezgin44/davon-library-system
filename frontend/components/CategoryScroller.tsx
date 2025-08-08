@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../lib/apiClient';
+import React, { useState, useEffect } from "react";
+import apiClient from "../lib/apiClient";
 
 const CategoryScroller = () => {
   const [categories, setCategories] = useState([]);
@@ -7,10 +7,10 @@ const CategoryScroller = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await apiClient.get('/books/genres');
+        const response = await apiClient.get("/books/genres");
         setCategories(response.data);
       } catch (error) {
-        console.error('Failed to fetch categories:', error);
+        console.error("Failed to fetch categories:", error);
       }
     };
     fetchCategories();
@@ -36,4 +36,3 @@ const CategoryScroller = () => {
 };
 
 export default CategoryScroller;
-

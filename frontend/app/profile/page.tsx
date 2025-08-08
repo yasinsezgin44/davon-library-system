@@ -1,8 +1,8 @@
 "use client";
 
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
-import apiClient from '../../lib/apiClient';
+import apiClient from "../../lib/apiClient";
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -12,10 +12,10 @@ const ProfilePage = () => {
     const fetchProfile = async () => {
       if (user) {
         try {
-          const response = await apiClient.get('/profile');
+          const response = await apiClient.get("/profile");
           setProfile(response.data);
         } catch (error) {
-          console.error('Failed to fetch profile:', error);
+          console.error("Failed to fetch profile:", error);
         }
       }
     };
@@ -42,7 +42,7 @@ const ProfilePage = () => {
         </div>
         <div>
           <strong className="font-semibold">Roles:</strong>{" "}
-          {profile.roles.map(role => role.name).join(", ")}
+          {profile.roles.map((role) => role.name).join(", ")}
         </div>
       </div>
     </div>
@@ -50,5 +50,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-
-

@@ -1,12 +1,12 @@
 "use client";
 
-import { useAuth } from '../../../context/AuthContext';
-import BookManagementTable from '../../../components/dashboard/BookManagementTable';
+import { useAuth } from "../../../context/AuthContext";
+import BookManagementTable from "../../../components/dashboard/BookManagementTable";
 
 const LibrarianDashboardPage = () => {
   const { user } = useAuth();
 
-  if (!user || !user.roles.includes('LIBRARIAN')) {
+  if (!user || !user.roles.includes("LIBRARIAN")) {
     return (
       <div className="text-center py-10">
         <p>You must be a logged-in librarian to view this page.</p>
@@ -25,4 +25,3 @@ const LibrarianDashboardPage = () => {
 };
 
 export default LibrarianDashboardPage;
-

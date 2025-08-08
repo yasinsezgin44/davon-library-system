@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../../../context/AuthContext';
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../../context/AuthContext";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
@@ -15,9 +15,9 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       await login(username, password);
-      router.push('/profile');
+      router.push("/profile");
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
     }
   };
 
@@ -86,6 +86,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-
-

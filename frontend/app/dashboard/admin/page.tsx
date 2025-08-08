@@ -1,13 +1,13 @@
 "use client";
 
-import { useAuth } from '../../../context/AuthContext';
-import BookManagementTable from '../../../components/dashboard/BookManagementTable';
-import UserManagementTable from '../../../components/dashboard/UserManagementTable';
+import { useAuth } from "../../../context/AuthContext";
+import BookManagementTable from "../../../components/dashboard/BookManagementTable";
+import UserManagementTable from "../../../components/dashboard/UserManagementTable";
 
 const AdminDashboardPage = () => {
   const { user } = useAuth();
 
-  if (!user || !user.roles.includes('ADMIN')) {
+  if (!user || !user.roles.includes("ADMIN")) {
     return (
       <div className="text-center py-10">
         <p>You must be a logged-in admin to view this page.</p>
@@ -27,4 +27,3 @@ const AdminDashboardPage = () => {
 };
 
 export default AdminDashboardPage;
-

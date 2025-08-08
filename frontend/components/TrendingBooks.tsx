@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../lib/apiClient';
-import BookCard from './BookCard';
+import React, { useState, useEffect } from "react";
+import apiClient from "../lib/apiClient";
+import BookCard from "./BookCard";
 
 const TrendingBooks = () => {
   const [books, setBooks] = useState([]);
@@ -8,10 +8,10 @@ const TrendingBooks = () => {
   useEffect(() => {
     const fetchTrendingBooks = async () => {
       try {
-        const response = await apiClient.get('/books/trending');
+        const response = await apiClient.get("/books/trending");
         setBooks(response.data);
       } catch (error) {
-        console.error('Failed to fetch trending books:', error);
+        console.error("Failed to fetch trending books:", error);
       }
     };
     fetchTrendingBooks();
@@ -35,5 +35,3 @@ const TrendingBooks = () => {
 };
 
 export default TrendingBooks;
-
-

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import apiClient from '../../lib/apiClient';
+import apiClient from "../../lib/apiClient";
 
 const BookManagementTable = () => {
   const [books, setBooks] = useState([]);
@@ -10,7 +10,7 @@ const BookManagementTable = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await apiClient.get('/books');
+        const response = await apiClient.get("/books");
         setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch books:", error);
@@ -21,7 +21,7 @@ const BookManagementTable = () => {
 
   const handleCreate = async (bookData) => {
     try {
-      const response = await apiClient.post('/books', bookData);
+      const response = await apiClient.post("/books", bookData);
       setBooks([...books, response.data]);
     } catch (error) {
       console.error("Failed to create book:", error);
@@ -31,7 +31,7 @@ const BookManagementTable = () => {
   const handleUpdate = async (id, bookData) => {
     try {
       const response = await apiClient.put(`/books/${id}`, bookData);
-      setBooks(books.map(book => book.id === id ? response.data : book));
+      setBooks(books.map((book) => (book.id === id ? response.data : book)));
     } catch (error) {
       console.error("Failed to update book:", error);
     }
@@ -40,12 +40,11 @@ const BookManagementTable = () => {
   const handleDelete = async (id) => {
     try {
       await apiClient.delete(`/books/${id}`);
-      setBooks(books.filter(book => book.id !== id));
+      setBooks(books.filter((book) => book.id !== id));
     } catch (error) {
       console.error("Failed to delete book:", error);
     }
   };
-
 
   return (
     <div className="mt-8">
@@ -103,7 +102,10 @@ const BookManagementTable = () => {
                   <button className="text-indigo-600 hover:text-indigo-900 mr-4">
                     Edit
                   </button>
-                  <button onClick={() => handleDelete(book.id)} className="text-red-600 hover:text-red-900">
+                  <button
+                    onClick={() => handleDelete(book.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
                     Delete
                   </button>
                 </td>
@@ -118,5 +120,3 @@ const BookManagementTable = () => {
 };
 
 export default BookManagementTable;
-
-

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../../lib/apiClient';
+import React, { useState, useEffect } from "react";
+import apiClient from "../../lib/apiClient";
 
 const Reservations = () => {
   const [reservations, setReservations] = useState([]);
@@ -7,10 +7,10 @@ const Reservations = () => {
   useEffect(() => {
     const fetchReservations = async () => {
       try {
-        const response = await apiClient.get('/dashboard/reservations');
+        const response = await apiClient.get("/dashboard/reservations");
         setReservations(response.data);
       } catch (error) {
-        console.error('Failed to fetch reservations:', error);
+        console.error("Failed to fetch reservations:", error);
       }
     };
     fetchReservations();
@@ -23,7 +23,9 @@ const Reservations = () => {
         {reservations.map((reservation) => (
           <div key={reservation.id} className="p-4 border rounded-lg shadow-sm">
             <h3 className="font-bold">{reservation.book.title}</h3>
-            <p className="text-sm text-gray-600">{reservation.book.authorName}</p>
+            <p className="text-sm text-gray-600">
+              {reservation.book.authorName}
+            </p>
             <p className="text-sm mt-2">
               <strong>Status:</strong> {reservation.status}
             </p>
@@ -38,5 +40,3 @@ const Reservations = () => {
 };
 
 export default Reservations;
-
-

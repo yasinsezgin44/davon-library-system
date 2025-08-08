@@ -1,14 +1,14 @@
 "use client";
 
-import { useAuth } from '../../../context/AuthContext';
-import BorrowedBooks from '../../../components/dashboard/BorrowedBooks';
-import Reservations from '../../../components/dashboard/Reservations';
-import ReadingHistory from '../../../components/dashboard/ReadingHistory';
+import { useAuth } from "../../../context/AuthContext";
+import BorrowedBooks from "../../../components/dashboard/BorrowedBooks";
+import Reservations from "../../../components/dashboard/Reservations";
+import ReadingHistory from "../../../components/dashboard/ReadingHistory";
 
 const MemberDashboardPage = () => {
   const { user } = useAuth();
 
-  if (!user || !user.roles.includes('MEMBER')) {
+  if (!user || !user.roles.includes("MEMBER")) {
     return (
       <div className="text-center py-10">
         <p>You must be a logged-in member to view this page.</p>
@@ -29,4 +29,3 @@ const MemberDashboardPage = () => {
 };
 
 export default MemberDashboardPage;
-
