@@ -22,11 +22,16 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Path("/api/auth")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Authentication", description = "User authentication operations")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     @Inject
     AuthenticationService authenticationService;
@@ -41,7 +46,7 @@ public class AuthController {
         user.setUsername(request.getUsername());
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-        
+
         authenticationService.register(user, request.getPassword());
         return Response.status(Response.Status.CREATED).build();
     }
@@ -50,21 +55,40 @@ public class AuthController {
     @Path("/login")
     public Response login(LoginRequest request) {
         try {
+            log.info("Attempting to log in user: {}", request.getUsername());
             User user = authenticationService.authenticate(request.getUsername(), request.getPassword());
-            
-            Set<String> roles = user.getRoles().stream()
-                    .map(role -> role.getName())
-                    .collect(Collectors.toSet());
+            log.info("User '{}' authenticated successfully", user.getUsername());
 
+            Set<String> roles = new HashSet<>();
+            if (user.getRoles() != null) {
+                log.info("Retrieving roles for user '{}'", user.getUsername());
+                roles = user.getRoles().stream()
+                        .filter(role -> role != null && role.getName() != null)
+                        .map(role -> {
+                            log.debug("Found role: {}", role.getName());
+                            return role.getName();
+                        })
+                        .collect(Collectors.toSet());
+                log.info("Roles found: {}", roles);
+            } else {
+                log.warn("User '{}' has no roles assigned.", user.getUsername());
+            }
+
+            log.info("Generating JWT token for user '{}'", user.getUsername());
             String token = Jwt.issuer(issuer)
                     .subject(user.getUsername())
                     .groups(new HashSet<>(roles))
                     .expiresIn(Duration.ofHours(1))
                     .sign();
+            log.info("Token generated successfully for user '{}'", user.getUsername());
 
             return Response.ok(new AuthResponse(token)).build();
         } catch (NotAuthorizedException e) {
+            log.error("Authentication failed for user: {}", request.getUsername(), e);
             return Response.status(Response.Status.UNAUTHORIZED).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            log.error("An unexpected error occurred during login for user: {}", request.getUsername(), e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("An internal error occurred.").build();
         }
     }
 }

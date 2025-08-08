@@ -47,6 +47,7 @@ public class AuthenticationService {
         }
 
         user.setPasswordHash(BcryptUtil.bcryptHash(password));
+        user.setActive(true);
         userRepository.persist(user);
         return user;
     }
