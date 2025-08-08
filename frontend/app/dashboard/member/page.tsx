@@ -1,7 +1,9 @@
 "use client";
 
 import { useAuth } from '@/context/AuthContext';
-import { useEffect } from 'react';
+import BorrowedBooks from '@/components/dashboard/BorrowedBooks';
+import Reservations from '@/components/dashboard/Reservations';
+import ReadingHistory from '@/components/dashboard/ReadingHistory';
 
 const MemberDashboardPage = () => {
   const { user, isAuthenticated, login } = useAuth();
@@ -38,8 +40,11 @@ const MemberDashboardPage = () => {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Member Dashboard</h1>
-      <p>Welcome, {user.name}!</p>
-      {/* Components for Borrowed Books, Reservations, and Reading History will go here */}
+      <p className="mb-8">Welcome, {user.name}!</p>
+      
+      <BorrowedBooks />
+      <Reservations />
+      <ReadingHistory />
     </div>
   );
 };
