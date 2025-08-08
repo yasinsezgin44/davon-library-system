@@ -46,6 +46,6 @@ public class Author {
 
     @ManyToMany(mappedBy = "authors")
     @Builder.Default
-    @JsonBackReference
+    @JsonBackReference("book-author")
     private Set<Book> books = new HashSet<>();
 }
