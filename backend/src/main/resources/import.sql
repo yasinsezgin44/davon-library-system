@@ -54,11 +54,11 @@ INSERT INTO roles (name, description, created_at, updated_at) VALUES
 
 -- Insert base user records
 -- Passwords for all users are 'password123'
-INSERT INTO users (username, password_hash, full_name, email, phone_number, created_at, updated_at) VALUES
-('admin_user', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Alice Admin', 'alice.admin@library.com', '555-0101', GETDATE(), GETDATE()),
-('librarian_user', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Bob Librarian', 'bob.librarian@library.com', '555-0102', GETDATE(), GETDATE()),
-('member_user_1', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Charlie Member', 'charlie.member@email.com', '555-0103', GETDATE(), GETDATE()),
-('member_user_2', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Diana Member', 'diana.member@email.com', '555-0104', GETDATE(), GETDATE());
+INSERT INTO users (username, password_hash, full_name, email, phone_number, created_at, updated_at, active) VALUES
+('admin_user', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Alice Admin', 'alice.admin@library.com', '555-0101', GETDATE(), GETDATE(), true),
+('librarian_user', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Bob Librarian', 'bob.librarian@library.com', '555-0102', GETDATE(), GETDATE(), true),
+('member_user_1', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Charlie Member', 'charlie.member@email.com', '555-0103', GETDATE(), GETDATE(), true),
+('member_user_2', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Diana Member', 'diana.member@email.com', '555-0104', GETDATE(), GETDATE(), true);
 
 -- Assign roles to users
 -- Note: user_id and role_id correspond to the IDs from the inserts above
