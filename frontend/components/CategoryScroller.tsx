@@ -8,7 +8,7 @@ const CategoryScroller = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await apiClient.get("/api/books/genres");
+        const response = await apiClient.get("/books/genres");
 
         setCategories(response.data);
       } catch (error) {
