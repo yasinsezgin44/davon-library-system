@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
 
 interface Reservation {
   id: number;
@@ -13,18 +14,20 @@ interface Reservation {
 
 const ReservationsOverview = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const { isAuthReady } = useAuth();
 
   useEffect(() => {
+    if (!isAuthReady) return;
     const fetchReservations = async () => {
       try {
-        const response = await apiClient.get("/reservations");
+        const response = await apiClient.get("/dashboard/reservations");
         setReservations(response.data);
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
       }
     };
     fetchReservations();
-  }, []);
+  }, [isAuthReady]);
 
   return (
     <div className="mt-8">

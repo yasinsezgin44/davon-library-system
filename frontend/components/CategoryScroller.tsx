@@ -11,7 +11,7 @@ const CategoryScroller = () => {
     if (!isAuthReady) return;
     const fetchCategories = async () => {
       try {
-        const response = await apiClient.get("/books/genres");
+        const response = await apiClient.get("/books/genres", { public: true } as any);
         setCategories(response.data);
       } catch (error) {
         console.error("Failed to fetch categories:", error);

@@ -15,6 +15,14 @@ if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_API_BASE_URL) {
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
+      // Allow callers to explicitly mark a request as public (no Authorization header)
+      // Usage: apiClient.get('/books/trending', { public: true })
+      if ((config as any).public === true) {
+        if (config.headers) {
+          delete (config.headers as any).Authorization;
+        }
+        return config;
+      }
       const token = localStorage.getItem('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;

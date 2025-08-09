@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient.ts";
+import apiClient from "../../lib/apiClient";
 
 const UserManagementTable = () => {
   const [users, setUsers] = useState([]);
