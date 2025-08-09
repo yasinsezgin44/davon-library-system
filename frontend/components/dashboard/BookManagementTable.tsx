@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient.ts";
+import apiClient from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
 
 const BookManagementTable = () => {
   const [books, setBooks] = useState([]);
+  const { user, isAuthReady } = useAuth();
   // Add states for modals: const [isCreateModalOpen, setCreateModalOpen] = useState(false); etc.
 
   useEffect(() => {
+    if (!isAuthReady) return;
+    if (!user || !user.roles.includes("ADMIN")) return;
     const fetchBooks = async () => {
       try {
         const response = await apiClient.get("/books");
@@ -17,7 +21,7 @@ const BookManagementTable = () => {
       }
     };
     fetchBooks();
-  }, []);
+  }, [isAuthReady, user]);
 
   const handleCreate = async (bookData) => {
     try {

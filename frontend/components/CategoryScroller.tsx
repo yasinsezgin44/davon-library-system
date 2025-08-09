@@ -1,22 +1,24 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import apiClient from "../lib/apiClient";
+import { useAuth } from "../context/AuthContext";
 
 const CategoryScroller = () => {
   const [categories, setCategories] = useState([]);
+  const { isAuthReady } = useAuth();
 
   useEffect(() => {
+    if (!isAuthReady) return;
     const fetchCategories = async () => {
       try {
         const response = await apiClient.get("/books/genres");
-
         setCategories(response.data);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
     };
     fetchCategories();
-  }, []);
+  }, [isAuthReady]);
 
   return (
     <div className="py-4">

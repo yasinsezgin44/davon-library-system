@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import apiClient from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
 import BookCard from "../../components/BookCard";
 
 interface Book {
@@ -16,9 +17,11 @@ const SearchPage = () => {
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
   const [books, setBooks] = useState<Book[]>([]);
+  const { isAuthReady } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isAuthReady) return;
     if (query) {
       const fetchBooks = async () => {
         try {
@@ -32,8 +35,10 @@ const SearchPage = () => {
         }
       };
       fetchBooks();
+    } else {
+      setBooks([]);
     }
-  }, [query]);
+  }, [query, isAuthReady]);
 
   return (
     <div className="container mx-auto py-10">

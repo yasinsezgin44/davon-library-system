@@ -20,12 +20,14 @@ interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  isAuthReady: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
     const token =
@@ -35,6 +37,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
       setUser({ username: decoded.sub ?? "", roles: decoded.groups });
     }
+    // eslint-disable-next-line no-console
+    console.log("[AuthContext] initialized", { hasToken: Boolean(token) });
+    setIsAuthReady(true);
   }, []);
 
   const login = async (username: string, password: string) => {
@@ -48,18 +53,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
     const roles = decoded.groups || (role ? [role] : []);
     setUser({ username: decoded.sub ?? "", roles });
+    // eslint-disable-next-line no-console
+    console.log("[AuthContext] login success", { roles });
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     delete apiClient.defaults.headers.common["Authorization"];
     setUser(null);
+    // eslint-disable-next-line no-console
+    console.log("[AuthContext] logout");
   };
 
-  const contextValue = useMemo<AuthContextType>(
-    () => ({ user, login, logout }),
-    [user]
-  );
+  const contextValue = useMemo<AuthContextType>(() => ({ user, login, logout, isAuthReady }), [user, isAuthReady]);
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

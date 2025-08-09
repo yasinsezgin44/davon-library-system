@@ -1,23 +1,25 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import apiClient from "../lib/apiClient";
+import { useAuth } from "../context/AuthContext";
 import BookCard from "./BookCard";
 
 const TrendingBooks = () => {
   const [books, setBooks] = useState([]);
+  const { isAuthReady } = useAuth();
 
   useEffect(() => {
+    if (!isAuthReady) return;
     const fetchTrendingBooks = async () => {
       try {
         const response = await apiClient.get("/books/trending");
-
         setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch trending books:", error);
       }
     };
     fetchTrendingBooks();
-  }, []);
+  }, [isAuthReady]);
 
   return (
     <div className="py-8">
