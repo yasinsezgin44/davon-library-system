@@ -12,7 +12,9 @@ const TrendingBooks = () => {
     if (!isAuthReady) return;
     const fetchTrendingBooks = async () => {
       try {
-        const response = await apiClient.get("/books/trending", { public: true } as any);
+        const response = await apiClient.get("/books/trending", {
+          public: true,
+        } as any);
         setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch trending books:", error);

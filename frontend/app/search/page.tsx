@@ -26,7 +26,10 @@ const SearchPage = () => {
       const fetchBooks = async () => {
         try {
           setLoading(true);
-          const response = await apiClient.get(`/books/search?query=${encodeURIComponent(query)}`, { public: true } as any);
+          const response = await apiClient.get(
+            `/books/search?query=${encodeURIComponent(query)}`,
+            { public: true } as any
+          );
           setBooks(response.data);
         } catch (error) {
           console.error("Failed to fetch search results:", error);
