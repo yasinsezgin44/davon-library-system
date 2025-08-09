@@ -14,5 +14,3 @@ public class ReservationSummary {
     private LocalDateTime reservationDate;
     private String status;
 }
-
-

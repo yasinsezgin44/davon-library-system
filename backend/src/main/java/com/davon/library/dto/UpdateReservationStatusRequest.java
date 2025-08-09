@@ -6,5 +6,3 @@ import lombok.Data;
 public class UpdateReservationStatusRequest {
     private String status;
 }
-
-

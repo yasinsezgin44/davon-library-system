@@ -42,7 +42,7 @@ public class ReservationController {
     }
 
     @GET
-    @RolesAllowed({"ADMIN", "LIBRARIAN"})
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "List all reservations")
     @SecurityRequirement(name = "jwt")
     public List<ReservationSummary> getAllReservations() {
@@ -52,14 +52,13 @@ public class ReservationController {
                         r.getBook().getTitle(),
                         r.getMember().getUser().getFullName(),
                         r.getReservationTime(),
-                        r.getStatus().name()
-                ))
+                        r.getStatus().name()))
                 .collect(Collectors.toList());
     }
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed({"ADMIN", "LIBRARIAN"})
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Update reservation status")
     @SecurityRequirement(name = "jwt")
     public Response updateReservationStatus(@PathParam("id") Long id, UpdateReservationStatusRequest request) {
