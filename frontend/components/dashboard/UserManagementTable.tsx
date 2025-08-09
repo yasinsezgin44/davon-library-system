@@ -2,12 +2,23 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
+
+type UserRow = {
+  id: number;
+  fullName: string;
+  email: string;
+  roles: { name: string }[];
+};
 
 const UserManagementTable = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const { isAuthReady, user } = useAuth();
   // Add states for modals: const [isCreateModalOpen, setCreateModalOpen] = useState(false); etc.
 
   useEffect(() => {
+    if (!isAuthReady) return;
+    if (!user || !user.roles.includes("ADMIN")) return;
     const fetchUsers = async () => {
       try {
         const response = await apiClient.get("/admin/users");
@@ -17,9 +28,9 @@ const UserManagementTable = () => {
       }
     };
     fetchUsers();
-  }, []);
+  }, [isAuthReady, user]);
 
-  const handleCreate = async (userData) => {
+  const handleCreate = async (userData: Partial<UserRow>) => {
     try {
       const response = await apiClient.post("/admin/users", userData);
       setUsers([...users, response.data]);
@@ -28,7 +39,7 @@ const UserManagementTable = () => {
     }
   };
 
-  const handleUpdate = async (id, userData) => {
+  const handleUpdate = async (id: number, userData: Partial<UserRow>) => {
     try {
       const response = await apiClient.put(`/users/${id}`, userData);
       setUsers(users.map((user) => (user.id === id ? response.data : user)));
@@ -37,7 +48,7 @@ const UserManagementTable = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     try {
       await apiClient.delete(`/admin/users/${id}`);
       setUsers(users.filter((user) => user.id !== id));

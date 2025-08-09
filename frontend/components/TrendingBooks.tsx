@@ -4,8 +4,14 @@ import apiClient from "../lib/apiClient";
 import { useAuth } from "../context/AuthContext";
 import BookCard from "./BookCard";
 
+type TrendingBook = {
+  id: number;
+  title: string;
+  authors?: { name: string }[];
+};
+
 const TrendingBooks = () => {
-  const [books, setBooks] = useState([]);
+  const [books, setBooks] = useState<TrendingBook[]>([]);
   const { isAuthReady } = useAuth();
 
   useEffect(() => {
@@ -30,13 +36,9 @@ const TrendingBooks = () => {
         {books.map((book) => (
           <BookCard
             key={book.id}
+            id={book.id}
             title={book.title}
-            author={
-              book.authors && book.authors.length > 0
-                ? book.authors[0].name
-                : "Unknown Author"
-            }
-            // random image url
+            author={book.authors && book.authors.length > 0 ? book.authors[0].name : "Unknown Author"}
             imageUrl={`/images/book${Math.floor(Math.random() * 6) + 1}.jpg`}
           />
         ))}

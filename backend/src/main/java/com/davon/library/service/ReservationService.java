@@ -66,4 +66,15 @@ public class ReservationService {
                 .orElseThrow(() -> new NotFoundException("Member not found"));
         return reservationRepository.findByMember(member);
     }
+
+    public List<Reservation> getAllReservations() {
+        return reservationRepository.listAll();
+    }
+
+    @Transactional
+    public void updateReservationStatus(Long reservationId, ReservationStatus status) {
+        Reservation reservation = reservationRepository.findByIdOptional(reservationId)
+                .orElseThrow(() -> new NotFoundException("Reservation not found"));
+        reservation.setStatus(status);
+    }
 }
