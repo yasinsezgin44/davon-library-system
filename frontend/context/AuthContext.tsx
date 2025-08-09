@@ -65,7 +65,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log("[AuthContext] logout");
   };
 
-  const contextValue = useMemo<AuthContextType>(() => ({ user, login, logout, isAuthReady }), [user, isAuthReady]);
+  const contextValue = useMemo<AuthContextType>(
+    () => ({ user, login, logout, isAuthReady }),
+    [user, isAuthReady]
+  );
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

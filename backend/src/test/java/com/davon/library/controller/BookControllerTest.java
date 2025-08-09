@@ -47,7 +47,29 @@ class BookControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"ADMIN"})
+    @TestSecurity(user = "adminUser", roles = { "ADMIN" })
+    void testGetAllBooks_authorizedAdmin() {
+        when(bookService.getAllBooks()).thenReturn(List.of(book));
+        given()
+                .when().get("/api/books")
+                .then()
+                .statusCode(200)
+                .body("$.size()", is(1))
+                .body("[0].title", is("Test Book"));
+    }
+
+    @Test
+    @TestSecurity(user = "memberUser", roles = { "MEMBER" })
+    void testGetAllBooks_forbiddenNonAdmin() {
+        when(bookService.getAllBooks()).thenReturn(List.of(book));
+        given()
+                .when().get("/api/books")
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    @TestSecurity(user = "testUser", roles = { "ADMIN" })
     void testCreateBook_authorized() {
         when(bookService.createBook(any(Book.class))).thenReturn(book);
         given()
@@ -70,7 +92,7 @@ class BookControllerTest {
     }
 
     @Test
-    @TestSecurity(user = "testUser", roles = {"USER"})
+    @TestSecurity(user = "testUser", roles = { "MEMBER" })
     void testCreateBook_forbidden() {
         given()
                 .contentType(ContentType.JSON)
