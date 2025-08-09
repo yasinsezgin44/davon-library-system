@@ -31,7 +31,7 @@ public class BookController {
 
     @GET
     @Operation(summary = "Get all books")
-    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
+    @PermitAll
     public List<Book> getAllBooks() {
         return bookService.getAllBooks();
     }

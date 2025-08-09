@@ -14,7 +14,9 @@ const BookManagementTable = () => {
     if (!user || !user.roles.includes("ADMIN")) return;
     const fetchBooks = async () => {
       try {
-        const response = await apiClient.get("/books");
+        const response = await apiClient.get("/books", {
+          public: true,
+        } as any);
         setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch books:", error);
