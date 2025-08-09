@@ -1,11 +1,11 @@
+package com.davon.library.service;
+
 import com.davon.library.model.User;
 import com.davon.library.repository.UserRepository;
-import com.davon.library.service.UserService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;

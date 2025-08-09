@@ -1,13 +1,13 @@
+package com.davon.library.service;
+
 import com.davon.library.model.Book;
 import com.davon.library.repository.BookRepository;
 import com.davon.library.repository.BookCopyRepository;
 import com.davon.library.repository.CategoryRepository;
-import com.davon.library.service.BookService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
