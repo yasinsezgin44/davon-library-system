@@ -4,6 +4,7 @@ import com.davon.library.model.Book;
 import com.davon.library.model.Category;
 import com.davon.library.service.BookService;
 import com.davon.library.service.CategoryService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -30,6 +31,7 @@ public class BookController {
 
     @GET
     @Operation(summary = "Get all books")
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     public List<Book> getAllBooks() {
         return bookService.getAllBooks();
     }
@@ -75,6 +77,7 @@ public class BookController {
     @GET
     @Path("/search")
     @Operation(summary = "Search for books")
+    @PermitAll
     public List<Book> searchBooks(@QueryParam("query") String query) {
         return bookService.searchBooks(query);
     }
@@ -82,6 +85,7 @@ public class BookController {
     @GET
     @Path("/trending")
     @Operation(summary = "Get trending books")
+    @PermitAll
     public List<Book> getTrendingBooks() {
         // Placeholder for trending logic
         return bookService.getAllBooks().stream().limit(5).collect(Collectors.toList());
@@ -90,6 +94,7 @@ public class BookController {
     @GET
     @Path("/genres")
     @Operation(summary = "Get all book genres")
+    @PermitAll
     public List<Category> getGenres() {
         return categoryService.getAllCategories();
     }

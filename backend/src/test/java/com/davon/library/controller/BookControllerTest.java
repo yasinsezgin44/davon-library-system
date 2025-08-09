@@ -2,6 +2,7 @@ package com.davon.library.controller;
 
 import com.davon.library.model.Book;
 import com.davon.library.service.BookService;
+import com.davon.library.service.CategoryService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.security.TestSecurity;
@@ -23,6 +24,9 @@ class BookControllerTest {
     @InjectMock
     BookService bookService;
 
+    @InjectMock
+    CategoryService categoryService;
+
     private Book book;
 
     @BeforeEach
@@ -39,9 +43,7 @@ class BookControllerTest {
         given()
                 .when().get("/api/books")
                 .then()
-                .statusCode(200)
-                .body("$.size()", is(1))
-                .body("[0].title", is("Test Book"));
+                .statusCode(401);
     }
 
     @Test
@@ -76,5 +78,34 @@ class BookControllerTest {
                 .when().post("/api/books")
                 .then()
                 .statusCode(403);
+    }
+
+    @Test
+    void testSearchBooks_public() {
+        when(bookService.searchBooks("abc")).thenReturn(List.of(book));
+        given()
+                .when().get("/api/books/search?query=abc")
+                .then()
+                .statusCode(200)
+                .body("$.size()", is(1));
+    }
+
+    @Test
+    void testTrendingBooks_public() {
+        when(bookService.getAllBooks()).thenReturn(List.of(book));
+        given()
+                .when().get("/api/books/trending")
+                .then()
+                .statusCode(200)
+                .body("$.size()", is(1));
+    }
+
+    @Test
+    void testGenres_public() {
+        when(categoryService.getAllCategories()).thenReturn(List.of());
+        given()
+                .when().get("/api/books/genres")
+                .then()
+                .statusCode(200);
     }
 }
