@@ -8,6 +8,7 @@ type TrendingBook = {
   id: number;
   title: string;
   authors?: { name: string }[];
+  coverImage: string;
 };
 
 const TrendingBooks = () => {
@@ -43,7 +44,7 @@ const TrendingBooks = () => {
                 ? book.authors[0].name
                 : "Unknown Author"
             }
-            imageUrl={book.coverImage}
+            imageUrl={book.coverImage || ""}
           />
         ))}
       </div>
