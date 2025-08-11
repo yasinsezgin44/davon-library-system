@@ -24,7 +24,9 @@ const BookDetailPage = () => {
     if (id) {
       const fetchBook = async () => {
         try {
-          const response = await apiClient.get(`/books/${id}`);
+          const response = await apiClient.get(`/books/${id}`, {
+            public: true,
+          } as any);
           setBook(response.data);
         } catch (error) {
           console.error("Failed to fetch book:", error);

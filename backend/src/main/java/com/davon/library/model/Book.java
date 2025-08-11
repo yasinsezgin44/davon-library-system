@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "books")
@@ -43,7 +44,7 @@ public class Book {
     @Column(name = "cover_image", length = 255)
     private String coverImage;
 
-    public String getCoverImage() {
+    public String getCoverImageUrl() {
         return (this.coverImage == null || this.coverImage.isBlank()) ? DEFAULT_IMAGE_URL : this.coverImage;
     }
 
@@ -57,10 +58,17 @@ public class Book {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.EAGER)
     @JoinTable(name = "book_authors", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "author_id"))
     @Builder.Default
     private Set<Author> authors = new HashSet<>();
+
+    public String getAuthor() {
+        if (authors == null || authors.isEmpty()) {
+            return "Unknown Author";
+        }
+        return authors.stream().map(Author::getName).collect(Collectors.joining(", "));
+    }
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

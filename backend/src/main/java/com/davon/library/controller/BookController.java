@@ -39,6 +39,7 @@ public class BookController {
     @GET
     @Path("/{id}")
     @Operation(summary = "Get a book by its ID")
+    @PermitAll
     public Response getBookById(@PathParam("id") Long id) {
         return bookService.getBookById(id)
                 .map(book -> Response.ok(book).build())
@@ -102,6 +103,7 @@ public class BookController {
     @GET
     @Path("/genre/{genreId}")
     @Operation(summary = "Get books by genre")
+    @PermitAll
     public List<Book> getBooksByGenre(@PathParam("genreId") Long genreId) {
         return bookService.getBooksByCategory(genreId);
     }
