@@ -58,14 +58,14 @@ const UserManagementTable = () => {
   };
 
   return (
-    <div className="mt-8">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">User Management</h2>
-        <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="flex justify-between items-center mb-4 px-6 py-4">
+        <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
+        <button className="px-4 py-2 rounded-md font-semibold text-sm bg-green-500 text-white hover:bg-green-600">
           Add New User
         </button>
       </div>
-      <div className="bg-white shadow-md rounded-lg overflow-x-auto">
+      <div className="overflow-x-auto">
         <table className="min-w-full leading-normal">
           <thead>
             <tr>
@@ -102,15 +102,17 @@ const UserManagementTable = () => {
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  <button className="text-indigo-600 hover:text-indigo-900 mr-4">
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(user.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex items-center">
+                    <button className="px-4 py-2 rounded-md font-semibold text-sm bg-indigo-500 text-white hover:bg-indigo-600 mr-2">
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      className="px-4 py-2 rounded-md font-semibold text-sm bg-red-500 text-white hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

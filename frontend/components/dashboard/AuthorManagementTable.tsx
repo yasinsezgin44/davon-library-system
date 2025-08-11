@@ -3,91 +3,90 @@
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
 import { useAuth } from "../../context/AuthContext";
-import CreateBookModal from "./CreateBookModal";
-import UpdateBookModal from "./UpdateBookModal";
+import CreateAuthorModal from "./CreateAuthorModal";
+import UpdateAuthorModal from "./UpdateAuthorModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
-export type Book = {
+export type Author = {
   id: number;
-  title: string;
-  authorName: string;
-  isbn: string;
-  quantity: number;
+  name: string;
 };
 
-const BookManagementTable = () => {
-  const [books, setBooks] = useState<Book[]>([]);
+const AuthorManagementTable = () => {
+  const [authors, setAuthors] = useState<Author[]>([]);
   const { user, isAuthReady } = useAuth();
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
 
   useEffect(() => {
     if (!isAuthReady) return;
     if (!user || !user.roles.includes("ADMIN")) return;
-    const fetchBooks = async () => {
+    const fetchAuthors = async () => {
       try {
-        const response = await apiClient.get("/admin/books");
-        setBooks(response.data);
+        const response = await apiClient.get("/admin/authors");
+        setAuthors(response.data);
       } catch (error) {
-        console.error("Failed to fetch books:", error);
+        console.error("Failed to fetch authors:", error);
       }
     };
-    fetchBooks();
+    fetchAuthors();
   }, [isAuthReady, user]);
 
-  const handleCreate = async (bookData: Partial<Book>) => {
+  const handleCreate = async (authorData: Partial<Author>) => {
     try {
-      const response = await apiClient.post("/admin/books", bookData);
-      setBooks([...books, response.data]);
+      const response = await apiClient.post("/admin/authors", authorData);
+      setAuthors([...authors, response.data]);
       setCreateModalOpen(false);
     } catch (error) {
-      console.error("Failed to create book:", error);
+      console.error("Failed to create author:", error);
     }
   };
 
-  const handleUpdate = async (id: number, bookData: Partial<Book>) => {
+  const handleUpdate = async (id: number, authorData: Partial<Author>) => {
     try {
-      const response = await apiClient.put(`/admin/books/${id}`, bookData);
-      setBooks(books.map((book) => (book.id === id ? response.data : book)));
+      const response = await apiClient.put(`/admin/authors/${id}`, authorData);
+      setAuthors(
+        authors.map((author) => (author.id === id ? response.data : author))
+      );
       setUpdateModalOpen(false);
-      setSelectedBook(null);
+      setSelectedAuthor(null);
     } catch (error) {
-      console.error("Failed to update book:", error);
+      console.error("Failed to update author:", error);
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/admin/books/${id}`);
-      setBooks(books.filter((book) => book.id !== id));
+      await apiClient.delete(`/admin/authors/${id}`);
+      setAuthors(authors.filter((author) => author.id !== id));
       setDeleteModalOpen(false);
-      setSelectedBook(null);
+      setSelectedAuthor(null);
     } catch (error) {
-      console.error("Failed to delete book:", error);
+      console.error("Failed to delete author:", error);
     }
   };
 
-  const openUpdateModal = (book: Book) => {
-    setSelectedBook(book);
+  const openUpdateModal = (author: Author) => {
+    setSelectedAuthor(author);
     setUpdateModalOpen(true);
   };
 
-  const openDeleteModal = (book: Book) => {
-    setSelectedBook(book);
+  const openDeleteModal = (author: Author) => {
+    setSelectedAuthor(author);
     setDeleteModalOpen(true);
   };
 
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <div className="flex justify-between items-center mb-4 px-6 py-4">
-        <h2 className="text-2xl font-bold text-gray-800">Book Management</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Author Management</h2>
         <button
           onClick={() => setCreateModalOpen(true)}
           className="px-4 py-2 rounded-md font-semibold text-sm bg-green-500 text-white hover:bg-green-600"
         >
-          Add New Book
+          Add New Author
         </button>
       </div>
       <div className="overflow-x-auto">
@@ -95,16 +94,7 @@ const BookManagementTable = () => {
           <thead>
             <tr>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Title
-              </th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Author
-              </th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                ISBN
-              </th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Stock
+                Name
               </th>
               <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Actions
@@ -112,38 +102,23 @@ const BookManagementTable = () => {
             </tr>
           </thead>
           <tbody>
-            {books.map((book) => (
-              <tr key={book.id}>
+            {authors.map((author) => (
+              <tr key={author.id}>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">
-                    {book.title}
-                  </p>
-                </td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  <p className="text-gray-900 whitespace-no-wrap">
-                    {book.authorName}
-                  </p>
-                </td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  <p className="text-gray-900 whitespace-no-wrap">
-                    {book.isbn}
-                  </p>
-                </td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                  <p className="text-gray-900 whitespace-no-wrap">
-                    {book.quantity}
+                    {author.name}
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <div className="flex items-center">
                     <button
-                      onClick={() => openUpdateModal(book)}
+                      onClick={() => openUpdateModal(author)}
                       className="px-4 py-2 rounded-md font-semibold text-sm bg-indigo-500 text-white hover:bg-indigo-600 mr-2"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => openDeleteModal(book)}
+                      onClick={() => openDeleteModal(author)}
                       className="px-4 py-2 rounded-md font-semibold text-sm bg-red-500 text-white hover:bg-red-600"
                     >
                       Delete
@@ -155,35 +130,35 @@ const BookManagementTable = () => {
           </tbody>
         </table>
       </div>
-      <CreateBookModal
+      <CreateAuthorModal
         isOpen={isCreateModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreate={handleCreate}
       />
-      <UpdateBookModal
+      <UpdateAuthorModal
         isOpen={isUpdateModalOpen}
         onClose={() => {
           setUpdateModalOpen(false);
-          setSelectedBook(null);
+          setSelectedAuthor(null);
         }}
         onUpdate={handleUpdate}
-        book={selectedBook}
+        author={selectedAuthor}
       />
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
           setDeleteModalOpen(false);
-          setSelectedBook(null);
+          setSelectedAuthor(null);
         }}
         onConfirm={() => {
-          if (selectedBook) {
-            handleDelete(selectedBook.id);
+          if (selectedAuthor) {
+            handleDelete(selectedAuthor.id);
           }
         }}
-        itemName={selectedBook ? selectedBook.title : ""}
+        itemName={selectedAuthor ? selectedAuthor.name : ""}
       />
     </div>
   );
 };
 
-export default BookManagementTable;
+export default AuthorManagementTable;

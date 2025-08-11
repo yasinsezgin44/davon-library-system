@@ -4,6 +4,7 @@ import { useAuth } from "../../../context/AuthContext";
 import BookManagementTable from "../../../components/dashboard/BookManagementTable";
 import UserManagementTable from "../../../components/dashboard/UserManagementTable";
 import ReservationsOverview from "../../../components/dashboard/ReservationsOverview";
+import AuthorManagementTable from "../../../components/dashboard/AuthorManagementTable";
 
 const AdminDashboardPage = () => {
   const { user } = useAuth();
@@ -21,9 +22,12 @@ const AdminDashboardPage = () => {
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       <p className="mb-8">Welcome, {user.username}!</p>
 
-      <BookManagementTable />
-      <UserManagementTable />
-      <ReservationsOverview />
+      <div className="space-y-12">
+        <BookManagementTable />
+        <AuthorManagementTable />
+        <UserManagementTable />
+        <ReservationsOverview />
+      </div>
     </div>
   );
 };

@@ -30,27 +30,45 @@ const ReservationsOverview = () => {
   }, [isAuthReady]);
 
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-bold mb-4">Reservations Overview</h2>
+    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="flex justify-between items-center mb-4 px-6 py-4">
+        <h2 className="text-2xl font-bold text-gray-800">
+          Reservations Overview
+        </h2>
+      </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
+        <table className="min-w-full leading-normal">
           <thead>
             <tr>
-              <th className="py-2 px-4 border-b">Book Title</th>
-              <th className="py-2 px-4 border-b">User Name</th>
-              <th className="py-2 px-4 border-b">Reservation Date</th>
-              <th className="py-2 px-4 border-b">Status</th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Book Title
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                User Name
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Reservation Date
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody>
             {reservations.map((reservation) => (
               <tr key={reservation.id}>
-                <td className="py-2 px-4 border-b">{reservation.bookTitle}</td>
-                <td className="py-2 px-4 border-b">{reservation.userName}</td>
-                <td className="py-2 px-4 border-b">
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  {reservation.bookTitle}
+                </td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  {reservation.userName}
+                </td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   {new Date(reservation.reservationDate).toLocaleDateString()}
                 </td>
-                <td className="py-2 px-4 border-b">{reservation.status}</td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  {reservation.status}
+                </td>
               </tr>
             ))}
           </tbody>
