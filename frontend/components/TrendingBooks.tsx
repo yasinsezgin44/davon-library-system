@@ -7,8 +7,8 @@ import BookCard from "./BookCard";
 type TrendingBook = {
   id: number;
   title: string;
-  authors?: { name: string }[];
-  coverImage: string;
+  author: string;
+  coverImageUrl: string;
 };
 
 const TrendingBooks = () => {
@@ -39,12 +39,8 @@ const TrendingBooks = () => {
             key={book.id}
             id={book.id}
             title={book.title}
-            author={
-              book.authors && book.authors.length > 0
-                ? book.authors[0].name
-                : "Unknown Author"
-            }
-            imageUrl={book.coverImage || ""}
+            author={book.author}
+            imageUrl={book.coverImageUrl || ""}
           />
         ))}
       </div>

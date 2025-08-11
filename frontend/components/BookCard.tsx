@@ -11,12 +11,14 @@ type BookCardProps = {
 const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
   const placeholderImage = "/images/default_book_image.jpeg";
 
-  const imageSrc =
-    imageUrl && imageUrl.trim() !== ""
-      ? imageUrl.startsWith("http")
-        ? imageUrl
-        : `http://localhost:8083${imageUrl}`
-      : placeholderImage;
+  let imageSrc = placeholderImage;
+  if (imageUrl && imageUrl.trim() !== "") {
+    if (imageUrl.startsWith("http")) {
+      imageSrc = imageUrl;
+    } else {
+      imageSrc = `http://localhost:8083${imageUrl}`;
+    }
+  }
 
   return (
     <Link href={`/books/${id}`}>
@@ -31,7 +33,7 @@ const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
         </div>
         <div className="p-4 flex-grow">
           <h3 className="text-lg font-bold">{title}</h3>
-          <p className="text-gray-600">{author}</p>
+          <p className="text-gray-400">{author}</p>
         </div>
       </div>
     </Link>

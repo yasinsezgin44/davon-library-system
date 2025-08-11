@@ -57,22 +57,16 @@ const SearchPage = () => {
     }
   }, [query, isAuthReady, categoryId]);
 
-  const getTitle = () => {
-    if (query) {
-      return `Search Results for "${query}"`;
-    }
-    if (categoryName) {
-      return `Books in category: "${categoryName}"`;
-    }
-    if (categoryId) {
-      return "Books in category";
-    }
-    return "Search Results";
-  };
+  let title = "Search Results";
+  if (query) {
+    title = `Search Results for "${query}"`;
+  } else if (categoryName) {
+    title = `Books in category: "${categoryName}"`;
+  }
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">{getTitle()}</h1>
+      <h1 className="text-3xl font-bold mb-6">{title}</h1>
       {loading ? (
         <p>Loading...</p>
       ) : (
