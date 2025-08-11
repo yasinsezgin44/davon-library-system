@@ -23,39 +23,35 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthReady) return;
-
-    const fetchBooks = async () => {
+    const executeSearch = async () => {
+      if (!isAuthReady) return;
+      setLoading(true);
       try {
-        setLoading(true);
-        let response;
+        const params = new URLSearchParams();
         if (query) {
-          response = await apiClient.get(
-            `/books/search?query=${encodeURIComponent(query)}`,
-            { public: true } as any
-          );
+          params.append("query", query);
         } else if (categoryId) {
-          response = await apiClient.get(`/books/genre/${categoryId}`, {
-            public: true,
-          } as any);
+          params.append("categoryId", categoryId);
         }
-        if (response) {
+
+        if (params.toString()) {
+          const response = await apiClient.get(
+            `/books/search?${params.toString()}`
+          );
           setBooks(response.data);
+        } else {
+          setBooks([]);
         }
       } catch (error) {
         console.error("Failed to fetch search results:", error);
+        setBooks([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (query || categoryId) {
-      fetchBooks();
-    } else {
-      setBooks([]);
-      setLoading(false);
-    }
-  }, [query, isAuthReady, categoryId]);
+    executeSearch();
+  }, [query, categoryId, isAuthReady]);
 
   let title = "Search Results";
   if (query) {

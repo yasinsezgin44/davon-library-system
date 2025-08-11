@@ -13,16 +13,16 @@ const CategoryScroller = () => {
 
   useEffect(() => {
     if (!isAuthReady) return;
+
     const fetchCategories = async () => {
       try {
-        const response = await apiClient.get("/books/genres", {
-          public: true,
-        } as any);
+        const response = await apiClient.get("/books/genres");
         setCategories(response.data);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
       }
     };
+
     fetchCategories();
   }, [isAuthReady]);
 

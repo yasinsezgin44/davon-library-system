@@ -14,35 +14,51 @@ if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_API_BASE_URL) {
 
 apiClient.interceptors.request.use(
   (config) => {
+    // We only attach the token on the client-side
     if (typeof window !== 'undefined') {
-      // Allow callers to explicitly mark a request as public (no Authorization header)
-      // Usage: apiClient.get('/books/trending', { public: true })
-      if ((config as any).public === true) {
-        if (config.headers) {
-          delete (config.headers as any).Authorization;
-        }
-        return config;
-      }
       const token = localStorage.getItem('token');
+      // eslint-disable-next-line no-console
+      console.log('[apiClient] Intercepting request', {
+        url: config.url,
+        hasToken: !!token,
+        headers: config.headers,
+      });
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-      // Trace outgoing requests for debugging auth header presence
-      try {
-        const authHeader = (config.headers && (config.headers as any).Authorization) as string | undefined;
-        // eslint-disable-next-line no-console
-        console.log('[apiClient] Request', {
-          baseURL,
-          url: config.url,
-          method: config.method,
-          hasAuth: Boolean(authHeader),
-          tokenPrefix: authHeader ? authHeader.substring(0, 16) + '…' : null,
-        });
-      } catch {}
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    // eslint-disable-next-line no-console
+    console.error('[apiClient] Request error', {
+      message: error.message,
+      config: error.config,
+    });
+    return Promise.reject(error);
+  }
+);
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // eslint-disable-next-line no-console
+    console.error('[apiClient] Response error', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    if (error.response?.status === 401) {
+      // eslint-disable-next-line no-console
+      console.log('[apiClient] Unauthorized, clearing token');
+      localStorage.removeItem('token');
+      // Optionally, redirect to login page
+      // if (typeof window !== 'undefined') {
+      //   window.location.href = '/login';
+      // }
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default apiClient;

@@ -6,6 +6,7 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useCallback,
   ReactNode,
 } from "react";
 import apiClient from "../lib/apiClient";
@@ -30,47 +31,64 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("[AuthContext] Initializing auth state...");
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (token) {
-      console.log("[AuthContext] Token found in localStorage:", token);
-      apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
-      setUser({ username: decoded.sub ?? "", roles: decoded.groups });
+      try {
+        // eslint-disable-next-line no-console
+        console.log("[AuthContext] Token found, decoding...");
+        const decoded = jwtDecode<
+          JwtPayload & { upn: string; groups: string[] }
+        >(token);
+        setUser({ username: decoded.upn, roles: decoded.groups });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("[AuthContext] Failed to decode token on init", e);
+        localStorage.removeItem("token");
+      }
     }
     // eslint-disable-next-line no-console
-    console.log("[AuthContext] initialized", { hasToken: Boolean(token) });
+    console.log("[AuthContext] Auth state ready", { hasToken: !!token });
     setIsAuthReady(true);
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
+    // eslint-disable-next-line no-console
+    console.log("[AuthContext] Attempting login...");
     const response = await apiClient.post("/auth/login", {
       username,
       password,
     });
-    const { token, role } = response.data;
-    console.log("[AuthContext] Token received from login:", token);
+    const { token } = response.data;
     localStorage.setItem("token", token);
-    apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
-    const roles = decoded.groups || (role ? [role] : []);
-    setUser({ username: decoded.sub ?? "", roles });
+    const decoded = jwtDecode<JwtPayload & { upn: string; groups: string[] }>(
+      token
+    );
+    const roles = decoded.groups ?? [];
+    setUser({ username: decoded.upn, roles });
     // eslint-disable-next-line no-console
-    console.log("[AuthContext] login success", { roles });
-  };
+    console.log("[AuthContext] Login successful", { username: decoded.upn });
+  }, []);
 
-  const logout = () => {
-    console.log("[AuthContext] Removing token from localStorage");
-    localStorage.removeItem("token");
-    delete apiClient.defaults.headers.common["Authorization"];
-    setUser(null);
+  const logout = useCallback(() => {
     // eslint-disable-next-line no-console
-    console.log("[AuthContext] logout");
-  };
+    console.log("[AuthContext] Logging out...");
+    setUser(null);
+    localStorage.removeItem("token");
+    // eslint-disable-next-line no-console
+    console.log("[AuthContext] Logout complete");
+  }, []);
 
   const contextValue = useMemo<AuthContextType>(
-    () => ({ user, login, logout, isAuthReady }),
-    [user, isAuthReady]
+    () => ({
+      user,
+      login,
+      logout,
+      isAuthReady,
+    }),
+    [user, login, logout, isAuthReady]
   );
 
   return (
