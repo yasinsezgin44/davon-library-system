@@ -1,5 +1,6 @@
 package com.davon.library.controller;
 
+import com.davon.library.model.Author;
 import com.davon.library.model.Book;
 import com.davon.library.service.BookService;
 import com.davon.library.service.CategoryService;
@@ -12,10 +13,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
@@ -35,6 +38,11 @@ class BookControllerTest {
         book.setId(1L);
         book.setTitle("Test Book");
         book.setIsbn("1234567890");
+
+        Author author = new Author();
+        author.setId(1L);
+        author.setName("Test Author");
+        book.setAuthors(Set.of(author));
     }
 
     @Test
@@ -110,6 +118,17 @@ class BookControllerTest {
                 .then()
                 .statusCode(200)
                 .body("$.size()", is(1));
+    }
+
+    @Test
+    void testSearchBooks_byAuthor() {
+        when(bookService.searchBooks(anyString())).thenReturn(List.of(book));
+        given()
+                .when().get("/api/books/search?query=Test Author")
+                .then()
+                .statusCode(200)
+                .body("$.size()", is(1))
+                .body("[0].title", is("Test Book"));
     }
 
     @Test

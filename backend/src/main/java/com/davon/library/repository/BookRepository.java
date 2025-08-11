@@ -34,7 +34,11 @@ public class BookRepository implements PanacheRepository<Book> {
     }
 
     public List<Book> search(String query) {
-        return list("LOWER(title) LIKE :query OR LOWER(isbn) LIKE :query OR authors.name LIKE :query",
-                Parameters.with("query", "%" + query.toLowerCase() + "%"));
+        String searchPattern = "%" + query.toLowerCase() + "%";
+        return find("SELECT b from Book b LEFT JOIN b.authors a WHERE " +
+                "LOWER(b.title) LIKE :query OR " +
+                "LOWER(b.isbn) LIKE :query OR " +
+                "LOWER(a.name) LIKE :query",
+                Parameters.with("query", searchPattern)).list();
     }
 }
