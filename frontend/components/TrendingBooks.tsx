@@ -40,7 +40,7 @@ const TrendingBooks = () => {
             id={book.id}
             title={book.title}
             author={book.author}
-            imageUrl={book.coverImageUrl || ""}
+            imageUrl={book.coverImageUrl || "/images/default_book_image.jpeg"}
           />
         ))}
       </div>

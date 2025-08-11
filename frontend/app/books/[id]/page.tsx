@@ -40,12 +40,23 @@ const BookDetailPage = () => {
     return <p>Loading...</p>;
   }
 
+  const placeholderImage = "/images/default_book_image.jpeg";
+
+  let imageSrc = placeholderImage;
+  if (book.coverImageUrl && book.coverImageUrl.trim() !== "") {
+    if (book.coverImageUrl.startsWith("http")) {
+      imageSrc = book.coverImageUrl;
+    } else {
+      imageSrc = `http://localhost:8083${book.coverImageUrl}`;
+    }
+  }
+
   return (
     <div className="container mx-auto py-10">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-1">
           <Image
-            src={book.coverImageUrl}
+            src={imageSrc}
             alt={book.title}
             width={400}
             height={600}
