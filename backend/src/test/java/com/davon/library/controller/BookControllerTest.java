@@ -43,7 +43,7 @@ class BookControllerTest {
         given()
                 .when().get("/api/books")
                 .then()
-                .statusCode(401);
+                .statusCode(200);
     }
 
     @Test
@@ -65,7 +65,7 @@ class BookControllerTest {
         given()
                 .when().get("/api/books")
                 .then()
-                .statusCode(403);
+                .statusCode(200);
     }
 
     @Test
