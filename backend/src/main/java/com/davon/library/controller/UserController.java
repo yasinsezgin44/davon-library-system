@@ -1,16 +1,21 @@
 package com.davon.library.controller;
 
-import com.davon.library.model.*;
+import com.davon.library.dto.UserRequestDTO;
+import com.davon.library.dto.UserResponseDTO;
+import com.davon.library.mapper.UserMapper;
+import com.davon.library.model.User;
 import com.davon.library.service.UserService;
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Path("/api/users")
 @Produces(MediaType.APPLICATION_JSON)
@@ -30,22 +35,27 @@ public class UserController {
         } else {
             users = userService.searchUsers(filter);
         }
-        return Response.ok(users).build();
+        List<UserResponseDTO> userResponseDTOS = users.stream()
+                .map(UserMapper::toResponseDTO)
+                .collect(Collectors.toList());
+        return Response.ok(userResponseDTOS).build();
     }
 
     @POST
     @Operation(summary = "Create new user", description = "Add a new user to the system")
-    public Response createUser(User userData) {
-        User newUser = userService.createUser(userData);
-        return Response.status(Response.Status.CREATED).entity(newUser).build();
+    public Response createUser(@Valid UserRequestDTO userData) {
+        User newUser = UserMapper.toEntity(userData);
+        User createdUser = userService.createUser(newUser);
+        return Response.status(Response.Status.CREATED).entity(UserMapper.toResponseDTO(createdUser)).build();
     }
 
     @PUT
     @Path("/{id}")
     @Operation(summary = "Update user", description = "Update an existing user")
-    public Response updateUser(@PathParam("id") Long id, User userData) {
-        User updatedUser = userService.updateUser(id, userData);
-        return Response.ok(updatedUser).build();
+    public Response updateUser(@PathParam("id") Long id, @Valid UserRequestDTO userData) {
+        User userToUpdate = UserMapper.toEntity(userData);
+        User updatedUser = userService.updateUser(id, userToUpdate);
+        return Response.ok(UserMapper.toResponseDTO(updatedUser)).build();
     }
 
     @DELETE
@@ -61,7 +71,7 @@ public class UserController {
     @Operation(summary = "Get user by ID", description = "Retrieve a specific user by their ID")
     public Response getUserById(@PathParam("id") Long id) {
         User user = userService.findById(id);
-        return Response.ok(user).build();
+        return Response.ok(UserMapper.toResponseDTO(user)).build();
     }
 
     @GET
@@ -69,7 +79,10 @@ public class UserController {
     @Operation(summary = "Search users", description = "Search for users by various criteria")
     public Response searchUsers(@QueryParam("q") String query) {
         List<User> users = userService.searchUsers(query != null ? query : "");
-        return Response.ok(users).build();
+        List<UserResponseDTO> userResponseDTOS = users.stream()
+                .map(UserMapper::toResponseDTO)
+                .collect(Collectors.toList());
+        return Response.ok(userResponseDTOS).build();
     }
 
     @GET
