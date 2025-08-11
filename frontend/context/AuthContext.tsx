@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (token) {
+      apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
       setUser({ username: decoded.sub ?? "", roles: decoded.groups });
     }
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     const { token, role } = response.data;
     localStorage.setItem("token", token);
+    apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
     const roles = decoded.groups || (role ? [role] : []);
     setUser({ username: decoded.sub ?? "", roles });
@@ -57,6 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
+    delete apiClient.defaults.headers.common["Authorization"];
     setUser(null);
     // eslint-disable-next-line no-console
     console.log("[AuthContext] logout");
