@@ -12,6 +12,15 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
+  const handleDropdownClick = () => {
+    setDropdownOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleDropdownClick();
+  };
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -86,17 +95,19 @@ const Navbar = () => {
                       return "/";
                     })()}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={handleDropdownClick}
                   >
                     Dashboard
                   </Link>
                   <Link
                     href="/profile"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={handleDropdownClick}
                   >
                     Profile
                   </Link>
                   <button
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Logout
