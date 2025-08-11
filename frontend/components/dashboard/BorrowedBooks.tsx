@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient.ts";
+import apiClient from "../../lib/apiClient";
 
 const BorrowedBooks = () => {
   const [books, setBooks] = useState([]);
