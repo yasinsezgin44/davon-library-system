@@ -1,13 +1,14 @@
 package com.davon.library.controller;
 
-import com.davon.library.dto.ReservationRequest;
-import com.davon.library.dto.ReservationSummary;
-import com.davon.library.dto.UpdateReservationStatusRequest;
+import com.davon.library.dto.ReservationRequestDTO;
+import com.davon.library.dto.ReservationResponseDTO;
+import com.davon.library.mapper.ReservationMapper;
 import com.davon.library.model.Reservation;
 import com.davon.library.model.enums.ReservationStatus;
 import com.davon.library.service.ReservationService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -33,26 +34,21 @@ public class ReservationController {
     @RolesAllowed("MEMBER")
     @Operation(summary = "Reserve a book")
     @SecurityRequirement(name = "jwt")
-    public Response reserveBook(ReservationRequest request, @Context SecurityContext securityContext) {
+    public Response reserveBook(@Valid ReservationRequestDTO request, @Context SecurityContext securityContext) {
         // In a real application, you would get the member ID from the security context
         // For now, we will use a hardcoded value for demonstration purposes
         Long memberId = 1L;
-        Reservation reservation = reservationService.createReservation(memberId, request.getBookId());
-        return Response.status(Response.Status.CREATED).entity(reservation).build();
+        Reservation reservation = reservationService.createReservation(memberId, request.bookId());
+        return Response.status(Response.Status.CREATED).entity(ReservationMapper.toResponseDTO(reservation)).build();
     }
 
     @GET
     @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "List all reservations")
     @SecurityRequirement(name = "jwt")
-    public List<ReservationSummary> getAllReservations() {
+    public List<ReservationResponseDTO> getAllReservations() {
         return reservationService.getAllReservations().stream()
-                .map(r -> new ReservationSummary(
-                        r.getId(),
-                        r.getBook().getTitle(),
-                        r.getMember().getUser().getFullName(),
-                        r.getReservationTime(),
-                        r.getStatus().name()))
+                .map(ReservationMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -61,9 +57,8 @@ public class ReservationController {
     @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Update reservation status")
     @SecurityRequirement(name = "jwt")
-    public Response updateReservationStatus(@PathParam("id") Long id, UpdateReservationStatusRequest request) {
-        ReservationStatus newStatus = ReservationStatus.valueOf(request.getStatus());
-        reservationService.updateReservationStatus(id, newStatus);
+    public Response updateReservationStatus(@PathParam("id") Long id, @Valid ReservationRequestDTO request) {
+        reservationService.updateReservationStatus(id, request.status());
         return Response.noContent().build();
     }
 }
