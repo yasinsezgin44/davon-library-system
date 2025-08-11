@@ -7,12 +7,17 @@ import CreateBookModal from "./CreateBookModal";
 import UpdateBookModal from "./UpdateBookModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
+export type Author = {
+  id: number;
+  name: string;
+};
+
 export type Book = {
   id: number;
   title: string;
-  authorName: string;
+  authors: Author[];
   isbn: string;
-  quantity: number;
+  quantity: number; // This will be derived or fetched separately
 };
 
 const BookManagementTable = () => {
@@ -29,7 +34,13 @@ const BookManagementTable = () => {
     const fetchBooks = async () => {
       try {
         const response = await apiClient.get("/books");
-        setBooks(response.data);
+        // The backend now returns BookResponseDTO, we need to adapt it
+        const adaptedBooks = response.data.map((book: any) => ({
+          ...book,
+          authors: book.authors || [],
+          quantity: book.copies?.length || 0, // Assuming 'copies' is available
+        }));
+        setBooks(adaptedBooks);
       } catch (error) {
         console.error("Failed to fetch books:", error);
       }
@@ -37,20 +48,45 @@ const BookManagementTable = () => {
     fetchBooks();
   }, [isAuthReady, user]);
 
-  const handleCreate = async (bookData: Partial<Book>) => {
+  const handleCreate = async (
+    bookData: Omit<Book, "id" | "quantity" | "authors"> & {
+      authorIds: number[];
+      publisherId: number;
+      categoryId: number;
+    }
+  ) => {
     try {
       const response = await apiClient.post("/books", bookData);
-      setBooks([...books, response.data]);
+      const newBook = {
+        ...response.data,
+        authors: response.data.authors || [],
+        quantity: response.data.copies?.length || 0,
+      };
+      setBooks([...books, newBook]);
       setCreateModalOpen(false);
     } catch (error) {
       console.error("Failed to create book:", error);
     }
   };
 
-  const handleUpdate = async (id: number, bookData: Partial<Book>) => {
+  const handleUpdate = async (
+    id: number,
+    bookData: Partial<
+      Omit<Book, "id" | "quantity" | "authors"> & {
+        authorIds: number[];
+        publisherId: number;
+        categoryId: number;
+      }
+    >
+  ) => {
     try {
       const response = await apiClient.put(`/books/${id}`, bookData);
-      setBooks(books.map((book) => (book.id === id ? response.data : book)));
+      const updatedBook = {
+        ...response.data,
+        authors: response.data.authors || [],
+        quantity: response.data.copies?.length || 0,
+      };
+      setBooks(books.map((book) => (book.id === id ? updatedBook : book)));
       setUpdateModalOpen(false);
       setSelectedBook(null);
     } catch (error) {
@@ -121,7 +157,7 @@ const BookManagementTable = () => {
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                   <p className="text-gray-900 whitespace-no-wrap">
-                    {book.authorName}
+                    {book.authors.map((author) => author.name).join(", ")}
                   </p>
                 </td>
                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">

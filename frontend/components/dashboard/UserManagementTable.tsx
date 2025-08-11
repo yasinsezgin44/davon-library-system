@@ -4,11 +4,17 @@ import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
 import { useAuth } from "../../context/AuthContext";
 
+type Role = {
+  id: number;
+  name: string;
+  description: string;
+};
+
 type UserRow = {
   id: number;
   fullName: string;
   email: string;
-  roles: { name: string }[];
+  roles: Role[];
 };
 
 const UserManagementTable = () => {
@@ -30,7 +36,12 @@ const UserManagementTable = () => {
     fetchUsers();
   }, [isAuthReady, user]);
 
-  const handleCreate = async (userData: Partial<UserRow>) => {
+  const handleCreate = async (
+    userData: Omit<UserRow, "id" | "roles"> & {
+      password: string;
+      username: string;
+    }
+  ) => {
     try {
       const response = await apiClient.post("/users", userData);
       setUsers([...users, response.data]);
