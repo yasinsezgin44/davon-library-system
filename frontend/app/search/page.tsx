@@ -16,36 +16,63 @@ interface Book {
 const SearchPage = () => {
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
+  const categoryId = searchParams.get("categoryId");
+  const categoryName = searchParams.get("categoryName");
   const [books, setBooks] = useState<Book[]>([]);
   const { isAuthReady } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthReady) return;
-    if (query) {
-      const fetchBooks = async () => {
-        try {
-          setLoading(true);
-          const response = await apiClient.get(
+
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+        let response;
+        if (query) {
+          response = await apiClient.get(
             `/books/search?query=${encodeURIComponent(query)}`,
             { public: true } as any
           );
-          setBooks(response.data);
-        } catch (error) {
-          console.error("Failed to fetch search results:", error);
-        } finally {
-          setLoading(false);
+        } else if (categoryId) {
+          response = await apiClient.get(`/books/genre/${categoryId}`, {
+            public: true,
+          } as any);
         }
-      };
+        if (response) {
+          setBooks(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch search results:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (query || categoryId) {
       fetchBooks();
     } else {
       setBooks([]);
+      setLoading(false);
     }
-  }, [query, isAuthReady]);
+  }, [query, isAuthReady, categoryId]);
+
+  const getTitle = () => {
+    if (query) {
+      return `Search Results for "${query}"`;
+    }
+    if (categoryName) {
+      return `Books in category: "${categoryName}"`;
+    }
+    if (categoryId) {
+      return "Books in category";
+    }
+    return "Search Results";
+  };
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Search Results for "{query}"</h1>
+      <h1 className="text-3xl font-bold mb-6">{getTitle()}</h1>
       {loading ? (
         <p>Loading...</p>
       ) : (
