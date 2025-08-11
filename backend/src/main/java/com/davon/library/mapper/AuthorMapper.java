@@ -15,7 +15,6 @@ public class AuthorMapper {
                 author.getBiography(),
                 author.getBirthDate(),
                 author.getCreatedAt(),
-                author.getUpdatedAt()
-        );
+                author.getUpdatedAt());
     }
 }
