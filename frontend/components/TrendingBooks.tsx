@@ -43,7 +43,7 @@ const TrendingBooks = () => {
                 ? book.authors[0].name
                 : "Unknown Author"
             }
-            imageUrl={`/images/default_book_image.jpeg`}
+            imageUrl={book.coverImage}
           />
         ))}
       </div>

@@ -9,12 +9,15 @@ type BookCardProps = {
 };
 
 const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
+  const imageSrc = imageUrl.startsWith("http")
+    ? imageUrl
+    : `http://localhost:8080${imageUrl}`;
   return (
     <Link href={`/books/${id}`}>
       <div className="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer h-full flex flex-col">
         <div className="relative w-full h-64">
           <Image
-            src={imageUrl}
+            src={imageSrc}
             alt={`Cover of ${title}`}
             layout="fill"
             objectFit="cover"

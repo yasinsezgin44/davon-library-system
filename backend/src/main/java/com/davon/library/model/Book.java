@@ -19,8 +19,10 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-@ToString(exclude = {"authors", "copies"})
+@ToString(exclude = { "authors", "copies" })
 public class Book {
+
+    private static final String DEFAULT_IMAGE_URL = "/images/default_book_image.jpeg";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +43,10 @@ public class Book {
     @Column(name = "cover_image", length = 255)
     private String coverImage;
 
+    public String getCoverImage() {
+        return (this.coverImage == null || this.coverImage.isBlank()) ? DEFAULT_IMAGE_URL : this.coverImage;
+    }
+
     private Integer pages;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,9 +58,7 @@ public class Book {
     private Category category;
 
     @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JoinTable(name = "book_authors",
-               joinColumns = @JoinColumn(name = "book_id"),
-               inverseJoinColumns = @JoinColumn(name = "author_id"))
+    @JoinTable(name = "book_authors", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "author_id"))
     @Builder.Default
     private Set<Author> authors = new HashSet<>();
 
