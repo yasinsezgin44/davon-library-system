@@ -40,9 +40,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // eslint-disable-next-line no-console
         console.log("[AuthContext] Token found, decoding...");
         const decoded = jwtDecode<
-          JwtPayload & { upn: string; groups: string[] }
+          JwtPayload & { sub: string; groups: string[] }
         >(token);
-        setUser({ username: decoded.upn, roles: decoded.groups });
+        setUser({ username: decoded.sub, roles: decoded.groups });
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error("[AuthContext] Failed to decode token on init", e);
@@ -63,13 +63,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     const { token } = response.data;
     localStorage.setItem("token", token);
-    const decoded = jwtDecode<JwtPayload & { upn: string; groups: string[] }>(
+    const decoded = jwtDecode<JwtPayload & { sub: string; groups: string[] }>(
       token
     );
     const roles = decoded.groups ?? [];
-    setUser({ username: decoded.upn, roles });
+    setUser({ username: decoded.sub, roles });
     // eslint-disable-next-line no-console
-    console.log("[AuthContext] Login successful", { username: decoded.upn });
+    console.log("[AuthContext] Login successful", { username: decoded.sub });
   }, []);
 
   const logout = useCallback(() => {

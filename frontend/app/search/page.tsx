@@ -27,21 +27,19 @@ const SearchPage = () => {
       if (!isAuthReady) return;
       setLoading(true);
       try {
-        const params = new URLSearchParams();
-        if (query) {
-          params.append("query", query);
-        } else if (categoryId) {
-          params.append("categoryId", categoryId);
-        }
-
-        if (params.toString()) {
-          const response = await apiClient.get(
-            `/books/search?${params.toString()}`
+        let response;
+        if (categoryId) {
+          response = await apiClient.get(`/books/genre/${categoryId}`);
+        } else if (query) {
+          response = await apiClient.get(
+            `/books/search?query=${encodeURIComponent(query)}`
           );
-          setBooks(response.data);
         } else {
           setBooks([]);
+          setLoading(false);
+          return;
         }
+        setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch search results:", error);
         setBooks([]);
@@ -50,7 +48,12 @@ const SearchPage = () => {
       }
     };
 
-    executeSearch();
+    if (query || categoryId) {
+      executeSearch();
+    } else {
+      setBooks([]);
+      setLoading(false);
+    }
   }, [query, categoryId, isAuthReady]);
 
   let title = "Search Results";
