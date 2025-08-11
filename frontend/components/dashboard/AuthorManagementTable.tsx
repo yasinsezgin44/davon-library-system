@@ -25,7 +25,7 @@ const AuthorManagementTable = () => {
     if (!user || !user.roles.includes("ADMIN")) return;
     const fetchAuthors = async () => {
       try {
-        const response = await apiClient.get("/admin/authors");
+        const response = await apiClient.get("/authors");
         setAuthors(response.data);
       } catch (error) {
         console.error("Failed to fetch authors:", error);
@@ -36,7 +36,7 @@ const AuthorManagementTable = () => {
 
   const handleCreate = async (authorData: Partial<Author>) => {
     try {
-      const response = await apiClient.post("/admin/authors", authorData);
+      const response = await apiClient.post("/authors", authorData);
       setAuthors([...authors, response.data]);
       setCreateModalOpen(false);
     } catch (error) {
@@ -46,7 +46,7 @@ const AuthorManagementTable = () => {
 
   const handleUpdate = async (id: number, authorData: Partial<Author>) => {
     try {
-      const response = await apiClient.put(`/admin/authors/${id}`, authorData);
+      const response = await apiClient.put(`/authors/${id}`, authorData);
       setAuthors(
         authors.map((author) => (author.id === id ? response.data : author))
       );
@@ -59,7 +59,7 @@ const AuthorManagementTable = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/admin/authors/${id}`);
+      await apiClient.delete(`/authors/${id}`);
       setAuthors(authors.filter((author) => author.id !== id));
       setDeleteModalOpen(false);
       setSelectedAuthor(null);

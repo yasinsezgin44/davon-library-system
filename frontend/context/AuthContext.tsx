@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (token) {
+      console.log("[AuthContext] Token found in localStorage:", token);
       apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
       setUser({ username: decoded.sub ?? "", roles: decoded.groups });
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password,
     });
     const { token, role } = response.data;
+    console.log("[AuthContext] Token received from login:", token);
     localStorage.setItem("token", token);
     apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     const decoded = jwtDecode<JwtPayload & { groups: string[] }>(token);
@@ -58,6 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
+    console.log("[AuthContext] Removing token from localStorage");
     localStorage.removeItem("token");
     delete apiClient.defaults.headers.common["Authorization"];
     setUser(null);

@@ -21,7 +21,7 @@ const UserManagementTable = () => {
     if (!user || !user.roles.includes("ADMIN")) return;
     const fetchUsers = async () => {
       try {
-        const response = await apiClient.get("/admin/users");
+        const response = await apiClient.get("/users");
         setUsers(response.data);
       } catch (error) {
         console.error("Failed to fetch users:", error);
@@ -32,7 +32,7 @@ const UserManagementTable = () => {
 
   const handleCreate = async (userData: Partial<UserRow>) => {
     try {
-      const response = await apiClient.post("/admin/users", userData);
+      const response = await apiClient.post("/users", userData);
       setUsers([...users, response.data]);
     } catch (error) {
       console.error("Failed to create user:", error);
@@ -50,7 +50,7 @@ const UserManagementTable = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/admin/users/${id}`);
+      await apiClient.delete(`/users/${id}`);
       setUsers(users.filter((user) => user.id !== id));
     } catch (error) {
       console.error("Failed to delete user:", error);

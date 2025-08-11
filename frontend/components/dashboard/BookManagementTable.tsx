@@ -28,7 +28,7 @@ const BookManagementTable = () => {
     if (!user || !user.roles.includes("ADMIN")) return;
     const fetchBooks = async () => {
       try {
-        const response = await apiClient.get("/admin/books");
+        const response = await apiClient.get("/books");
         setBooks(response.data);
       } catch (error) {
         console.error("Failed to fetch books:", error);
@@ -39,7 +39,7 @@ const BookManagementTable = () => {
 
   const handleCreate = async (bookData: Partial<Book>) => {
     try {
-      const response = await apiClient.post("/admin/books", bookData);
+      const response = await apiClient.post("/books", bookData);
       setBooks([...books, response.data]);
       setCreateModalOpen(false);
     } catch (error) {
@@ -49,7 +49,7 @@ const BookManagementTable = () => {
 
   const handleUpdate = async (id: number, bookData: Partial<Book>) => {
     try {
-      const response = await apiClient.put(`/admin/books/${id}`, bookData);
+      const response = await apiClient.put(`/books/${id}`, bookData);
       setBooks(books.map((book) => (book.id === id ? response.data : book)));
       setUpdateModalOpen(false);
       setSelectedBook(null);
@@ -60,7 +60,7 @@ const BookManagementTable = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/admin/books/${id}`);
+      await apiClient.delete(`/books/${id}`);
       setBooks(books.filter((book) => book.id !== id));
       setDeleteModalOpen(false);
       setSelectedBook(null);

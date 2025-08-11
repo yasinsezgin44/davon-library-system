@@ -20,7 +20,7 @@ const ReservationsOverview = () => {
     if (!isAuthReady) return;
     const fetchReservations = async () => {
       try {
-        const response = await apiClient.get("/reservations");
+        const response = await apiClient.get("/admin/reservations");
         setReservations(response.data);
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
