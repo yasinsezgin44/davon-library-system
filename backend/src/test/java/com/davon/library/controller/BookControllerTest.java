@@ -1,5 +1,8 @@
 package com.davon.library.controller;
 
+import com.davon.library.dto.BookRequestDTO;
+import com.davon.library.dto.BookResponseDTO;
+import com.davon.library.mapper.BookMapper;
 import com.davon.library.model.Author;
 import com.davon.library.model.Book;
 import com.davon.library.service.BookService;
@@ -8,12 +11,17 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -31,18 +39,30 @@ class BookControllerTest {
     CategoryService categoryService;
 
     private Book book;
+    private MockedStatic<BookMapper> bookMapperMockedStatic;
 
     @BeforeEach
     void setUp() {
         book = new Book();
         book.setId(1L);
         book.setTitle("Test Book");
-        book.setIsbn("1234567890");
+        book.setIsbn("1234567890123");
 
         Author author = new Author();
         author.setId(1L);
         author.setName("Test Author");
         book.setAuthors(Set.of(author));
+
+        BookResponseDTO responseDTO = new BookResponseDTO(1L, "Test Book", "1234567890123", 2023, "Description", "url", 100, null, null, Collections.emptySet(), null, null);
+
+        bookMapperMockedStatic = Mockito.mockStatic(BookMapper.class);
+        bookMapperMockedStatic.when(() -> BookMapper.toResponseDTO(any(Book.class))).thenReturn(responseDTO);
+        bookMapperMockedStatic.when(() -> BookMapper.toEntity(any(BookRequestDTO.class))).thenReturn(book);
+    }
+
+    @AfterEach
+    void tearDown() {
+        bookMapperMockedStatic.close();
     }
 
     @Test
@@ -80,9 +100,12 @@ class BookControllerTest {
     @TestSecurity(user = "testUser", roles = { "ADMIN" })
     void testCreateBook_authorized() {
         when(bookService.createBook(any(Book.class))).thenReturn(book);
+
+        BookRequestDTO request = new BookRequestDTO("Test Book", "1234567890123", 2023, "Description", "url", 100, 1L, 1L, Collections.emptySet());
+
         given()
                 .contentType(ContentType.JSON)
-                .body(book)
+                .body(request)
                 .when().post("/api/books")
                 .then()
                 .statusCode(201)
@@ -91,9 +114,10 @@ class BookControllerTest {
 
     @Test
     void testCreateBook_unauthorized() {
+        BookRequestDTO request = new BookRequestDTO("Test Book", "1234567890123", 2023, "Description", "url", 100, 1L, 1L, Collections.emptySet());
         given()
                 .contentType(ContentType.JSON)
-                .body(book)
+                .body(request)
                 .when().post("/api/books")
                 .then()
                 .statusCode(401);
@@ -102,9 +126,10 @@ class BookControllerTest {
     @Test
     @TestSecurity(user = "testUser", roles = { "MEMBER" })
     void testCreateBook_forbidden() {
+        BookRequestDTO request = new BookRequestDTO("Test Book", "1234567890123", 2023, "Description", "url", 100, 1L, 1L, Collections.emptySet());
         given()
                 .contentType(ContentType.JSON)
-                .body(book)
+                .body(request)
                 .when().post("/api/books")
                 .then()
                 .statusCode(403);
