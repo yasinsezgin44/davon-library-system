@@ -11,7 +11,7 @@ type BookCardProps = {
 const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
   return (
     <Link href={`/books/${id}`}>
-      <div className="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+      <div className="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer h-full flex flex-col">
         <div className="relative w-full h-64">
           <Image
             src={imageUrl}
@@ -20,7 +20,7 @@ const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
             objectFit="cover"
           />
         </div>
-        <div className="p-4">
+        <div className="p-4 flex-grow">
           <h3 className="text-lg font-bold">{title}</h3>
           <p className="text-gray-600">{author}</p>
         </div>
