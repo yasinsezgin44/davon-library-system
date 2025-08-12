@@ -22,7 +22,7 @@ export default function LoginPage() {
       if (res.ok) {
         const data = await res.json();
         // Redirect to dashboard or home page
-        router.push("/dashboard/member");
+        window.location.href = "/dashboard/member";
       } else {
         const errorData = await res.json();
         setError(errorData.message || "Login failed");
