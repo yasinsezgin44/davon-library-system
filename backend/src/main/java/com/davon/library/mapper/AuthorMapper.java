@@ -1,20 +1,31 @@
 package com.davon.library.mapper;
 
-import com.davon.library.dto.AuthorResponseDTO;
+import com.davon.library.dto.AuthorDTO;
 import com.davon.library.model.Author;
 
 public class AuthorMapper {
 
-    public static AuthorResponseDTO toResponseDTO(Author author) {
+    public static AuthorDTO toDTO(Author author) {
         if (author == null) {
             return null;
         }
-        return new AuthorResponseDTO(
+        return new AuthorDTO(
                 author.getId(),
                 author.getName(),
                 author.getBiography(),
-                author.getBirthDate(),
-                author.getCreatedAt(),
-                author.getUpdatedAt());
+                author.getDateOfBirth()
+        );
+    }
+
+    public static Author toEntity(AuthorDTO authorDTO) {
+        if (authorDTO == null) {
+            return null;
+        }
+        Author author = new Author();
+        author.setId(authorDTO.id);
+        author.setName(authorDTO.name);
+        author.setBiography(authorDTO.biography);
+        author.setDateOfBirth(authorDTO.dateOfBirth);
+        return author;
     }
 }
