@@ -3,7 +3,7 @@ import axios from 'axios';
 const baseURL = `${process.env.NEXT_PUBLIC_API_BASE_URL || ''}/api`;
 
 const apiClient = axios.create({
-  baseURL,
+  baseURL: "http://localhost:8083/api",
 });
 
 // Warn early if API base URL isn't configured
