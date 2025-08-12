@@ -9,10 +9,12 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { username, password } = body;
 
+  console.log("Login attempt with:", { username, password });
+
   // In a real application, you would validate the username and password against a database.
-  if (username === "admin" && password === "admin") {
+  if (username === "admin_user" && password === "password123") {
     const user = {
-      username: "admin",
+      username: "admin_user",
       roles: ["admin"],
     };
 

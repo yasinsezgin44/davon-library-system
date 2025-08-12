@@ -3,7 +3,6 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import apiClient from "../../lib/apiClient";
-import { useAuth } from "../../context/AuthContext";
 import BookCard from "../../components/BookCard";
 
 interface Book {
@@ -19,12 +18,10 @@ const SearchPage = () => {
   const categoryId = searchParams.get("categoryId");
   const categoryName = searchParams.get("categoryName");
   const [books, setBooks] = useState<Book[]>([]);
-  const { isAuthReady } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const executeSearch = async () => {
-      if (!isAuthReady) return;
       setLoading(true);
       try {
         let response;
@@ -54,7 +51,7 @@ const SearchPage = () => {
       setBooks([]);
       setLoading(false);
     }
-  }, [query, categoryId, isAuthReady]);
+  }, [query, categoryId]);
 
   let title = "Search Results";
   if (query) {
