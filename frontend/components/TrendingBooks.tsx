@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import apiClient from "../lib/apiClient";
-import { useAuth } from "../context/AuthContext";
 import BookCard from "./BookCard";
 
 type TrendingBook = {
@@ -13,10 +12,8 @@ type TrendingBook = {
 
 const TrendingBooks = () => {
   const [books, setBooks] = useState<TrendingBook[]>([]);
-  const { isAuthReady } = useAuth();
 
   useEffect(() => {
-    if (!isAuthReady) return;
     const fetchTrendingBooks = async () => {
       try {
         const response = await apiClient.get("/books/trending");
@@ -26,7 +23,7 @@ const TrendingBooks = () => {
       }
     };
     fetchTrendingBooks();
-  }, [isAuthReady]);
+  }, []);
 
   return (
     <div className="py-8">

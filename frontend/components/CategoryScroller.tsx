@@ -1,19 +1,15 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import apiClient from "../lib/apiClient";
-import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 
 type Category = { id: number; name: string };
 
 const CategoryScroller = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const { isAuthReady } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthReady) return;
-
     const fetchCategories = async () => {
       try {
         const response = await apiClient.get("/books/genres");
@@ -24,7 +20,7 @@ const CategoryScroller = () => {
     };
 
     fetchCategories();
-  }, [isAuthReady]);
+  }, []);
 
   const handleCategoryClick = (category: Category) => {
     router.push(
