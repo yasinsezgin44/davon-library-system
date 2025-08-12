@@ -7,11 +7,9 @@ const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        window.location.href = "/auth/login";
-      }
-    }
+    // We no longer force a redirect here.
+    // The middleware is responsible for protecting pages.
+    // Components should handle API errors gracefully.
     return Promise.reject(error);
   }
 );
