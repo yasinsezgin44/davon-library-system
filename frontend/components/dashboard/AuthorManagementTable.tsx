@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
-import { useAuth } from "../../context/AuthContext";
 import CreateAuthorModal from "./CreateAuthorModal";
 import UpdateAuthorModal from "./UpdateAuthorModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -14,7 +13,6 @@ export type Author = {
 
 const AuthorManagementTable = () => {
   const [authors, setAuthors] = useState<Author[]>([]);
-  const { isAuthReady } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
@@ -22,8 +20,6 @@ const AuthorManagementTable = () => {
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
 
   useEffect(() => {
-    if (!isAuthReady) return;
-
     const fetchAuthors = async () => {
       setLoading(true);
       try {
@@ -37,7 +33,7 @@ const AuthorManagementTable = () => {
     };
 
     fetchAuthors();
-  }, [isAuthReady]);
+  }, []);
 
   const handleCreate = async (authorData: Partial<Author>) => {
     try {

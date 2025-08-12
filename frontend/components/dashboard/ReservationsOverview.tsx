@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
-import { useAuth } from "../../context/AuthContext";
 
 interface Reservation {
   id: number;
@@ -14,11 +13,9 @@ interface Reservation {
 
 const ReservationsOverview = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const { isAuthReady } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthReady) return;
     const fetchReservations = async () => {
       setLoading(true);
       try {
@@ -31,7 +28,7 @@ const ReservationsOverview = () => {
       }
     };
     fetchReservations();
-  }, [isAuthReady]);
+  }, []);
 
   if (loading) {
     return (

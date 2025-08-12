@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
-import { useAuth } from "../../context/AuthContext";
 
 type Role = {
   id: number;
@@ -19,13 +18,10 @@ type UserRow = {
 
 const UserManagementTable = () => {
   const [users, setUsers] = useState<UserRow[]>([]);
-  const { isAuthReady } = useAuth();
   const [loading, setLoading] = useState(true);
   // Add states for modals: const [isCreateModalOpen, setCreateModalOpen] = useState(false); etc.
 
   useEffect(() => {
-    if (!isAuthReady) return;
-
     const fetchUsers = async () => {
       setLoading(true);
       try {
@@ -39,7 +35,7 @@ const UserManagementTable = () => {
     };
 
     fetchUsers();
-  }, [isAuthReady]);
+  }, []);
 
   const handleCreate = async (
     userData: Omit<UserRow, "id" | "roles"> & {

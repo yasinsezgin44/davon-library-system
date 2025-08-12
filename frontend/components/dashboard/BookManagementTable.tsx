@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
-import { useAuth } from "../../context/AuthContext";
 import CreateBookModal from "./CreateBookModal";
 import UpdateBookModal from "./UpdateBookModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -22,7 +21,6 @@ export type Book = {
 
 const BookManagementTable = () => {
   const [books, setBooks] = useState<Book[]>([]);
-  const { isAuthReady } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
@@ -30,8 +28,6 @@ const BookManagementTable = () => {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
   useEffect(() => {
-    if (!isAuthReady) return;
-
     const fetchBooks = async () => {
       setLoading(true);
       try {
@@ -50,7 +46,7 @@ const BookManagementTable = () => {
     };
 
     fetchBooks();
-  }, [isAuthReady]);
+  }, []);
 
   const handleCreate = async (
     bookData: Omit<Book, "id" | "quantity" | "authors"> & {
