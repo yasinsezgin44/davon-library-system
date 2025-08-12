@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Book } from "./BookManagementTable";
+import { Book, Author } from "./BookManagementTable";
+import apiClient from "../../lib/apiClient";
+
+interface Publisher {
+  id: number;
+  name: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+}
 
 interface UpdateBookModalProps {
   isOpen: boolean;
@@ -27,28 +38,69 @@ const UpdateBookModal = ({
 }: UpdateBookModalProps) => {
   const [title, setTitle] = useState("");
   const [isbn, setIsbn] = useState("");
-  const [authorIds, setAuthorIds] = useState<number[]>([]);
+  const [selectedAuthors, setSelectedAuthors] = useState<number[]>([]);
   const [publisherId, setPublisherId] = useState<number | "">("");
   const [categoryId, setCategoryId] = useState<number | "">("");
+  const [allAuthors, setAllAuthors] = useState<Author[]>([]);
+  const [allPublishers, setAllPublishers] = useState<Publisher[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const [authorsRes, publishersRes, categoriesRes] = await Promise.all([
+          apiClient.get("/authors"),
+          apiClient.get("/publishers"),
+          apiClient.get("/categories"),
+        ]);
+        setAllAuthors(authorsRes.data);
+        setAllPublishers(publishersRes.data);
+        setAllCategories(categoriesRes.data);
+      } catch (error) {
+        console.error("Failed to fetch dropdown data:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchDropdownData();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (book) {
       setTitle(book.title);
       setIsbn(book.isbn);
-      setAuthorIds(book.authors.map((author) => author.id));
+      setSelectedAuthors(book.authors.map((author) => author.id));
+      // Assuming book has publisher and category IDs
+      // setPublisherId(book.publisherId);
+      // setCategoryId(book.categoryId);
     }
   }, [book]);
 
+  const handleAuthorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) =>
+      Number(option.value)
+    );
+    setSelectedAuthors(selectedOptions);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (book && publisherId !== "" && categoryId !== "") {
+    if (
+      book &&
+      publisherId !== "" &&
+      categoryId !== "" &&
+      selectedAuthors.length > 0
+    ) {
       onUpdate(book.id, {
         title,
         isbn,
-        authorIds,
+        authorIds: selectedAuthors,
         publisherId: Number(publisherId),
         categoryId: Number(categoryId),
       });
+    } else {
+      alert("Please fill all fields and select at least one author.");
     }
   };
 
@@ -66,7 +118,7 @@ const UpdateBookModal = ({
               <div className="mb-4">
                 <label
                   htmlFor="title"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 text-left"
                 >
                   Title
                 </label>
@@ -82,7 +134,7 @@ const UpdateBookModal = ({
               <div className="mb-4">
                 <label
                   htmlFor="isbn"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 text-left"
                 >
                   ISBN
                 </label>
@@ -97,55 +149,73 @@ const UpdateBookModal = ({
               </div>
               <div className="mb-4">
                 <label
-                  htmlFor="authorIds"
-                  className="block text-sm font-medium text-gray-700"
+                  htmlFor="authors"
+                  className="block text-sm font-medium text-gray-700 text-left"
                 >
-                  Author IDs (comma-separated)
+                  Authors
                 </label>
-                <input
-                  type="text"
-                  name="authorIds"
-                  id="authorIds"
-                  value={authorIds.join(",")}
-                  onChange={(e) =>
-                    setAuthorIds(
-                      e.target.value.split(",").map((id) => Number(id.trim()))
-                    )
-                  }
+                <select
+                  multiple
+                  name="authors"
+                  id="authors"
+                  value={selectedAuthors.map(String)}
+                  onChange={handleAuthorChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
+                >
+                  {allAuthors.map((author) => (
+                    <option key={author.id} value={author.id}>
+                      {author.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="mb-4">
                 <label
                   htmlFor="publisherId"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 text-left"
                 >
-                  Publisher ID
+                  Publisher
                 </label>
-                <input
-                  type="number"
+                <select
                   name="publisherId"
                   id="publisherId"
                   value={publisherId}
                   onChange={(e) => setPublisherId(Number(e.target.value))}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
+                >
+                  <option value="" disabled>
+                    Select a publisher
+                  </option>
+                  {allPublishers.map((publisher) => (
+                    <option key={publisher.id} value={publisher.id}>
+                      {publisher.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="mb-4">
                 <label
                   htmlFor="categoryId"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 text-left"
                 >
-                  Category ID
+                  Category
                 </label>
-                <input
-                  type="number"
+                <select
                   name="categoryId"
                   id="categoryId"
                   value={categoryId}
                   onChange={(e) => setCategoryId(Number(e.target.value))}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
+                >
+                  <option value="" disabled>
+                    Select a category
+                  </option>
+                  {allCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="items-center px-4 py-3 sm:flex sm:flex-row-reverse">
