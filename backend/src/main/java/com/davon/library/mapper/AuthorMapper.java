@@ -13,8 +13,7 @@ public class AuthorMapper {
                 author.getId(),
                 author.getName(),
                 author.getBiography(),
-                author.getDateOfBirth()
-        );
+                author.getBirthDate());
     }
 
     public static Author toEntity(AuthorDTO authorDTO) {
@@ -25,7 +24,7 @@ public class AuthorMapper {
         author.setId(authorDTO.id);
         author.setName(authorDTO.name);
         author.setBiography(authorDTO.biography);
-        author.setDateOfBirth(authorDTO.dateOfBirth);
+        author.setBirthDate(authorDTO.dateOfBirth);
         return author;
     }
 }

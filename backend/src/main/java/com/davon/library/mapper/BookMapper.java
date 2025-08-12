@@ -51,21 +51,24 @@ public class BookMapper {
         if (book == null) {
             return null;
         }
+
         return new BookResponseDTO(
                 book.getId(),
                 book.getTitle(),
                 book.getIsbn(),
-                book.getPublicationYear(),
                 book.getDescription(),
-                book.getCoverImageUrl(),
+                book.getPublicationYear(),
                 book.getPages(),
-                PublisherMapper.toResponseDTO(book.getPublisher()),
-                CategoryMapper.toResponseDTO(book.getCategory()),
+                book.getCoverImageUrl(),
+                PublisherMapper.toDTO(book.getPublisher()),
+                CategoryMapper.toDTO(book.getCategory()),
                 book.getAuthors().stream()
-                        .map(AuthorMapper::toResponseDTO)
-                        .collect(Collectors.toSet()),
+                        .map(AuthorMapper::toDTO)
+                        .collect(Collectors.toList()),
+                book.getCopies().stream()
+                        .map(BookCopyMapper::toResponseDTO)
+                        .collect(Collectors.toList()),
                 book.getCreatedAt(),
-                book.getUpdatedAt()
-        );
+                book.getUpdatedAt());
     }
 }

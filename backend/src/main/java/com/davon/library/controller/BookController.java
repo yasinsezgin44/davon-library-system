@@ -21,6 +21,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import com.davon.library.dto.CategoryDTO;
 
 @Path("/api/books")
 @Produces(MediaType.APPLICATION_JSON)
@@ -108,9 +109,9 @@ public class BookController {
     @Path("/genres")
     @Operation(summary = "Get all book genres")
     @PermitAll
-    public List<CategoryResponseDTO> getGenres() {
+    public List<CategoryDTO> getGenres() {
         return categoryService.getAllCategories().stream()
-                .map(CategoryMapper::toResponseDTO)
+                .map(CategoryMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
