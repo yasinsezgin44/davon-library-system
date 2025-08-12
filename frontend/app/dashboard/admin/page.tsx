@@ -7,17 +7,9 @@ import ReservationsOverview from "../../../components/dashboard/ReservationsOver
 import AuthorManagementTable from "../../../components/dashboard/AuthorManagementTable";
 
 const AdminDashboardPage = () => {
-  const { user, isAuthReady } = useAuth();
+  const { user } = useAuth();
 
-  if (!isAuthReady) {
-    return (
-      <div className="text-center py-10">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  if (!user || !user.roles.includes("ADMIN")) {
+  if (!user || !user.roles.includes("admin")) {
     return (
       <div className="text-center py-10">
         <p>You must be a logged-in admin to view this page.</p>
