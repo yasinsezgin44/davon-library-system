@@ -90,8 +90,8 @@ const Navbar = () => {
                   <Link
                     href={(() => {
                       const role = user?.roles?.[0];
-                      if (role === "ADMIN") return "/dashboard/admin";
-                      if (role === "LIBRARIAN") return "/dashboard/librarian";
+                      if (role === "admin") return "/dashboard/admin";
+                      if (role === "librarian") return "/dashboard/librarian";
                       return "/";
                     })()}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

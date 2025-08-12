@@ -8,10 +8,10 @@ import ReadingHistory from "../../../components/dashboard/ReadingHistory";
 const MemberDashboardPage = () => {
   const { user } = useAuth();
 
-  if (!user || !user.roles.includes("MEMBER")) {
+  if (!user) {
     return (
       <div className="text-center py-10">
-        <p>You must be a logged-in member to view this page.</p>
+        <p>You must be logged in to view this page.</p>
       </div>
     );
   }
