@@ -9,7 +9,7 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import apiClient from "../lib/apiClient";
+import apiClient, { setAuthToken } from "../lib/apiClient";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 
 interface User {
@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         // eslint-disable-next-line no-console
         console.log("[AuthContext] Token found, decoding...");
+        setAuthToken(token);
         const decoded = jwtDecode<
           JwtPayload & { sub: string; groups: string[] }
         >(token);
@@ -47,6 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // eslint-disable-next-line no-console
         console.error("[AuthContext] Failed to decode token on init", e);
         localStorage.removeItem("token");
+        setAuthToken(null);
       }
     }
     // eslint-disable-next-line no-console
@@ -63,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     const { token } = response.data;
     localStorage.setItem("token", token);
+    setAuthToken(token);
     const decoded = jwtDecode<JwtPayload & { sub: string; groups: string[] }>(
       token
     );
@@ -77,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log("[AuthContext] Logging out...");
     setUser(null);
     localStorage.removeItem("token");
+    setAuthToken(null);
     // eslint-disable-next-line no-console
     console.log("[AuthContext] Logout complete");
   }, []);

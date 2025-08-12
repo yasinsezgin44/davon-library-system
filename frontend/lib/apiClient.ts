@@ -1,10 +1,16 @@
 import axios from 'axios';
 
-const baseURL = `${process.env.NEXT_PUBLIC_API_BASE_URL || ''}/api`;
-
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL || ''}/api`,
 });
+
+export const setAuthToken = (token: string | null) => {
+  if (token) {
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete apiClient.defaults.headers.common['Authorization'];
+  }
+};
 
 // Warn early if API base URL isn't configured
 if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_API_BASE_URL) {
@@ -23,9 +29,6 @@ apiClient.interceptors.request.use(
         hasToken: !!token,
         headers: config.headers,
       });
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
     }
     return config;
   },
