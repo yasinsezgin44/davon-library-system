@@ -15,19 +15,31 @@ interface Reservation {
 const ReservationsOverview = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const { isAuthReady } = useAuth();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthReady) return;
     const fetchReservations = async () => {
+      setLoading(true);
       try {
         const response = await apiClient.get("/reservations");
         setReservations(response.data);
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchReservations();
   }, [isAuthReady]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-10">
+        <p>Loading reservations...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">

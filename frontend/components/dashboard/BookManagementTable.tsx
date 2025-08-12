@@ -22,7 +22,8 @@ export type Book = {
 
 const BookManagementTable = () => {
   const [books, setBooks] = useState<Book[]>([]);
-  const { user, isAuthReady } = useAuth();
+  const { isAuthReady } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -30,23 +31,26 @@ const BookManagementTable = () => {
 
   useEffect(() => {
     if (!isAuthReady) return;
-    if (!user || !user.roles.includes("ADMIN")) return;
+
     const fetchBooks = async () => {
+      setLoading(true);
       try {
         const response = await apiClient.get("/books");
-        // The backend now returns BookResponseDTO, we need to adapt it
         const adaptedBooks = response.data.map((book: any) => ({
           ...book,
           authors: book.authors || [],
-          quantity: book.copies?.length || 0, // Assuming 'copies' is available
+          quantity: book.copies?.length || 0,
         }));
         setBooks(adaptedBooks);
       } catch (error) {
         console.error("Failed to fetch books:", error);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchBooks();
-  }, [isAuthReady, user]);
+  }, [isAuthReady]);
 
   const handleCreate = async (
     bookData: Omit<Book, "id" | "quantity" | "authors"> & {
@@ -114,6 +118,14 @@ const BookManagementTable = () => {
     setSelectedBook(book);
     setDeleteModalOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-10">
+        <p>Loading books...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">

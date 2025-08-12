@@ -14,7 +14,8 @@ export type Author = {
 
 const AuthorManagementTable = () => {
   const [authors, setAuthors] = useState<Author[]>([]);
-  const { user, isAuthReady } = useAuth();
+  const { isAuthReady } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -22,17 +23,21 @@ const AuthorManagementTable = () => {
 
   useEffect(() => {
     if (!isAuthReady) return;
-    if (!user || !user.roles.includes("ADMIN")) return;
+
     const fetchAuthors = async () => {
+      setLoading(true);
       try {
         const response = await apiClient.get("/authors");
         setAuthors(response.data);
       } catch (error) {
         console.error("Failed to fetch authors:", error);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchAuthors();
-  }, [isAuthReady, user]);
+  }, [isAuthReady]);
 
   const handleCreate = async (authorData: Partial<Author>) => {
     try {
@@ -77,6 +82,14 @@ const AuthorManagementTable = () => {
     setSelectedAuthor(author);
     setDeleteModalOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-10">
+        <p>Loading authors...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
