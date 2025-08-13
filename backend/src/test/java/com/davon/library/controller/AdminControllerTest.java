@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.doNothing;
@@ -36,26 +37,6 @@ class AdminControllerTest {
 
     @InjectMock
     UserService userService;
-
-    @Inject
-    UserRepository userRepository;
-
-    @BeforeEach
-    @Transactional
-    public void setUp() {
-        User user = new User();
-        user.setUsername("newuser");
-        user.setPasswordHash(BcryptUtil.bcryptHash("password"));
-        user.setFullName("New User");
-        user.setEmail("newuser@example.com");
-        userRepository.persist(user);
-    }
-
-    @AfterEach
-    @Transactional
-    public void tearDown() {
-        userRepository.delete("username", "newuser");
-    }
 
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
@@ -104,11 +85,10 @@ class AdminControllerTest {
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testDeleteUserEndpoint() {
-        User user = userRepository.findByUsername("newuser").orElseThrow();
-        doNothing().when(adminService).deleteUser(user.getId());
+        doNothing().when(adminService).deleteUser(1L);
         given()
                 .when()
-                .delete("/api/admin/users/" + user.getId())
+                .delete("/api/admin/users/1")
                 .then()
                 .statusCode(204);
     }
