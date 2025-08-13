@@ -5,7 +5,7 @@ import com.davon.library.repository.BookRepository;
 import com.davon.library.repository.BookCopyRepository;
 import com.davon.library.repository.CategoryRepository;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 

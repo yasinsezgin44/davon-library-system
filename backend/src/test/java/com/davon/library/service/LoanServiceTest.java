@@ -13,7 +13,7 @@ import com.davon.library.repository.FineRepository;
 import com.davon.library.repository.LoanRepository;
 import com.davon.library.repository.MemberRepository;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;

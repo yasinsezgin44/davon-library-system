@@ -6,7 +6,7 @@ import com.davon.library.model.enums.CopyStatus;
 import com.davon.library.repository.BookCopyRepository;
 import com.davon.library.repository.BookRepository;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;

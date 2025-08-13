@@ -3,7 +3,7 @@ package com.davon.library.service;
 import com.davon.library.model.Author;
 import com.davon.library.repository.AuthorRepository;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 

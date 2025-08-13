@@ -4,7 +4,7 @@ import com.davon.library.model.User;
 import com.davon.library.repository.UserRepository;
 import io.quarkus.elytron.security.common.BcryptUtil;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotAuthorizedException;
 import org.junit.jupiter.api.BeforeEach;

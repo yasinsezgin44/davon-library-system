@@ -3,7 +3,7 @@ package com.davon.library.service;
 import com.davon.library.model.User;
 import com.davon.library.repository.UserRepository;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 

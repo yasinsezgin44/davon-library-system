@@ -5,7 +5,7 @@ import com.davon.library.model.enums.ReservationStatus;
 import com.davon.library.service.ReservationService;
 import com.davon.library.service.UserService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 import com.davon.library.model.User;

@@ -4,7 +4,7 @@ import com.davon.library.dto.ProfileUpdateRequest;
 import com.davon.library.model.User;
 import com.davon.library.service.UserService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;

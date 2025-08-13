@@ -5,7 +5,7 @@ import com.davon.library.model.Transaction;
 import com.davon.library.model.enums.TransactionType;
 import com.davon.library.repository.TransactionRepository;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

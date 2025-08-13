@@ -4,7 +4,7 @@ import com.davon.library.dto.UserCreateRequest;
 import com.davon.library.service.AdminService;
 import com.davon.library.service.UserService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 import com.davon.library.model.User;
@@ -32,82 +32,82 @@ import static org.mockito.Mockito.doNothing;
 @QuarkusTest
 class AdminControllerTest {
 
-    @InjectMock
-    AdminService adminService;
+        @InjectMock
+        AdminService adminService;
 
-    @InjectMock
-    UserService userService;
+        @InjectMock
+        UserService userService;
 
-    @Test
-    @TestSecurity(user = "admin", roles = { "ADMIN" })
-    void testCreateUserEndpoint() {
-        UserCreateRequest request = new UserCreateRequest("anotheruser", "password", "Another User",
-                "anotheruser@example.com", "MEMBER");
+        @Test
+        @TestSecurity(user = "admin", roles = { "ADMIN" })
+        void testCreateUserEndpoint() {
+                UserCreateRequest request = new UserCreateRequest("anotheruser", "password", "Another User",
+                                "anotheruser@example.com", "MEMBER");
 
-        UserRequestDTO userRequestDTO = new UserRequestDTO(
-                request.getUsername(),
-                request.getPassword(),
-                request.getFullName(),
-                request.getEmail(),
-                null,
-                true,
-                UserStatus.ACTIVE
-        );
+                UserRequestDTO userRequestDTO = new UserRequestDTO(
+                                request.getUsername(),
+                                request.getPassword(),
+                                request.getFullName(),
+                                request.getEmail(),
+                                null,
+                                true,
+                                UserStatus.ACTIVE);
 
-        User user = UserMapper.toEntity(userRequestDTO);
+                User user = UserMapper.toEntity(userRequestDTO);
 
-        when(adminService.createUserWithRole(any(User.class), anyString())).thenReturn(user);
+                when(adminService.createUserWithRole(any(User.class), anyString())).thenReturn(user);
 
-        given()
-                .contentType("application/json")
-                .body(request)
-                .when()
-                .post("/api/admin/users")
-                .then()
-                .statusCode(201)
-                .body("username", is("anotheruser"))
-                .body("fullName", is("Another User"))
-                .body("email", is("anotheruser@example.com"));
-    }
+                given()
+                                .contentType("application/json")
+                                .body(request)
+                                .when()
+                                .post("/api/admin/users")
+                                .then()
+                                .statusCode(201)
+                                .body("username", is("anotheruser"))
+                                .body("fullName", is("Another User"))
+                                .body("email", is("anotheruser@example.com"));
+        }
 
-    @Test
-    @TestSecurity(user = "admin", roles = { "ADMIN" })
-    void testGetAllUsersEndpoint() {
-        when(userService.getAllUsers()).thenReturn(java.util.Collections.emptyList());
-        given()
-                .when()
-                .get("/api/admin/users")
-                .then()
-                .statusCode(200)
-                .body(is(notNullValue()));
-    }
+        @Test
+        @TestSecurity(user = "admin", roles = { "ADMIN" })
+        void testGetAllUsersEndpoint() {
+                when(userService.getAllUsers()).thenReturn(java.util.Collections.emptyList());
+                given()
+                                .when()
+                                .get("/api/admin/users")
+                                .then()
+                                .statusCode(200)
+                                .body(is(notNullValue()));
+        }
 
-    @Test
-    @TestSecurity(user = "admin", roles = { "ADMIN" })
-    void testDeleteUserEndpoint() {
-        doNothing().when(adminService).deleteUser(1L);
-        given()
-                .when()
-                .delete("/api/admin/users/1")
-                .then()
-                .statusCode(204);
-    }
+        @Test
+        @TestSecurity(user = "admin", roles = { "ADMIN" })
+        void testDeleteUserEndpoint() {
+                doNothing().when(adminService).deleteUser(1L);
+                given()
+                                .when()
+                                .delete("/api/admin/users/1")
+                                .then()
+                                .statusCode(204);
+        }
 
-    @Test
-    @TestSecurity(user = "admin", roles = { "ADMIN" })
-    void testAssignRoleToUserEndpoint() {
-        User user = new User();
-        user.setId(1L);
-        Role role = new Role();
-        role.setName("LIBRARIAN");
-        user.setRoles(new java.util.HashSet<>(java.util.Collections.singletonList(role)));
+        @Test
+        @TestSecurity(user = "admin", roles = { "ADMIN" })
+        void testAssignRoleToUserEndpoint() {
+                User user = new User();
+                user.setId(1L);
+                Role role = new Role();
+                role.setName("LIBRARIAN");
 
-        when(adminService.assignRoleToUser(1L, "LIBRARIAN")).thenReturn(user);
+                when(userService.getUserById(anyLong())).thenReturn(java.util.Optional.of(user));
+                when(adminService.assignRoleToUser(1L, "LIBRARIAN")).thenCallRealMethod();
+                when(adminService.assignRoleToUser(1L, "LIBRARIAN")).thenReturn(user);
 
-        given()
-                .when()
-                .post("/api/admin/users/1/roles/LIBRARIAN")
-                .then()
-                .statusCode(200);
-    }
+                given()
+                                .when()
+                                .post("/api/admin/users/1/roles/LIBRARIAN")
+                                .then()
+                                .statusCode(200);
+        }
 }

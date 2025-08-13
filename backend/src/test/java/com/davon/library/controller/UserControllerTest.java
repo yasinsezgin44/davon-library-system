@@ -2,7 +2,7 @@ package com.davon.library.controller;
 
 import com.davon.library.service.UserService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import org.junit.jupiter.api.Test;
 import io.quarkus.test.security.TestSecurity;
 
