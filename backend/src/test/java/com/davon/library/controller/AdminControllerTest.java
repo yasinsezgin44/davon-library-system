@@ -47,7 +47,8 @@ class AdminControllerTest {
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testCreateUserEndpoint() {
-        UserCreateRequest request = new UserCreateRequest("newuser", "password", "New User", "newuser@example.com", "MEMBER");
+        UserCreateRequest request = new UserCreateRequest("anotheruser", "password", "Another User",
+                "anotheruser@example.com", "MEMBER");
 
         given()
                 .contentType("application/json")
@@ -71,9 +72,10 @@ class AdminControllerTest {
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testDeleteUserEndpoint() {
+        User user = userRepository.findByUsername("newuser").orElseThrow();
         given()
                 .when()
-                .delete("/api/admin/users/1")
+                .delete("/api/admin/users/" + user.getId())
                 .then()
                 .statusCode(204);
     }
@@ -81,9 +83,10 @@ class AdminControllerTest {
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testAssignRoleToUserEndpoint() {
+        User user = userRepository.findByUsername("newuser").orElseThrow();
         given()
                 .when()
-                .post("/api/admin/users/1/roles/LIBRARIAN")
+                .post("/api/admin/users/" + user.getId() + "/roles/LIBRARIAN")
                 .then()
                 .statusCode(200);
     }

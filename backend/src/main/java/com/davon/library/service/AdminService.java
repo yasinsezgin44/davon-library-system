@@ -27,7 +27,12 @@ public class AdminService {
     public User createUserWithRole(User user, String roleName) {
         log.info("Admin creating user {} with role {}", user.getUsername(), roleName);
         Role role = roleRepository.find("name", roleName).firstResultOptional()
-                .orElseThrow(() -> new NotFoundException("Role not found: " + roleName));
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setName(roleName);
+                    roleRepository.persist(newRole);
+                    return newRole;
+                });
         user.setRoles(Set.of(role));
         return userService.createUser(user);
     }
