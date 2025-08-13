@@ -1,5 +1,6 @@
 package com.davon.library.service;
 
+import com.davon.library.dto.BookRequestDTO;
 import com.davon.library.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

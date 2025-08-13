@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import jakarta.inject.Inject;
+import com.davon.library.dto.BookRequestDTO;
+import java.util.Set;
 
 @QuarkusTest
 class BookServiceTest {
@@ -35,25 +37,20 @@ class BookServiceTest {
 
     @Test
     void testCreateBook() {
-        Book book = new Book();
-        book.setIsbn("1234567890");
+        BookRequestDTO requestDTO = new BookRequestDTO("Test Title", "1234567890123", 2023, "description", "cover.jpg", 100, 1L, 1L, Set.of(1L));
+        when(bookRepository.findByIsbn("1234567890123")).thenReturn(Optional.empty());
 
-        when(bookRepository.findByIsbn("1234567890")).thenReturn(Optional.empty());
+        bookService.createBook(requestDTO);
 
-        Book created = bookService.createBook(book);
-
-        verify(bookRepository).persist(book);
-        assertEquals(book, created);
+        verify(bookRepository).persist(any(Book.class));
     }
 
     @Test
     void testCreateBookDuplicateIsbn() {
-        Book book = new Book();
-        book.setIsbn("duplicate");
+        BookRequestDTO requestDTO = new BookRequestDTO("Duplicate ISBN", "duplicate-isbn", 2023, "description", "cover.jpg", 100, 1L, 1L, Set.of(1L));
+        when(bookRepository.findByIsbn("duplicate-isbn")).thenReturn(Optional.of(new Book()));
 
-        when(bookRepository.findByIsbn("duplicate")).thenReturn(Optional.of(new Book()));
-
-        assertThrows(IllegalArgumentException.class, () -> bookService.createBook(book));
+        assertThrows(IllegalArgumentException.class, () -> bookService.createBook(requestDTO));
     }
 
     @Test
