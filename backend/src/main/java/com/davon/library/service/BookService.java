@@ -14,6 +14,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.davon.library.dto.BookRequestDTO;
+import com.davon.library.mapper.BookMapper;
+import com.davon.library.model.Author;
+import com.davon.library.model.Publisher;
+import com.davon.library.repository.AuthorRepository;
+import com.davon.library.repository.PublisherRepository;
 
 @ApplicationScoped
 public class BookService {
@@ -29,13 +38,36 @@ public class BookService {
     @Inject
     CategoryRepository categoryRepository;
 
+    @Inject
+    AuthorRepository authorRepository;
+
+    @Inject
+    PublisherRepository publisherRepository;
+
     @Transactional
-    public Book createBook(Book book) {
-        log.debug("Creating book: {}", book.getTitle());
-        if (bookRepository.findByIsbn(book.getIsbn()).isPresent()) {
-            throw new IllegalArgumentException("Book with ISBN " + book.getIsbn() + " already exists");
+    public Book createBook(BookRequestDTO bookRequestDTO) {
+        log.debug("Creating a new book with title: {}", bookRequestDTO.title());
+
+        Book book = BookMapper.toEntity(bookRequestDTO);
+
+        Publisher publisher = publisherRepository.findByIdOptional(bookRequestDTO.publisherId())
+                .orElseThrow(() -> new NotFoundException("Publisher not found with ID: " + bookRequestDTO.publisherId()));
+        book.setPublisher(publisher);
+
+        Category category = categoryRepository.findByIdOptional(bookRequestDTO.categoryId())
+                .orElseThrow(() -> new NotFoundException("Category not found with ID: " + bookRequestDTO.categoryId()));
+        book.setCategory(category);
+
+        if (bookRequestDTO.authorIds() != null && !bookRequestDTO.authorIds().isEmpty()) {
+            Set<Author> authors = bookRequestDTO.authorIds().stream()
+                    .map(authorId -> authorRepository.findByIdOptional(authorId)
+                            .orElseThrow(() -> new NotFoundException("Author not found with ID: " + authorId)))
+                    .collect(Collectors.toSet());
+            book.setAuthors(authors);
         }
+
         bookRepository.persist(book);
+        log.info("Successfully created book with ID: {}", book.getId());
         return book;
     }
 

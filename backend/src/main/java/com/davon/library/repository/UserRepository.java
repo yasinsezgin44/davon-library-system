@@ -14,6 +14,17 @@ public class UserRepository implements PanacheRepository<User> {
         return find("username", username).firstResultOptional();
     }
 
+    public User updateUserByUsername(String username, User user) {
+        // This is not a direct method in Panache, so we implement it manually.
+        User entity = findByUsername(username).orElse(null);
+        if (entity != null) {
+            entity.setFullName(user.getFullName());
+            entity.setPhoneNumber(user.getPhoneNumber());
+            persist(entity);
+        }
+        return entity;
+    }
+
     public Optional<User> findByEmail(String email) {
         return find("email", email).firstResultOptional();
     }

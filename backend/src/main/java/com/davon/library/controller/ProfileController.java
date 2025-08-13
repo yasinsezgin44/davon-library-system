@@ -28,9 +28,8 @@ public class ProfileController {
     @GET
     @Operation(summary = "Get the current member's profile")
     public Response getMyProfile(@Context SecurityContext securityContext) {
-        // In a real application, you would get the user ID from the security context
-        Long userId = 1L; // Hardcoded for now
-        return userService.getUserById(userId)
+        String userName = securityContext.getUserPrincipal().getName();
+        return userService.getUserByUsername(userName)
                 .map(user -> Response.ok(user).build())
                 .orElse(Response.status(Response.Status.NOT_FOUND).build());
     }
@@ -38,14 +37,13 @@ public class ProfileController {
     @PUT
     @Operation(summary = "Update the current member's profile")
     public Response updateMyProfile(ProfileUpdateRequest request, @Context SecurityContext securityContext) {
-        // In a real application, you would get the user ID from the security context
-        Long userId = 1L; // Hardcoded for now
+        String userName = securityContext.getUserPrincipal().getName();
 
         User updatedDetails = new User();
         updatedDetails.setFullName(request.getFullName());
         updatedDetails.setPhoneNumber(request.getPhoneNumber());
 
-        User updatedUser = userService.updateUser(userId, updatedDetails);
+        User updatedUser = userService.updateUserByUsername(userName, updatedDetails);
         return Response.ok(updatedUser).build();
     }
 }

@@ -25,9 +25,9 @@ public class LibrarianService {
     private InventoryService inventoryService;
 
     @Transactional
-    public Book addBookToCatalog(Book book) {
-        log.info("Librarian adding book to catalog: {}", book.getTitle());
-        return bookService.createBook(book);
+    public Book addBookToCatalog(BookRequestDTO bookRequestDTO) {
+        log.info("Librarian adding book to catalog: {}", bookRequestDTO.title());
+        return bookService.createBook(bookRequestDTO);
     }
 
     @Transactional

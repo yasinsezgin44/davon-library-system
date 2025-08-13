@@ -18,16 +18,21 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import com.davon.library.dto.CategoryDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/api/books")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Books", description = "Book management operations")
 public class BookController {
+
+    private static final Logger log = LoggerFactory.getLogger(BookController.class);
 
     @Inject
     BookService bookService;
@@ -39,9 +44,14 @@ public class BookController {
     @Operation(summary = "Get all books")
     @PermitAll
     public List<BookResponseDTO> getAllBooks() {
-        return bookService.getAllBooks().stream()
-                .map(BookMapper::toResponseDTO)
-                .collect(Collectors.toList());
+        try {
+            return bookService.getAllBooks().stream()
+                    .map(BookMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error fetching all books", e);
+            throw e;
+        }
     }
 
     @GET
@@ -59,7 +69,7 @@ public class BookController {
     @Operation(summary = "Create a new book")
     @SecurityRequirement(name = "jwt")
     public Response createBook(@Valid BookRequestDTO book) {
-        Book createdBook = bookService.createBook(BookMapper.toEntity(book));
+        Book createdBook = bookService.createBook(book);
         return Response.status(Response.Status.CREATED).entity(BookMapper.toResponseDTO(createdBook)).build();
     }
 
@@ -97,6 +107,7 @@ public class BookController {
     @Path("/trending")
     @Operation(summary = "Get trending books")
     @PermitAll
+    @Transactional
     public List<BookResponseDTO> getTrendingBooks() {
         // Placeholder for trending logic
         return bookService.getAllBooks().stream()

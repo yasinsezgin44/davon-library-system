@@ -11,7 +11,7 @@ public class BookCopyMapper {
         }
         return new BookCopyResponseDTO(
                 bookCopy.getId(),
-                BookMapper.toResponseDTO(bookCopy.getBook()),
+                BookMapper.toShallowResponseDTO(bookCopy.getBook()),
                 bookCopy.getAcquisitionDate(),
                 bookCopy.getCondition(),
                 bookCopy.getStatus(),

@@ -74,6 +74,18 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
     }
 
+    @Transactional
+    public User updateUserByUsername(String username, User updatedUser) {
+        log.debug("Updating user: {}", username);
+        User existingUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+
+        existingUser.setFullName(updatedUser.getFullName());
+        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
+
+        return existingUser;
+    }
+
     public Optional<User> getUserById(Long userId) {
         log.debug("Fetching user by ID: {}", userId);
         return userRepository.findByIdOptional(userId);
