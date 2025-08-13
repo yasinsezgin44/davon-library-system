@@ -116,16 +116,17 @@ class AdminControllerTest {
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testAssignRoleToUserEndpoint() {
-        User user = userRepository.findByUsername("newuser").orElseThrow();
+        User user = new User();
+        user.setId(1L);
         Role role = new Role();
         role.setName("LIBRARIAN");
         user.setRoles(new java.util.HashSet<>(java.util.Collections.singletonList(role)));
 
-        when(adminService.assignRoleToUser(user.getId(), "LIBRARIAN")).thenReturn(user);
+        when(adminService.assignRoleToUser(1L, "LIBRARIAN")).thenReturn(user);
 
         given()
                 .when()
-                .post("/api/admin/users/" + user.getId() + "/roles/LIBRARIAN")
+                .post("/api/admin/users/1/roles/LIBRARIAN")
                 .then()
                 .statusCode(200);
     }
