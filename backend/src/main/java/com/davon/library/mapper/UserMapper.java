@@ -41,7 +41,6 @@ public class UserMapper {
                         .map(RoleMapper::toResponseDTO)
                         .collect(Collectors.toSet()),
                 user.getCreatedAt(),
-                user.getUpdatedAt()
-        );
+                user.getUpdatedAt());
     }
 }
