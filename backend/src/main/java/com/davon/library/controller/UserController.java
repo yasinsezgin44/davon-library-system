@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Users", description = "User management operations")
+@RolesAllowed({ "ADMIN", "LIBRARIAN" })
 public class UserController {
 
     @Inject

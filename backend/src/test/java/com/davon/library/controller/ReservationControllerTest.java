@@ -3,12 +3,16 @@ package com.davon.library.controller;
 import com.davon.library.dto.ReservationRequestDTO;
 import com.davon.library.model.enums.ReservationStatus;
 import com.davon.library.service.ReservationService;
+import com.davon.library.service.UserService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
+import com.davon.library.model.User;
+import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class ReservationControllerTest {
@@ -16,10 +20,16 @@ class ReservationControllerTest {
     @InjectMock
     ReservationService reservationService;
 
+    @InjectMock
+    UserService userService;
+
     @Test
     @TestSecurity(user = "member", roles = { "MEMBER" })
     void testReserveBookEndpoint() {
-        ReservationRequestDTO requestDTO = new ReservationRequestDTO(1L, 1L, null, ReservationStatus.RESERVED, null);
+        User user = new User();
+        user.setId(1L);
+        when(userService.getUserByUsername("member")).thenReturn(Optional.of(user));
+        ReservationRequestDTO requestDTO = new ReservationRequestDTO(1L, 1L, null, ReservationStatus.PENDING, null);
 
         given()
                 .contentType("application/json")
