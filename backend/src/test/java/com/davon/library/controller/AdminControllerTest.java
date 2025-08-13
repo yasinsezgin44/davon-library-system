@@ -8,6 +8,12 @@ import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 import com.davon.library.model.User;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.AfterEach;
+import com.davon.library.repository.UserRepository;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
+import io.quarkus.elytron.security.common.BcryptUtil;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.Mockito.when;
@@ -18,16 +24,29 @@ import static org.mockito.ArgumentMatchers.any;
 @QuarkusTest
 class AdminControllerTest {
 
-    @InjectMock
-    AdminService adminService;
+    @Inject
+    UserRepository userRepository;
 
-    @InjectMock
-    UserService userService;
+    @BeforeEach
+    @Transactional
+    public void setUp() {
+        User user = new User();
+        user.setUsername("newuser");
+        user.setPasswordHash(BcryptUtil.bcryptHash("password"));
+        user.setFullName("New User");
+        user.setEmail("newuser@example.com");
+        userRepository.persist(user);
+    }
+
+    @AfterEach
+    @Transactional
+    public void tearDown() {
+        userRepository.delete("username", "newuser");
+    }
 
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testCreateUserEndpoint() {
-        when(adminService.createUserWithRole(any(User.class), anyString())).thenReturn(new User());
         UserCreateRequest request = new UserCreateRequest("newuser", "password", "New User", "newuser@example.com", "MEMBER");
 
         given()
@@ -62,7 +81,6 @@ class AdminControllerTest {
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testAssignRoleToUserEndpoint() {
-        when(adminService.assignRoleToUser(anyLong(), anyString())).thenReturn(new User());
         given()
                 .when()
                 .post("/api/admin/users/1/roles/LIBRARIAN")
