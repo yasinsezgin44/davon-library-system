@@ -19,7 +19,7 @@ class ReservationControllerTest {
     @Test
     @TestSecurity(user = "member", roles = { "MEMBER" })
     void testReserveBookEndpoint() {
-        ReservationRequestDTO requestDTO = new ReservationRequestDTO(1L, ReservationStatus.RESERVED);
+        ReservationRequestDTO requestDTO = new ReservationRequestDTO(1L, 1L, null, ReservationStatus.RESERVED, null);
 
         given()
                 .contentType("application/json")
@@ -43,7 +43,7 @@ class ReservationControllerTest {
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testUpdateReservationStatusEndpoint() {
-        ReservationRequestDTO requestDTO = new ReservationRequestDTO(1L, ReservationStatus.CANCELLED);
+        ReservationRequestDTO requestDTO = new ReservationRequestDTO(1L, 1L, null, ReservationStatus.CANCELLED, null);
 
         given()
                 .contentType("application/json")

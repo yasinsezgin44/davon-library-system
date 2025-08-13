@@ -6,6 +6,7 @@ import com.davon.library.mapper.ReservationMapper;
 import com.davon.library.model.Reservation;
 import com.davon.library.model.enums.ReservationStatus;
 import com.davon.library.service.ReservationService;
+import com.davon.library.service.UserService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -30,14 +31,16 @@ public class ReservationController {
     @Inject
     ReservationService reservationService;
 
+    @Inject
+    UserService userService;
+
     @POST
     @RolesAllowed("MEMBER")
     @Operation(summary = "Reserve a book")
     @SecurityRequirement(name = "jwt")
     public Response reserveBook(@Valid ReservationRequestDTO request, @Context SecurityContext securityContext) {
-        // In a real application, you would get the member ID from the security context
-        // For now, we will use a hardcoded value for demonstration purposes
-        Long memberId = 1L;
+        String username = securityContext.getUserPrincipal().getName();
+        Long memberId = userService.getUserByUsername(username).orElseThrow().getId();
         Reservation reservation = reservationService.createReservation(memberId, request.bookId());
         return Response.status(Response.Status.CREATED).entity(ReservationMapper.toResponseDTO(reservation)).build();
     }
