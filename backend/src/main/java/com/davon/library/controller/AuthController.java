@@ -42,13 +42,18 @@ public class AuthController {
     @POST
     @Path("/register")
     public Response register(RegisterRequest request) {
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
+        try {
+            User user = new User();
+            user.setUsername(request.getUsername());
+            user.setFullName(request.getFullName());
+            user.setEmail(request.getEmail());
 
-        authenticationService.register(user, request.getPassword());
-        return Response.status(Response.Status.CREATED).build();
+            authenticationService.register(user, request.getPassword());
+            return Response.status(Response.Status.CREATED).build();
+        } catch (Exception e) {
+            log.error("Error during registration", e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
     }
 
     @POST

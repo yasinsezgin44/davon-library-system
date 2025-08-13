@@ -65,7 +65,7 @@ public class BookController {
     }
 
     @POST
-    @RolesAllowed("ADMIN")
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Create a new book")
     @SecurityRequirement(name = "jwt")
     public Response createBook(@Valid BookRequestDTO book) {
