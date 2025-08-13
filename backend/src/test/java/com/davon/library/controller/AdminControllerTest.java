@@ -18,6 +18,9 @@ import com.davon.library.mapper.UserMapper;
 import com.davon.library.dto.UserRequestDTO;
 import com.davon.library.model.enums.UserStatus;
 import com.davon.library.model.Role;
+import com.davon.library.repository.RoleRepository;
+import io.quarkus.panache.mock.PanacheMock;
+import io.quarkus.panache.PanacheQuery;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.Mockito.when;
@@ -29,18 +32,26 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.doNothing;
 
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import java.util.Optional;
+import static org.mockito.Mockito.mock;
+
 @QuarkusTest
 class AdminControllerTest {
 
-        @InjectMock
-        AdminService adminService;
+    @InjectMocks
+    AdminService adminService;
 
-        @InjectMock
-        UserService userService;
+    @Mock
+    UserService userService;
 
-        @Test
-        @TestSecurity(user = "admin", roles = { "ADMIN" })
-        void testCreateUserEndpoint() {
+    @Mock
+    RoleRepository roleRepository;
+
+    @Test
+    @TestSecurity(user = "admin", roles = { "ADMIN" })
+    void testCreateUserEndpoint() {
                 UserCreateRequest request = new UserCreateRequest("anotheruser", "password", "Another User",
                                 "anotheruser@example.com", "MEMBER");
 
@@ -100,9 +111,14 @@ class AdminControllerTest {
                 Role role = new Role();
                 role.setName("LIBRARIAN");
 
+                user.setRoles(new java.util.HashSet<>(java.util.Collections.singletonList(role)));
+
+                PanacheMock.mock(RoleRepository.class);
                 when(userService.getUserById(anyLong())).thenReturn(java.util.Optional.of(user));
-                when(adminService.assignRoleToUser(1L, "LIBRARIAN")).thenCallRealMethod();
-                when(adminService.assignRoleToUser(1L, "LIBRARIAN")).thenReturn(user);
+                PanacheQuery<Role> roleQuery = mock(PanacheQuery.class);
+                when(roleQuery.firstResultOptional()).thenReturn(Optional.of(role));
+                when(RoleRepository.find("name", "LIBRARIAN")).thenReturn(roleQuery);
+
 
                 given()
                                 .when()
