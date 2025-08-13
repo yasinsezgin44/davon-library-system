@@ -13,6 +13,7 @@ import static io.restassured.RestAssured.given;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
 class AdminControllerTest {
@@ -26,6 +27,7 @@ class AdminControllerTest {
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testCreateUserEndpoint() {
+        when(adminService.createUserWithRole(any(User.class), anyString())).thenReturn(new User());
         UserCreateRequest request = new UserCreateRequest("newuser", "password", "New User", "newuser@example.com", "MEMBER");
 
         given()
