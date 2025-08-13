@@ -14,15 +14,28 @@ import com.davon.library.repository.UserRepository;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import io.quarkus.elytron.security.common.BcryptUtil;
+import com.davon.library.mapper.UserMapper;
+import com.davon.library.dto.UserRequestDTO;
+import com.davon.library.model.enums.UserStatus;
+import com.davon.library.model.Role;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Mockito.doNothing;
 
 @QuarkusTest
 class AdminControllerTest {
+
+    @InjectMock
+    AdminService adminService;
+
+    @InjectMock
+    UserService userService;
 
     @Inject
     UserRepository userRepository;
@@ -50,29 +63,49 @@ class AdminControllerTest {
         UserCreateRequest request = new UserCreateRequest("anotheruser", "password", "Another User",
                 "anotheruser@example.com", "MEMBER");
 
+        UserRequestDTO userRequestDTO = new UserRequestDTO(
+                request.getUsername(),
+                request.getPassword(),
+                request.getFullName(),
+                request.getEmail(),
+                null,
+                true,
+                UserStatus.ACTIVE
+        );
+
+        User user = UserMapper.toEntity(userRequestDTO);
+
+        when(adminService.createUserWithRole(any(User.class), anyString())).thenReturn(user);
+
         given()
                 .contentType("application/json")
                 .body(request)
                 .when()
                 .post("/api/admin/users")
                 .then()
-                .statusCode(201);
+                .statusCode(201)
+                .body("username", is("anotheruser"))
+                .body("fullName", is("Another User"))
+                .body("email", is("anotheruser@example.com"));
     }
 
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testGetAllUsersEndpoint() {
+        when(userService.getAllUsers()).thenReturn(java.util.Collections.emptyList());
         given()
                 .when()
                 .get("/api/admin/users")
                 .then()
-                .statusCode(200);
+                .statusCode(200)
+                .body(is(notNullValue()));
     }
 
     @Test
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testDeleteUserEndpoint() {
         User user = userRepository.findByUsername("newuser").orElseThrow();
+        doNothing().when(adminService).deleteUser(user.getId());
         given()
                 .when()
                 .delete("/api/admin/users/" + user.getId())
@@ -84,6 +117,12 @@ class AdminControllerTest {
     @TestSecurity(user = "admin", roles = { "ADMIN" })
     void testAssignRoleToUserEndpoint() {
         User user = userRepository.findByUsername("newuser").orElseThrow();
+        Role role = new Role();
+        role.setName("LIBRARIAN");
+        user.setRoles(new java.util.HashSet<>(java.util.Collections.singletonList(role)));
+
+        when(adminService.assignRoleToUser(user.getId(), "LIBRARIAN")).thenReturn(user);
+
         given()
                 .when()
                 .post("/api/admin/users/" + user.getId() + "/roles/LIBRARIAN")

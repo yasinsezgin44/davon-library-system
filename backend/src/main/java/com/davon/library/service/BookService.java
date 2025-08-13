@@ -48,6 +48,10 @@ public class BookService {
     public Book createBook(BookRequestDTO bookRequestDTO) {
         log.debug("Creating a new book with title: {}", bookRequestDTO.title());
 
+        bookRepository.findByIsbn(bookRequestDTO.isbn()).ifPresent(book -> {
+            throw new IllegalArgumentException("Book with ISBN " + bookRequestDTO.isbn() + " already exists.");
+        });
+
         Book book = BookMapper.toEntity(bookRequestDTO);
 
         Publisher publisher = publisherRepository.findByIdOptional(bookRequestDTO.publisherId())

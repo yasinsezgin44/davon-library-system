@@ -16,6 +16,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
@@ -36,7 +37,7 @@ class ProfileControllerTest {
     @Test
     @TestSecurity(user = "testUser", roles = {"MEMBER"})
     void testGetMyProfile() {
-        when(userService.getUserById(anyLong())).thenReturn(Optional.of(user));
+        when(userService.getUserByUsername("testUser")).thenReturn(Optional.of(user));
         given()
                 .when().get("/api/profile")
                 .then()
@@ -47,7 +48,13 @@ class ProfileControllerTest {
     @Test
     @TestSecurity(user = "testUser", roles = {"MEMBER"})
     void testUpdateMyProfile() {
-        when(userService.updateUser(anyLong(), any(User.class))).thenReturn(user);
+        when(userService.getUserByUsername("testUser")).thenReturn(Optional.of(user));
+
+        User updatedUser = new User();
+        updatedUser.setId(1L);
+        updatedUser.setFullName("Updated Name");
+
+        when(userService.updateUserByUsername(eq("testUser"), any(User.class))).thenReturn(updatedUser);
 
         ProfileUpdateRequest request = new ProfileUpdateRequest();
         request.setFullName("Updated Name");
@@ -58,7 +65,7 @@ class ProfileControllerTest {
                 .when().put("/api/profile")
                 .then()
                 .statusCode(200)
-                .body("fullName", is("Test User"));
+                .body("fullName", is("Updated Name"));
     }
 
     @Test

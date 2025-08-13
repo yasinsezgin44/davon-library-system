@@ -18,7 +18,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import jakarta.inject.Inject;
 import com.davon.library.dto.BookRequestDTO;
+import com.davon.library.model.Category;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
 class BookServiceTest {
@@ -34,6 +36,13 @@ class BookServiceTest {
 
     @Inject
     BookService bookService;
+
+    @BeforeEach
+    void setUp() {
+        Category category = new Category();
+        category.setId(1L);
+        when(categoryRepository.findByIdOptional(1L)).thenReturn(Optional.of(category));
+    }
 
     @Test
     void testCreateBook() {
