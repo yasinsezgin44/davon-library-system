@@ -7,7 +7,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "roles")
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(of = "name")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

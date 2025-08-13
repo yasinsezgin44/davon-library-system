@@ -46,12 +46,18 @@ public class AdminService {
     @Transactional
     public User assignRoleToUser(Long userId, String roleName) {
         log.info("Admin assigning role {} to user {}", roleName, userId);
+
         User user = userService.getUserById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+        log.info("Found user: {}", user.getUsername());
+
         Role role = roleRepository.find("name", roleName).firstResultOptional()
                 .orElseThrow(() -> new NotFoundException("Role not found: " + roleName));
+        log.info("Found role: {}", role.getName());
 
         user.getRoles().add(role);
+        log.info("Assigned role {} to user {}. Roles are now: {}", roleName, userId, user.getRoles());
+
         return user;
     }
 }

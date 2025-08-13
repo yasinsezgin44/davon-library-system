@@ -55,7 +55,7 @@ class AdminControllerTest {
                 role = new Role();
                 role.setName("LIBRARIAN");
 
-                user.setRoles(new java.util.HashSet<>(java.util.Collections.singletonList(role)));
+                user.getRoles().add(role);
         }
 
         @Test
@@ -112,6 +112,8 @@ class AdminControllerTest {
         @Test
         @TestSecurity(user = "admin", roles = { "ADMIN" })
         void testAssignRoleToUserEndpoint() {
+                role.setId(1L);
+
                 when(adminService.assignRoleToUser(anyLong(), anyString())).thenReturn(user);
 
                 given()
