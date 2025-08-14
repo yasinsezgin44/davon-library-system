@@ -1,6 +1,7 @@
 package com.davon.library.controller;
 
 import com.davon.library.dto.UserCreateRequest;
+import com.davon.library.dto.UserDTO;
 import com.davon.library.model.User;
 import com.davon.library.service.AdminService;
 import com.davon.library.service.UserService;
@@ -14,6 +15,7 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Path("/api/admin/users")
 @Produces(MediaType.APPLICATION_JSON)
@@ -39,13 +41,13 @@ public class AdminController {
         user.setPasswordHash(request.getPassword()); // Will be hashed in the service
 
         User createdUser = adminService.createUserWithRole(user, request.getRole());
-        return Response.status(Response.Status.CREATED).entity(createdUser).build();
+        return Response.status(Response.Status.CREATED).entity(new UserDTO(createdUser)).build();
     }
 
     @GET
     @Operation(summary = "Get all users")
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserDTO> getAllUsers() {
+        return userService.getAllUsers().stream().map(UserDTO::new).collect(Collectors.toList());
     }
 
     @DELETE
@@ -61,6 +63,6 @@ public class AdminController {
     @Operation(summary = "Assign a role to a user")
     public Response assignRoleToUser(@PathParam("userId") Long userId, @PathParam("roleName") String roleName) {
         User updatedUser = adminService.assignRoleToUser(userId, roleName);
-        return Response.ok(updatedUser).build();
+        return Response.ok(new UserDTO(updatedUser)).build();
     }
 }
