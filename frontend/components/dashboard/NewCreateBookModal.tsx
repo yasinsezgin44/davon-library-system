@@ -31,7 +31,6 @@ const CreateBookModal = ({
   onClose,
   onCreate,
 }: CreateBookModalProps) => {
-  debugger;
   const [title, setTitle] = useState("");
   const [isbn, setIsbn] = useState("");
   const [publicationYear, setPublicationYear] = useState<number | "">("");

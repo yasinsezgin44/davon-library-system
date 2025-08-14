@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
-import CreateBookModal from "./CreateBookModal";
+import NewCreateBookModal from "./NewCreateBookModal";
 import UpdateBookModal from "./UpdateBookModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
@@ -49,14 +49,30 @@ const BookManagementTable = () => {
   }, []);
 
   const handleCreate = async (
-    bookData: Omit<Book, "id" | "quantity" | "authors"> & {
+    bookData: Omit<
+      Book,
+      | "id"
+      | "quantity"
+      | "authors"
+      | "publicationYear"
+      | "description"
+      | "coverImage"
+      | "pages"
+    > & {
       authorIds: number[];
       publisherId: number;
       categoryId: number;
     }
   ) => {
     try {
-      const response = await apiClient.post("/books", bookData);
+      const newBookData = {
+        ...bookData,
+        authorIds: bookData.authorIds,
+        publisherId: bookData.publisherId,
+        categoryId: bookData.categoryId,
+      };
+      console.log("Creating book with data:", newBookData);
+      const response = await apiClient.post("/books", newBookData);
       const newBook = {
         ...response.data,
         authors: response.data.authors || [],
@@ -199,7 +215,7 @@ const BookManagementTable = () => {
           </tbody>
         </table>
       </div>
-      <CreateBookModal
+      <NewCreateBookModal
         isOpen={isCreateModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreate={handleCreate}
