@@ -46,6 +46,7 @@ public class AuthControllerTest {
     public void testLoginEndpoint() {
         User user = new User();
         user.setUsername("testuser");
+        user.setFullName("Test User");
         when(authenticationService.authenticate(anyString(), anyString())).thenReturn(user);
 
         LoginRequest request = new LoginRequest();
