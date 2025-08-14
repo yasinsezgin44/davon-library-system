@@ -17,13 +17,17 @@ interface Category {
 interface CreateBookModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (
-    bookData: Omit<Book, "id" | "quantity" | "authors"> & {
-      authorIds: number[];
-      publisherId: number;
-      categoryId: number;
-    }
-  ) => void;
+  onCreate: (bookData: {
+    title: string;
+    isbn: string;
+    publicationYear: number;
+    description: string;
+    coverImage: string;
+    pages: number;
+    authorIds: number[];
+    publisherId: number;
+    categoryId: number;
+  }) => void;
 }
 
 const CreateBookModal = ({
@@ -31,7 +35,6 @@ const CreateBookModal = ({
   onClose,
   onCreate,
 }: CreateBookModalProps) => {
-  debugger;
   const [title, setTitle] = useState("");
   const [isbn, setIsbn] = useState("");
   const [publicationYear, setPublicationYear] = useState<number | "">("");

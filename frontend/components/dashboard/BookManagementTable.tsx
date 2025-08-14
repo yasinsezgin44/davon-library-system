@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
-import NewCreateBookModal from "./NewCreateBookModal";
+import NewCreateBookModal from "./CreateBookModal";
 import UpdateBookModal from "./UpdateBookModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
@@ -17,6 +17,10 @@ export type Book = {
   authors: Author[];
   isbn: string;
   quantity: number; // This will be derived or fetched separately
+  publicationYear?: number;
+  description?: string;
+  coverImage?: string;
+  pages?: number;
 };
 
 const BookManagementTable = () => {
@@ -48,22 +52,17 @@ const BookManagementTable = () => {
     fetchBooks();
   }, []);
 
-  const handleCreate = async (
-    bookData: Omit<
-      Book,
-      | "id"
-      | "quantity"
-      | "authors"
-      | "publicationYear"
-      | "description"
-      | "coverImage"
-      | "pages"
-    > & {
-      authorIds: number[];
-      publisherId: number;
-      categoryId: number;
-    }
-  ) => {
+  const handleCreate = async (bookData: {
+    title: string;
+    isbn: string;
+    publicationYear: number;
+    description: string;
+    coverImage: string;
+    pages: number;
+    authorIds: number[];
+    publisherId: number;
+    categoryId: number;
+  }) => {
     try {
       const newBookData = {
         ...bookData,
