@@ -82,7 +82,7 @@ public class AuthController {
             log.info("Generating JWT token for user '{}'", user.getUsername());
             String token = Jwt.issuer(issuer)
                     .subject(user.getUsername())
-                    .groups(new HashSet<>(roles))
+                    .groups(roles)
                     .expiresIn(Duration.ofHours(1))
                     .sign();
             log.info("Token generated successfully for user '{}'", user.getUsername());

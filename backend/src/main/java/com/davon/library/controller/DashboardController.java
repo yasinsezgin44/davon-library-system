@@ -22,7 +22,7 @@ import java.util.List;
 @Path("/api/dashboard")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed("MEMBER")
+@RolesAllowed({ "MEMBER", "ADMIN", "LIBRARIAN" })
 @Tag(name = "Member Dashboard", description = "Operations for the member dashboard")
 @SecurityRequirement(name = "jwt")
 public class DashboardController {

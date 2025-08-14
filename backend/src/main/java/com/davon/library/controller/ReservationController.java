@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 @Path("/api/reservations")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@RolesAllowed({ "MEMBER", "ADMIN", "LIBRARIAN" })
 @Tag(name = "Reservations", description = "Book reservation operations")
 public class ReservationController {
 
