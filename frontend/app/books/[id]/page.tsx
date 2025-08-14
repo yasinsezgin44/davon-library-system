@@ -78,8 +78,8 @@ const BookDetailPage = () => {
         </div>
         <div className="md:col-span-2">
           <h1 className="text-4xl font-bold mb-4">{book.title}</h1>
-          <p className="text-xl text-gray-700 mb-4">by {book.author}</p>
-          <p className="text-gray-600 mb-6">{book.description}</p>
+          <p className="text-xl mb-4">by {book.author}</p>
+          <p className="mb-6">{book.description}</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <strong className="font-semibold">Publication Year:</strong>{" "}
