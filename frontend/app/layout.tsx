@@ -24,7 +24,7 @@ async function getUser() {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as { username: string; roles: string[]; fullName: string };
+    return payload as { username: string; roles: string[] };
   } catch (e) {
     return null;
   }

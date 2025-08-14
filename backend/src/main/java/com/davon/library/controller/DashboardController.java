@@ -35,7 +35,7 @@ public class DashboardController {
 
     @GET
     @Path("/loans")
-    @RolesAllowed({ "MEMBER", "LIBRARIAN", "ADMIN" })
+    @PermitAll
     @Operation(summary = "Get the current member's borrowed books")
     public List<Loan> getMyLoans(@Context SecurityContext securityContext) {
         // In a real application, you would get the member ID from the security context
@@ -45,7 +45,7 @@ public class DashboardController {
 
     @GET
     @Path("/reservations")
-    @RolesAllowed({ "MEMBER", "LIBRARIAN", "ADMIN" })
+    @PermitAll
     @Operation(summary = "Get the current member's reservations")
     public List<Reservation> getMyReservations(@Context SecurityContext securityContext) {
         // In a real application, you would get the member ID from the security context

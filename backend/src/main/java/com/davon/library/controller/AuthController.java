@@ -82,7 +82,6 @@ public class AuthController {
             log.info("Generating JWT token for user '{}'", user.getUsername());
             String token = Jwt.issuer(issuer)
                     .subject(user.getUsername())
-                    .claim("fullName", user.getFullName())
                     .groups(roles)
                     .expiresIn(Duration.ofHours(1))
                     .sign();
