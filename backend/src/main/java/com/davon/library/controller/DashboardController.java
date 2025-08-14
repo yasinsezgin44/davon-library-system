@@ -4,6 +4,7 @@ import com.davon.library.model.Loan;
 import com.davon.library.model.Reservation;
 import com.davon.library.service.LoanService;
 import com.davon.library.service.ReservationService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -22,7 +23,6 @@ import java.util.List;
 @Path("/api/dashboard")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed({ "MEMBER", "ADMIN", "LIBRARIAN" })
 @Tag(name = "Member Dashboard", description = "Operations for the member dashboard")
 @SecurityRequirement(name = "jwt")
 public class DashboardController {
@@ -35,6 +35,7 @@ public class DashboardController {
 
     @GET
     @Path("/loans")
+    @PermitAll
     @Operation(summary = "Get the current member's borrowed books")
     public List<Loan> getMyLoans(@Context SecurityContext securityContext) {
         // In a real application, you would get the member ID from the security context
@@ -44,6 +45,7 @@ public class DashboardController {
 
     @GET
     @Path("/reservations")
+    @PermitAll
     @Operation(summary = "Get the current member's reservations")
     public List<Reservation> getMyReservations(@Context SecurityContext securityContext) {
         // In a real application, you would get the member ID from the security context

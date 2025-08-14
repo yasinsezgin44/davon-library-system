@@ -21,11 +21,11 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import jakarta.annotation.security.PermitAll;
 
 @Path("/api/reservations")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed({ "MEMBER", "ADMIN", "LIBRARIAN" })
 @Tag(name = "Reservations", description = "Book reservation operations")
 public class ReservationController {
 
@@ -47,7 +47,7 @@ public class ReservationController {
     }
 
     @GET
-    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
+    @PermitAll
     @Operation(summary = "List all reservations")
     @SecurityRequirement(name = "jwt")
     public List<ReservationResponseDTO> getAllReservations() {

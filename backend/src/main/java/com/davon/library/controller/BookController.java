@@ -42,7 +42,6 @@ public class BookController {
 
     @GET
     @Operation(summary = "Get all books")
-    @PermitAll
     public List<BookResponseDTO> getAllBooks() {
         try {
             return bookService.getAllBooks().stream()
@@ -57,7 +56,6 @@ public class BookController {
     @GET
     @Path("/{id}")
     @Operation(summary = "Get a book by its ID")
-    @PermitAll
     public Response getBookById(@PathParam("id") Long id) {
         return bookService.getBookById(id)
                 .map(book -> Response.ok(BookMapper.toResponseDTO(book)).build())

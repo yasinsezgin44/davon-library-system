@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Users", description = "User management operations")
-@RolesAllowed({ "ADMIN", "LIBRARIAN" })
 public class UserController {
 
     @Inject
@@ -44,6 +43,7 @@ public class UserController {
     }
 
     @POST
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Create new user", description = "Add a new user to the system")
     public Response createUser(@Valid UserRequestDTO userData) {
         User newUser = UserMapper.toEntity(userData);
@@ -53,6 +53,7 @@ public class UserController {
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Update user", description = "Update an existing user")
     public Response updateUser(@PathParam("id") Long id, @Valid UserRequestDTO userData) {
         User userToUpdate = UserMapper.toEntity(userData);
@@ -62,6 +63,7 @@ public class UserController {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Deactivate user", description = "Deactivate a user")
     public Response deleteUser(@PathParam("id") Long id) {
         userService.deactivateUser(id);
