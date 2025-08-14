@@ -1,43 +1,45 @@
 package com.davon.library.controller;
 
 import com.davon.library.dto.UserCreateRequest;
+import com.davon.library.dto.UserDTO;
+import com.davon.library.model.Role;
+import com.davon.library.model.User;
 import com.davon.library.service.AdminService;
 import com.davon.library.service.UserService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.security.TestSecurity;
-import org.junit.jupiter.api.AfterEach;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.davon.library.model.User;
-import com.davon.library.model.Role;
+import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.HashSet;
 
 import static io.restassured.RestAssured.given;
-import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class AdminControllerTest {
 
-        @InjectMock
-        AdminService adminService;
+        @Inject
+        AdminController adminController;
 
-        @InjectMock
+        AdminService adminService;
         UserService userService;
 
         @BeforeEach
         void setUp() {
-                reset(adminService, userService);
+                adminService = Mockito.mock(AdminService.class);
+                userService = Mockito.mock(UserService.class);
+                adminController.adminService = adminService;
+                adminController.userService = userService;
         }
 
         @Test
@@ -53,7 +55,7 @@ class AdminControllerTest {
                 user.setEmail(request.getEmail());
                 Role memberRole = new Role();
                 memberRole.setName("MEMBER");
-                user.setRoles(java.util.Collections.singleton(memberRole));
+                user.setRoles(Collections.singleton(memberRole));
 
                 when(adminService.createUserWithRole(any(User.class), anyString())).thenReturn(user);
 
@@ -73,7 +75,7 @@ class AdminControllerTest {
         @Test
         @TestSecurity(user = "admin", roles = { "ADMIN" })
         void testGetAllUsersEndpoint() {
-                when(userService.getAllUsers()).thenReturn(java.util.Collections.emptyList());
+                when(userService.getAllUsers()).thenReturn(Collections.emptyList());
                 given()
                                 .when()
                                 .get("/api/admin/users")
@@ -96,25 +98,25 @@ class AdminControllerTest {
         @Test
         @TestSecurity(user = "admin", roles = { "ADMIN" })
         void testAssignRoleToUserEndpoint() {
-                User testUser = new User();
-                testUser.setId(1L);
-                testUser.setUsername("testuser");
-                testUser.setFullName("Test User");
-                testUser.setEmail("testuser@example.com");
+                User user = new User();
+                user.setId(1L);
+                user.setUsername("testuser");
+                user.setFullName("Test User");
+                user.setEmail("test@example.com");
 
-                Role testRole = new Role();
-                testRole.setId(1L);
-                testRole.setName("LIBRARIAN");
+                Role role = new Role();
+                role.setName("LIBRARIAN");
+                user.setRoles(new HashSet<>(Collections.singletonList(role)));
 
-                testUser.setRoles(new HashSet<>(Collections.singletonList(testRole)));
-
-                when(adminService.assignRoleToUser(any(), any())).thenReturn(testUser);
+                when(adminService.assignRoleToUser(1L, "LIBRARIAN")).thenReturn(user);
 
                 given()
+                                .contentType("application/json")
                                 .when()
                                 .post("/api/admin/users/1/roles/LIBRARIAN")
                                 .then()
                                 .statusCode(200)
+                                .body("id", is("1"))
                                 .body("username", is("testuser"))
                                 .body("roles", hasItem("LIBRARIAN"));
         }
