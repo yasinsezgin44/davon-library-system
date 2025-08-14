@@ -33,6 +33,7 @@ import static org.mockito.Mockito.doNothing;
 
 import java.util.Optional;
 import static org.mockito.Mockito.mock;
+import io.quarkus.test.TestTransaction;
 
 @QuarkusTest
 class AdminControllerTest {
@@ -42,21 +43,6 @@ class AdminControllerTest {
 
         @InjectMock
         UserService userService;
-
-        private User user;
-        private Role role;
-
-        @BeforeEach
-        void setUp() {
-                user = new User();
-                user.setId(1L);
-                user.setUsername("testuser");
-
-                role = new Role();
-                role.setName("LIBRARIAN");
-
-                user.getRoles().add(role);
-        }
 
         @Test
         @TestSecurity(user = "admin", roles = { "ADMIN" })
@@ -111,10 +97,22 @@ class AdminControllerTest {
 
         @Test
         @TestSecurity(user = "admin", roles = { "ADMIN" })
+        @TestTransaction
         void testAssignRoleToUserEndpoint() {
-                role.setId(1L);
+                AdminService adminService = mock(AdminService.class);
+                UserService userService = mock(UserService.class);
 
-                when(adminService.assignRoleToUser(anyLong(), anyString())).thenReturn(user);
+                User testUser = new User();
+                testUser.setId(1L);
+                testUser.setUsername("testuser");
+
+                Role testRole = new Role();
+                testRole.setId(1L);
+                testRole.setName("LIBRARIAN");
+
+                testUser.getRoles().add(testRole);
+
+                when(adminService.assignRoleToUser(1L, "LIBRARIAN")).thenReturn(testUser);
 
                 given()
                                 .when()
