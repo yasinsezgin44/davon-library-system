@@ -15,14 +15,14 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class UserDTO {
 
-    private String id;
+    private Long id;
     private String username;
     private String fullName;
     private String email;
     private Set<String> roles;
 
     public UserDTO(User user) {
-        this.id = user.getId().toString();
+        this.id = user.getId();
         this.username = user.getUsername();
         this.fullName = user.getFullName();
         this.email = user.getEmail();

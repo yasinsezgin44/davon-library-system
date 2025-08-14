@@ -28,18 +28,15 @@ import static org.mockito.Mockito.when;
 @QuarkusTest
 class AdminControllerTest {
 
-        @Inject
-        AdminController adminController;
-
+        @InjectMock
         AdminService adminService;
+
+        @InjectMock
         UserService userService;
 
         @BeforeEach
         void setUp() {
-                adminService = Mockito.mock(AdminService.class);
-                userService = Mockito.mock(UserService.class);
-                adminController.adminService = adminService;
-                adminController.userService = userService;
+                Mockito.reset(adminService, userService);
         }
 
         @Test
@@ -81,7 +78,7 @@ class AdminControllerTest {
                                 .get("/api/admin/users")
                                 .then()
                                 .statusCode(200)
-                                .body("size()", is(0));
+                                .body("$.size()", is(0));
         }
 
         @Test
@@ -116,7 +113,7 @@ class AdminControllerTest {
                                 .post("/api/admin/users/1/roles/LIBRARIAN")
                                 .then()
                                 .statusCode(200)
-                                .body("id", is("1"))
+                                .body("id", is(1))
                                 .body("username", is("testuser"))
                                 .body("roles", hasItem("LIBRARIAN"));
         }
