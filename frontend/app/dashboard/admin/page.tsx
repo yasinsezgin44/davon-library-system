@@ -20,7 +20,7 @@ const AdminDashboardPage = () => {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-      <p className="mb-8">Welcome, {user.username}!</p>
+      <p className="mb-8">Welcome, {user.fullName}!</p>
 
       <div className="space-y-12">
         <BookManagementTable />
