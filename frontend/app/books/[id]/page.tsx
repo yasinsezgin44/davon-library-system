@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import apiClient from "../../../lib/apiClient";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext";
+import { FaSpinner } from "react-icons/fa";
 
 interface Book {
   id: number;
@@ -41,7 +42,11 @@ const BookDetailPage = () => {
   }, [id, isAuthReady]);
 
   if (loading) {
-    return <p>Loading book details...</p>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <FaSpinner className="animate-spin text-4xl text-gray-500" />
+      </div>
+    );
   }
 
   if (!book) {

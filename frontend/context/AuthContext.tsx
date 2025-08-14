@@ -6,6 +6,7 @@ import React, {
   useState,
   useMemo,
   ReactNode,
+  useEffect,
 } from "react";
 import { useRouter } from "next/navigation";
 
@@ -17,6 +18,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isAuthReady: boolean;
   logout: () => Promise<void>;
 }
 
@@ -30,7 +32,12 @@ export const AuthProvider = ({
   user: User | null;
 }) => {
   const [user, setUser] = useState<User | null>(initialUser);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setIsAuthReady(true);
+  }, []);
 
   const logout = async () => {
     try {
@@ -46,9 +53,10 @@ export const AuthProvider = ({
     () => ({
       user,
       isAuthenticated: !!user,
+      isAuthReady,
       logout,
     }),
-    [user]
+    [user, isAuthReady]
   );
 
   return (
