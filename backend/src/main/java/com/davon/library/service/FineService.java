@@ -1,81 +1,71 @@
 package com.davon.library.service;
 
-import com.davon.library.model.*;
+import com.davon.library.model.Fine;
+import com.davon.library.model.Loan;
+import com.davon.library.model.Member;
+import com.davon.library.model.enums.FineReason;
+import com.davon.library.model.enums.FineStatus;
+import com.davon.library.repository.FineRepository;
+import com.davon.library.repository.MemberRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @ApplicationScoped
 public class FineService {
-    private static final double DAILY_RATE = 0.50; // 50 cents per day
-    private static final double MAX_FINE = 25.00; // Maximum fine amount
 
-    public Fine calculateOverdueFine(Loan loan) {
-        if (loan == null || loan.getDueDate() == null || loan.getMember() == null) {
-            return null;
-        }
+    private static final Logger log = LoggerFactory.getLogger(FineService.class);
 
-        LocalDate dueDate = loan.getDueDate();
-        LocalDate currentDate = LocalDate.now();
+    @Inject
+    FineRepository fineRepository;
 
-        // If not actually overdue, return null
-        if (!currentDate.isAfter(dueDate)) {
-            return null;
-        }
+    @Inject
+    MemberRepository memberRepository;
 
-        // Calculate overdue days from the due date to the current date
-        int overdueDays = (int) ChronoUnit.DAYS.between(dueDate, currentDate);
-        double amount = Math.min(overdueDays * DAILY_RATE, MAX_FINE);
-
-        return Fine.builder()
-                .member(loan.getMember())
-                .amount(amount)
-                .reason(Fine.FineReason.OVERDUE)
-                .issueDate(currentDate)
-                .dueDate(currentDate.plusDays(14))
-                .status(Fine.FineStatus.PENDING)
-                .build();
+    @Transactional
+    public Fine createFine(Fine fine) {
+        log.info("Creating fine for member {}", fine.getMember().getId());
+        fineRepository.persist(fine);
+        return fine;
     }
 
-    public Fine createDamageFine(Member member, BookCopy bookCopy, String damageDescription) {
-        if (member == null || bookCopy == null) {
-            return null;
-        }
+    @Transactional
+    public Fine payFine(Long fineId) {
+        log.info("Processing payment for fine {}", fineId);
+        Fine fine = fineRepository.findByIdOptional(fineId)
+                .orElseThrow(() -> new NotFoundException("Fine not found"));
 
-        double amount = calculateDamageAmount(bookCopy.getCondition(), damageDescription);
-        LocalDate currentDate = LocalDate.now();
+        fine.setStatus(FineStatus.PAID);
 
-        return Fine.builder()
-                .member(member)
-                .amount(amount)
-                .reason(Fine.FineReason.DAMAGED_ITEM)
-                .issueDate(currentDate)
-                .dueDate(currentDate.plusDays(14))
-                .status(Fine.FineStatus.PENDING)
-                .build();
+        Member member = fine.getMember();
+        member.setFineBalance(member.getFineBalance().subtract(fine.getAmount()));
+
+        return fine;
     }
 
-    public Fine createLostItemFine(Member member, BookCopy bookCopy) {
-        if (member == null || bookCopy == null) {
-            return null;
-        }
-
-        // Calculate replacement cost based on book value
-        double replacementCost = 25.00; // Example default value
-        LocalDate currentDate = LocalDate.now();
-
-        return Fine.builder()
-                .member(member)
-                .amount(replacementCost)
-                .reason(Fine.FineReason.LOST_ITEM)
-                .issueDate(currentDate)
-                .dueDate(currentDate.plusDays(14))
-                .status(Fine.FineStatus.PENDING)
-                .build();
+    public List<Fine> getFinesForMember(Long memberId) {
+        Member member = memberRepository.findByIdOptional(memberId)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
+        return fineRepository.findByMember(member);
     }
 
-    private double calculateDamageAmount(String condition, String damageDescription) {
-        // Implement logic to determine fine amount based on damage severity
-        return 10.00; // Default amount
+    @Transactional
+    public Fine createOverdueFine(Loan loan) {
+        Fine fine = new Fine();
+        fine.setMember(loan.getMember());
+        fine.setLoan(loan);
+        fine.setAmount(new BigDecimal("25.00")); // Or some calculated amount
+        fine.setReason(FineReason.OVERDUE);
+        fine.setIssueDate(LocalDate.now());
+        fine.setDueDate(LocalDate.now().plusDays(30));
+        fine.setStatus(FineStatus.PENDING);
+        return createFine(fine);
     }
 }

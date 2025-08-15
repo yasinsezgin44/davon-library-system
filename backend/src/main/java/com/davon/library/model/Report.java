@@ -1,48 +1,41 @@
 package com.davon.library.model;
 
+import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "reports")
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class Report extends BaseEntity {
+public class Report {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 255)
     private String title;
-    private LocalDate dateGenerated;
+
+    @Column(name = "start_date")
     private LocalDate startDate;
+
+    @Column(name = "end_date")
     private LocalDate endDate;
-    @lombok.Builder.Default
-    private Map<String, String> content = new HashMap<>();
+
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
+    @Column(name = "generated_by", length = 255)
     private String generatedBy;
 
-    public void addContent(String key, String value) {
-        content.put(key, value);
-    }
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    public String getContent(String key) {
-        return content.get(key);
-    }
-
-    public String generateTextReport() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(title).append("\n");
-        sb.append("Generated: ").append(dateGenerated).append("\n");
-
-        if (startDate != null && endDate != null) {
-            sb.append("Period: ").append(startDate).append(" to ").append(endDate).append("\n");
-        }
-
-        sb.append("\n");
-
-        for (Map.Entry<String, String> entry : content.entrySet()) {
-            sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
-        }
-
-        return sb.toString();
-    }
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

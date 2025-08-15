@@ -1,178 +1,118 @@
 package com.davon.library.service;
 
-import com.davon.library.model.*;
+import com.davon.library.model.Fine;
+import com.davon.library.model.Loan;
+import com.davon.library.model.Member;
+import com.davon.library.model.enums.FineReason;
+import com.davon.library.model.enums.FineStatus;
+import com.davon.library.repository.FineRepository;
+import com.davon.library.repository.MemberRepository;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-class FineServiceTest {
-        private FineService fineService;
-        private Loan overdueLoan;
-        private BookCopy bookCopy;
-        private Book book;
-        private Member member;
+@QuarkusTest
+public class FineServiceTest {
 
-        @BeforeEach
-        void setUp() {
-                fineService = new FineService();
+    @Inject
+    FineService fineService;
 
-                // Create test objects
-                member = Member.builder()
-                                .id(1L)
-                                .fullName("Test Member")
-                                .active(true)
-                                .build();
+    @InjectMock
+    FineRepository fineRepository;
 
-                book = Book.builder()
-                                .id(1L)
-                                .title("Test Book")
-                                .ISBN("1234567890")
-                                .build();
+    @InjectMock
+    MemberRepository memberRepository;
 
-                bookCopy = BookCopy.builder()
-                                .id(1L)
-                                .book(book)
-                                .status(BookCopy.CopyStatus.CHECKED_OUT)
-                                .condition("Good")
-                                .build();
+    private Fine fine;
+    private Member member;
+    private Loan loan;
 
-                // Create an overdue loan with proper member reference
-                // Due 10 days ago
-                overdueLoan = Loan.builder()
-                                .id(1L)
-                                .member(member)
-                                .bookCopy(bookCopy)
-                                .checkoutDate(LocalDate.now().minusDays(30))
-                                .dueDate(LocalDate.now().minusDays(10))
-                                .status(Loan.LoanStatus.OVERDUE)
-                                .build();
-        }
+    @BeforeEach
+    void setUp() {
+        member = new Member();
+        member.setId(1L);
+        member.setFineBalance(new BigDecimal("25.00"));
 
-        @Test
-        void testCalculateOverdueFine() {
-                // Test with overdue loan
-                Fine fine = fineService.calculateOverdueFine(overdueLoan);
+        loan = new Loan();
+        loan.setId(1L);
+        loan.setMember(member);
 
-                assertNotNull(fine);
-                assertEquals(Fine.FineReason.OVERDUE, fine.getReason());
-                assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
-                assertEquals(LocalDate.now(), fine.getIssueDate());
-                assertEquals(LocalDate.now().plusDays(14), fine.getDueDate());
+        fine = new Fine();
+        fine.setId(1L);
+        fine.setMember(member);
+        fine.setLoan(loan);
+        fine.setAmount(new BigDecimal("25.00"));
+        fine.setStatus(FineStatus.PENDING);
+    }
 
-                // 10 days overdue at $0.50 per day = $5.00
-                assertEquals(5.00, fine.getAmount());
+    @Test
+    void createFine_Success() {
+        fineService.createFine(fine);
+        ArgumentCaptor<Fine> fineCaptor = ArgumentCaptor.forClass(Fine.class);
+        verify(fineRepository).persist(fineCaptor.capture());
+        assertEquals(fine, fineCaptor.getValue());
+    }
 
-                // Test with non-overdue loan
-                Loan activeLoan = Loan.builder()
-                                .member(member)
-                                .status(Loan.LoanStatus.ACTIVE)
-                                .checkoutDate(LocalDate.now().minusDays(5))
-                                .dueDate(LocalDate.now().plusDays(5)) // Due in 5 days
-                                .build();
+    @Test
+    void payFine_Success() {
+        when(fineRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(fine));
+        Fine paidFine = fineService.payFine(1L);
 
-                Fine noFine = fineService.calculateOverdueFine(activeLoan);
-                assertNull(noFine);
+        assertEquals(FineStatus.PAID, paidFine.getStatus());
+        assertEquals(0, BigDecimal.ZERO.compareTo(member.getFineBalance()));
+    }
 
-                // Test with null loan
-                assertNull(fineService.calculateOverdueFine(null));
+    @Test
+    void payFine_NotFound() {
+        when(fineRepository.findByIdOptional(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> fineService.payFine(1L));
+    }
 
-                // Test with loan having null due date
-                Loan loanWithNullDueDate = Loan.builder()
-                                .member(member)
-                                .status(Loan.LoanStatus.ACTIVE)
-                                .checkoutDate(LocalDate.now())
-                                .build();
-                assertNull(fineService.calculateOverdueFine(loanWithNullDueDate));
-        }
+    @Test
+    void getFinesForMember_Success() {
+        when(memberRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(member));
+        when(fineRepository.findByMember(any(Member.class))).thenReturn(Collections.singletonList(fine));
+        List<Fine> fines = fineService.getFinesForMember(1L);
+        assertFalse(fines.isEmpty());
+        assertEquals(1, fines.size());
+        assertEquals(fine, fines.get(0));
+    }
 
-        @Test
-        void testCreateDamageFine() {
-                String damageDescription = "Water damage on pages 10-20";
-                Fine fine = fineService.createDamageFine(member, bookCopy, damageDescription);
+    @Test
+    void getFinesForMember_MemberNotFound() {
+        when(memberRepository.findByIdOptional(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> fineService.getFinesForMember(1L));
+    }
 
-                assertNotNull(fine);
-                assertEquals(Fine.FineReason.DAMAGED_ITEM, fine.getReason());
-                assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
-                assertEquals(LocalDate.now(), fine.getIssueDate());
-                assertEquals(LocalDate.now().plusDays(14), fine.getDueDate());
+    @Test
+    void createOverdueFine_Success() {
+        Fine overdueFine = fineService.createOverdueFine(loan);
 
-                // Default amount from service is $10.00
-                assertEquals(10.00, fine.getAmount());
-        }
+        ArgumentCaptor<Fine> fineCaptor = ArgumentCaptor.forClass(Fine.class);
+        verify(fineRepository).persist(fineCaptor.capture());
 
-        @Test
-        void testCreateLostItemFine() {
-                Fine fine = fineService.createLostItemFine(member, bookCopy);
-
-                assertNotNull(fine);
-                assertEquals(Fine.FineReason.LOST_ITEM, fine.getReason());
-                assertEquals(Fine.FineStatus.PENDING, fine.getStatus());
-                assertEquals(LocalDate.now(), fine.getIssueDate());
-                assertEquals(LocalDate.now().plusDays(14), fine.getDueDate());
-
-                // Default replacement cost from service is $25.00
-                assertEquals(25.00, fine.getAmount());
-        }
-
-        @Test
-        void testMaxFineLimit() {
-                // Create a loan that's 100 days overdue (which would exceed the max fine)
-                Loan veryOverdueLoan = Loan.builder()
-                                .id(2L)
-                                .member(member)
-                                .bookCopy(bookCopy)
-                                .checkoutDate(LocalDate.now().minusDays(120))
-                                .dueDate(LocalDate.now().minusDays(100))
-                                .status(Loan.LoanStatus.OVERDUE)
-                                .build();
-
-                Fine fine = fineService.calculateOverdueFine(veryOverdueLoan);
-
-                assertNotNull(fine);
-                // 100 days * $0.50 = $50, but max is $25
-                assertEquals(25.00, fine.getAmount());
-        }
-
-        @Test
-        void testOverdueFineAcrossMonths() {
-                // Create a loan that is 36 days overdue
-                Loan crossMonthLoan = Loan.builder()
-                                .id(3L)
-                                .member(member)
-                                .bookCopy(bookCopy)
-                                .checkoutDate(LocalDate.now().minusDays(51))
-                                .dueDate(LocalDate.now().minusDays(36))
-                                .status(Loan.LoanStatus.OVERDUE)
-                                .build();
-
-                Fine fine = fineService.calculateOverdueFine(crossMonthLoan);
-
-                assertNotNull(fine);
-                assertEquals(18.00, fine.getAmount(),
-                                "Fine should be $18.00 for 36 days overdue, but got $" + fine.getAmount());
-        }
-
-        @Test
-        void testNullInputHandling() {
-                // Test null member
-                assertNull(fineService.createDamageFine(null, bookCopy, "damage"));
-                assertNull(fineService.createLostItemFine(null, bookCopy));
-
-                // Test null bookCopy
-                assertNull(fineService.createDamageFine(member, null, "damage"));
-                assertNull(fineService.createLostItemFine(member, null));
-
-                // Test loan with null member
-                Loan loanWithNullMember = Loan.builder()
-                                .id(1L)
-                                .bookCopy(bookCopy)
-                                .checkoutDate(LocalDate.now().minusDays(30))
-                                .dueDate(LocalDate.now().minusDays(10))
-                                .status(Loan.LoanStatus.OVERDUE)
-                                .build();
-                assertNull(fineService.calculateOverdueFine(loanWithNullMember));
-        }
+        Fine persistedFine = fineCaptor.getValue();
+        assertEquals(member, persistedFine.getMember());
+        assertEquals(loan, persistedFine.getLoan());
+        assertEquals(new BigDecimal("25.00"), persistedFine.getAmount());
+        assertEquals(FineReason.OVERDUE, persistedFine.getReason());
+        assertEquals(FineStatus.PENDING, persistedFine.getStatus());
+    }
 }
+

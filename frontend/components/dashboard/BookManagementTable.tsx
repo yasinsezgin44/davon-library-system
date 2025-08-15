@@ -1,0 +1,240 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import apiClient from "../../lib/apiClient";
+import NewCreateBookModal from "./CreateBookModal";
+import UpdateBookModal from "./UpdateBookModal";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
+
+export type Author = {
+  id: number;
+  name: string;
+};
+
+export type Book = {
+  id: number;
+  title: string;
+  authors: Author[];
+  isbn: string;
+  quantity: number; // This will be derived or fetched separately
+  publicationYear?: number;
+  description?: string;
+  coverImage?: string;
+  pages?: number;
+};
+
+const BookManagementTable = () => {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      setLoading(true);
+      try {
+        const response = await apiClient.get("/books");
+        const adaptedBooks = response.data.map((book: any) => ({
+          ...book,
+          authors: book.authors || [],
+          quantity: book.copies?.length || 0,
+        }));
+        setBooks(adaptedBooks);
+      } catch (error) {
+        console.error("Failed to fetch books:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
+
+  const handleCreate = async (bookData: {
+    title: string;
+    isbn: string;
+    publicationYear: number;
+    description: string;
+    coverImage: string;
+    pages: number;
+    authorIds: number[];
+    publisherId: number;
+    categoryId: number;
+  }) => {
+    try {
+      const newBookData = {
+        ...bookData,
+        authorIds: bookData.authorIds,
+        publisherId: bookData.publisherId,
+        categoryId: bookData.categoryId,
+      };
+      console.log("Creating book with data:", newBookData);
+      const response = await apiClient.post("/books", newBookData);
+      const newBook = {
+        ...response.data,
+        authors: response.data.authors || [],
+        quantity: response.data.copies?.length || 0,
+      };
+      setBooks([...books, newBook]);
+      setCreateModalOpen(false);
+    } catch (error) {
+      console.error("Failed to create book:", error);
+    }
+  };
+
+  const handleUpdate = async (
+    id: number,
+    bookData: Partial<
+      Omit<Book, "id" | "quantity" | "authors"> & {
+        authorIds: number[];
+        publisherId: number;
+        categoryId: number;
+      }
+    >
+  ) => {
+    try {
+      const response = await apiClient.put(`/books/${id}`, bookData);
+      const updatedBook = {
+        ...response.data,
+        authors: response.data.authors || [],
+        quantity: response.data.copies?.length || 0,
+      };
+      setBooks(books.map((book) => (book.id === id ? updatedBook : book)));
+      setUpdateModalOpen(false);
+      setSelectedBook(null);
+    } catch (error) {
+      console.error("Failed to update book:", error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await apiClient.delete(`/books/${id}`);
+      setBooks(books.filter((book) => book.id !== id));
+      setDeleteModalOpen(false);
+      setSelectedBook(null);
+    } catch (error) {
+      console.error("Failed to delete book:", error);
+    }
+  };
+
+  const openUpdateModal = (book: Book) => {
+    setSelectedBook(book);
+    setUpdateModalOpen(true);
+  };
+
+  const openDeleteModal = (book: Book) => {
+    setSelectedBook(book);
+    setDeleteModalOpen(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-10">
+        <p>Loading books...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="flex justify-between items-center mb-4 px-6 py-4">
+        <h2 className="text-2xl font-bold text-gray-800">Book Management</h2>
+        <button
+          onClick={() => setCreateModalOpen(true)}
+          className="px-4 py-2 rounded-md font-semibold text-sm bg-green-500 text-white hover:bg-green-600"
+        >
+          Add New Book
+        </button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Title
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Author
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                ISBN
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Stock
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {books.map((book) => (
+              <tr key={book.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {book.title}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {book.authors.map((author) => author.name).join(", ")}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {book.isbn}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {book.quantity}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div className="flex justify-end items-center space-x-2">
+                    <button
+                      onClick={() => openUpdateModal(book)}
+                      className="px-4 py-2 rounded-md font-semibold text-sm bg-indigo-500 text-white hover:bg-indigo-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => openDeleteModal(book)}
+                      className="px-4 py-2 rounded-md font-semibold text-sm bg-red-500 text-white hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <NewCreateBookModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreate={handleCreate}
+      />
+      <UpdateBookModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => {
+          setUpdateModalOpen(false);
+          setSelectedBook(null);
+        }}
+        onUpdate={handleUpdate}
+        book={selectedBook}
+      />
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedBook(null);
+        }}
+        onConfirm={() => {
+          if (selectedBook) {
+            handleDelete(selectedBook.id);
+          }
+        }}
+        itemName={selectedBook ? selectedBook.title : ""}
+      />
+    </div>
+  );
+};
+
+export default BookManagementTable;

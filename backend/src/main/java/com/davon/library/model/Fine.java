@@ -1,76 +1,59 @@
 package com.davon.library.model;
 
+import com.davon.library.model.enums.FineReason;
+import com.davon.library.model.enums.FineStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import java.time.LocalDate;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-/**
- * Represents a fine in the library system.
- */
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "fines")
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = { "member" })
-@ToString(callSuper = true, exclude = { "member" })
-public class Fine extends BaseEntity {
-    @ManyToOne(fetch = FetchType.LAZY)
+public class Fine {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column(name = "amount", nullable = false)
-    private double amount;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_id")
+    private Loan loan;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "reason", nullable = false)
+    @Column(nullable = false, length = 20)
     private FineReason reason;
 
-    @Column(name = "issue_date", nullable = false)
+    @Column(name = "issue_date")
     private LocalDate issueDate;
 
     @Column(name = "due_date")
     private LocalDate dueDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private FineStatus status;
+    @Column(length = 20)
+    @Builder.Default
+    private FineStatus status = FineStatus.PENDING;
 
-    public Transaction pay() {
-        this.status = FineStatus.PAID;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-        Transaction transaction = Transaction.builder()
-                .amount(this.amount)
-                .date(LocalDate.now())
-                .type(Transaction.TransactionType.FINE_PAYMENT)
-                .description("Payment for fine ID " + this.getId())
-                .paymentMethod("Cash") // Default
-                .build();
-
-        return transaction;
-    }
-
-    public void waive() {
-        this.status = FineStatus.WAIVED;
-    }
-
-    public void adjustAmount(double newAmount) {
-        this.amount = newAmount;
-    }
-
-    public boolean disputeFine(String reason) {
-        // Logic to handle dispute
-        this.status = FineStatus.DISPUTED;
-        return true;
-    }
-
-    public enum FineReason {
-        OVERDUE, DAMAGED_ITEM, LOST_ITEM, ADMINISTRATIVE
-    }
-
-    public enum FineStatus {
-        PENDING, PAID, WAIVED, DISPUTED
-    }
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }

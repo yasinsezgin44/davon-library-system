@@ -1,331 +1,130 @@
 package com.davon.library.service;
 
-import com.davon.library.repository.LoanRepository;
+import com.davon.library.model.BookCopy;
+import com.davon.library.model.Fine;
+import com.davon.library.model.Loan;
+import com.davon.library.model.Member;
+import com.davon.library.model.enums.CopyStatus;
+import com.davon.library.model.enums.FineReason;
+import com.davon.library.model.enums.FineStatus;
+import com.davon.library.model.enums.LoanStatus;
 import com.davon.library.repository.BookCopyRepository;
 import com.davon.library.repository.FineRepository;
-import com.davon.library.model.*;
-import com.davon.library.exception.BusinessException;
-
+import com.davon.library.repository.LoanRepository;
+import com.davon.library.repository.MemberRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Service for managing book loans (checkout and return processes).
- * Follows SOLID principles and uses repository pattern for data access.
- */
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+
 @ApplicationScoped
 public class LoanService {
 
-    private static final Logger logger = Logger.getLogger(LoanService.class.getName());
-    private static final int DEFAULT_LOAN_PERIOD_DAYS = 14;
-    private static final double DAILY_FINE_RATE = 0.25; // $0.25 per day
+    private static final Logger log = LoggerFactory.getLogger(LoanService.class);
+    private static final int LOAN_PERIOD_DAYS = 14;
     private static final int MAX_LOANS_PER_MEMBER = 5;
-
-    private final LoanRepository loanRepository;
-    private final BookCopyRepository bookCopyRepository;
-    private final FineRepository fineRepository;
-    private final UserService userService;
-    private final BookService bookService;
-    private final NotificationService notificationService;
-    private final ReceiptService receiptService;
+    private static final BigDecimal LATE_FEE_PER_DAY = new BigDecimal("0.25");
 
     @Inject
-    public LoanService(LoanRepository loanRepository, BookCopyRepository bookCopyRepository,
-            FineRepository fineRepository,
-            UserService userService, BookService bookService,
-            NotificationService notificationService, ReceiptService receiptService) {
-        this.loanRepository = loanRepository;
-        this.bookCopyRepository = bookCopyRepository;
-        this.fineRepository = fineRepository;
-        this.userService = userService;
-        this.bookService = bookService;
-        this.notificationService = notificationService;
-        this.receiptService = receiptService;
-    }
+    LoanRepository loanRepository;
 
-    /**
-     * Checks out a book to a member.
-     * 
-     * @param bookId   the ID of the book to checkout
-     * @param memberId the ID of the member
-     * @return the created loan
-     * @throws BusinessException if checkout is not allowed
-     */
+    @Inject
+    BookCopyRepository bookCopyRepository;
+
+    @Inject
+    FineRepository fineRepository;
+
+    @Inject
+    MemberRepository memberRepository;
+
     @Transactional
-    public Loan checkoutBook(Long bookId, Long memberId) throws BusinessException {
-        try {
-            // 1. Validate member can borrow
-            Member member = validateMemberForCheckout(memberId);
+    public Loan checkoutBook(Long bookId, Long memberId) {
+        log.info("Attempting to check out book {} for member {}", bookId, memberId);
 
-            // 2. Find and validate book availability
-            BookCopy bookCopy = findAvailableBookCopy(bookId);
+        Member member = memberRepository.findByIdOptional(memberId)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
 
-            // 3. Create loan record
-            Loan loan = createLoan(member, bookCopy);
-
-            // 4. Update book copy status
-            bookCopy.checkOut();
-            bookCopyRepository.persist(bookCopy);
-
-            // 5. Save loan record
-            loanRepository.persist(loan);
-
-            // 6. Send notification
-            notificationService.sendCheckoutNotification(member, loan);
-
-            logger.info("Book checked out successfully - Loan ID: " + loan.getId());
-            return loan;
-
-        } catch (BusinessException e) {
-            // Re-throw BusinessExceptions without wrapping
-            throw e;
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Database error during checkout", e);
-            throw new BusinessException("Failed to checkout book due to system error");
-        }
-    }
-
-    /**
-     * Returns a book and calculates any fines.
-     * 
-     * @param loanId the ID of the loan to return
-     * @return the receipt for the return transaction
-     * @throws BusinessException if return is not allowed
-     */
-    @Transactional
-    public Receipt returnBook(Long loanId) throws BusinessException {
-        try {
-            // 1. Find active loan
-            Loan loan = validateLoanForReturn(loanId);
-
-            logger.info("DEBUG: Returning loan ID: " + loanId + ", Due Date: " + loan.getDueDate() + ", Today: "
-                    + LocalDate.now());
-
-            // 2. Calculate any fines
-            Fine fine = null;
-            if (loan.getDueDate().isBefore(LocalDate.now())) {
-                logger.info("DEBUG: Loan is overdue, calculating fine");
-                fine = calculateAndCreateLateFine(loan);
-                logger.info("DEBUG: Fine created with amount: " + fine.getAmount());
-                fineRepository.persist(fine);
-                logger.info("DEBUG: Fine saved with ID: " + fine.getId());
-
-                // Update member's fine balance
-                Member member = loan.getMember();
-                logger.info("DEBUG: Member fine balance before addFine: " + member.getFineBalance());
-                member.addFine(fine.getAmount());
-                logger.info("DEBUG: Member fine balance after addFine: " + member.getFineBalance());
-                userService.updateUser(member.getId(), member);
-                logger.info("DEBUG: Called userService.updateUser");
-            } else {
-                logger.info("DEBUG: Loan is not overdue, no fine calculated");
-            }
-
-            // 3. Update loan status
-            loan.returnBook();
-            loanRepository.persist(loan);
-
-            // 4. Update book copy availability
-            BookCopy bookCopy = loan.getBookCopy();
-            bookCopy.checkIn();
-            bookCopyRepository.persist(bookCopy);
-
-            // 5. Generate receipt
-            Receipt receipt = receiptService.generateReturnReceipt(loan, fine);
-
-            // 6. Send notification
-            notificationService.sendReturnNotification(loan.getMember(), loan);
-
-            logger.info("Book returned successfully - Loan ID: " + loan.getId());
-            return receipt;
-
-        } catch (UserService.UserServiceException e) {
-            logger.log(Level.SEVERE, "Error during book return", e);
-            throw new BusinessException("Failed to return book due to system error");
-        }
-    }
-
-    /**
-     * Gets all loans for a member.
-     * 
-     * @param memberId the member ID
-     * @return list of loans
-     */
-    public List<Loan> getMemberLoans(Long memberId) {
-        Member member = Member.builder().id(memberId).build();
-        return loanRepository.findByMember(member);
-    }
-
-    /**
-     * Gets all active loans for a member.
-     * 
-     * @param memberId the member ID
-     * @return list of active loans
-     */
-    public List<Loan> getMemberActiveLoans(Long memberId) {
-        Member member = Member.builder().id(memberId).build();
-        return loanRepository.findActiveLoansByMember(member);
-    }
-
-    /**
-     * Gets all overdue loans.
-     * 
-     * @return list of overdue loans
-     */
-    public List<Loan> getOverdueLoans() {
-        try {
-            return loanRepository.findOverdueLoans();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error getting overdue loans", e);
-            throw new RuntimeException("Service error");
-        }
-    }
-
-    /**
-     * Renews a loan if allowed.
-     * 
-     * @param loanId the loan ID
-     * @return the renewed loan
-     * @throws BusinessException if renewal is not allowed
-     */
-    @Transactional
-    public Loan renewLoan(Long loanId) throws BusinessException {
-        try {
-            Loan loan = loanRepository.findById(loanId);
-            if (loan == null) {
-                throw new BusinessException("Loan not found with ID: " + loanId);
-            }
-
-            // Validate renewal is allowed
-            if (loan.getStatus() != Loan.LoanStatus.ACTIVE) {
-                throw new BusinessException("Only active loans can be renewed");
-            }
-
-            // Check if member has outstanding fines
-            Member member = loan.getMember();
-            if (member.getFineBalance() > 0) {
-                throw new BusinessException("Member has outstanding fines of $" + member.getFineBalance());
-            }
-
-            // Check renewal eligibility
-            if (!loan.renew()) {
-                throw new BusinessException("Loan renewal not allowed");
-            }
-
-            // Save updated loan
-            loanRepository.persist(loan);
-
-            // Send notification
-            notificationService.sendRenewalNotification(loan.getMember(), loan);
-
-            logger.info("Loan renewed successfully - Loan ID: " + loan.getId());
-            return loan;
-
-        } catch (BusinessException e) {
-            // Re-throw BusinessExceptions without wrapping
-            throw e;
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error during loan renewal", e);
-            throw new BusinessException("Failed to renew loan due to system error");
-        }
-    }
-
-    // Private helper methods
-
-    private Member validateMemberForCheckout(Long memberId) throws BusinessException {
-        User user = userService.findById(memberId);
-        if (user == null) {
-            throw new BusinessException("Member not found with ID: " + memberId);
+        if (loanRepository.countActiveLoansByMember(member) >= MAX_LOANS_PER_MEMBER) {
+            throw new BadRequestException("Member has reached the maximum number of active loans.");
         }
 
-        if (!(user instanceof Member)) {
-            throw new BusinessException("User is not a member");
+        if (member.getFineBalance().compareTo(BigDecimal.ZERO) > 0) {
+            throw new BadRequestException("Member has outstanding fines.");
         }
 
-        Member member = (Member) user;
+        BookCopy bookCopy = bookCopyRepository.findAvailableByBookId(bookId)
+                .orElseThrow(() -> new NotFoundException("No available copies for this book."));
 
-        // Check if member has outstanding fines
-        if (member.getFineBalance() > 0) {
-            throw new BusinessException("Member has outstanding fines of $" + member.getFineBalance());
-        }
+        bookCopy.setStatus(CopyStatus.CHECKED_OUT);
 
-        // Check loan limit
-        long activeLoanCount = loanRepository.countActiveLoansByMember(member);
-        if (activeLoanCount >= MAX_LOANS_PER_MEMBER) {
-            throw new BusinessException("Member has reached maximum loan limit of " + MAX_LOANS_PER_MEMBER);
-        }
+        Loan loan = new Loan();
+        loan.setMember(member);
+        loan.setBookCopy(bookCopy);
+        loan.setCheckoutDate(LocalDate.now());
+        loan.setDueDate(LocalDate.now().plusDays(LOAN_PERIOD_DAYS));
+        loan.setStatus(LoanStatus.ACTIVE);
+        loanRepository.persist(loan);
 
-        return member;
-    }
-
-    private BookCopy findAvailableBookCopy(Long bookId) throws BusinessException {
-        Book book = bookService.getBookById(bookId);
-        if (book == null) {
-            throw new BusinessException("Book not found with ID: " + bookId);
-        }
-
-        List<BookCopy> availableCopies = bookCopyRepository.findAvailableByBook(book);
-        if (availableCopies.isEmpty()) {
-            throw new BusinessException("No available copies of book: " + book.getTitle());
-        }
-
-        return availableCopies.get(0); // Return first available copy
-    }
-
-    private Loan createLoan(Member member, BookCopy bookCopy) {
-        return Loan.builder()
-                .member(member)
-                .bookCopy(bookCopy)
-                .checkoutDate(LocalDate.now())
-                .dueDate(LocalDate.now().plusDays(DEFAULT_LOAN_PERIOD_DAYS))
-                .status(Loan.LoanStatus.ACTIVE)
-                .renewalCount(0)
-                .build();
-    }
-
-    private Loan validateLoanForReturn(Long loanId) throws BusinessException {
-        Loan loan = loanRepository.findById(loanId);
-        if (loan == null) {
-            throw new BusinessException("Loan not found with ID: " + loanId);
-        }
-
-        if (loan.getStatus() != Loan.LoanStatus.ACTIVE) {
-            throw new BusinessException("Only active loans can be returned");
-        }
-
+        log.info("Book checked out successfully. Loan ID: {}", loan.getId());
         return loan;
     }
 
-    private Fine calculateAndCreateLateFine(Loan loan) {
-        int overdueDays = loan.getOverdueDays();
-        double fineAmount = overdueDays * DAILY_FINE_RATE;
+    @Transactional
+    public void returnBook(Long loanId) {
+        log.info("Returning book for loan {}", loanId);
+        Loan loan = loanRepository.findByIdOptional(loanId)
+                .orElseThrow(() -> new NotFoundException("Loan not found"));
 
-        return Fine.builder()
-                .member(loan.getMember())
-                .amount(fineAmount)
-                .reason(Fine.FineReason.OVERDUE)
-                .issueDate(LocalDate.now())
-                .dueDate(LocalDate.now().plusDays(30)) // 30 days to pay fine
-                .status(Fine.FineStatus.PENDING)
-                .build();
+        if (loan.getStatus() != LoanStatus.ACTIVE) {
+            throw new BadRequestException("Loan is not active.");
+        }
+
+        loan.setReturnDate(LocalDate.now());
+        loan.setStatus(LoanStatus.RETURNED);
+
+        BookCopy bookCopy = loan.getBookCopy();
+        bookCopy.setStatus(CopyStatus.AVAILABLE);
+
+        if (loan.getDueDate().isBefore(LocalDate.now())) {
+            createFineForOverdueLoan(loan);
+        }
     }
 
-    /**
-     * Service-specific exception class.
-     */
-    public static class LoanServiceException extends Exception {
-        public LoanServiceException(String message) {
-            super(message);
-        }
+    private void createFineForOverdueLoan(Loan loan) {
+        long overdueDays = ChronoUnit.DAYS.between(loan.getDueDate(), LocalDate.now());
+        if (overdueDays > 0) {
+            BigDecimal fineAmount = LATE_FEE_PER_DAY.multiply(new BigDecimal(overdueDays));
 
-        public LoanServiceException(String message, Throwable cause) {
-            super(message, cause);
+            Fine fine = new Fine();
+            fine.setMember(loan.getMember());
+            fine.setLoan(loan);
+            fine.setAmount(fineAmount);
+            fine.setReason(FineReason.OVERDUE);
+            fine.setIssueDate(LocalDate.now());
+            fine.setStatus(FineStatus.PENDING);
+            fineRepository.persist(fine);
+
+            Member member = loan.getMember();
+            member.setFineBalance(member.getFineBalance().add(fineAmount));
+            log.info("Created a fine of {} for member {}", fineAmount, member.getId());
         }
+    }
+
+    public List<Loan> getLoansForMember(Long memberId) {
+        Member member = memberRepository.findByIdOptional(memberId)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
+        return loanRepository.findByMember(member);
+    }
+
+    public List<Loan> getOverdueLoans() {
+        return loanRepository.findOverdueLoans();
     }
 }

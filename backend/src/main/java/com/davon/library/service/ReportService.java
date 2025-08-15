@@ -1,8 +1,13 @@
 package com.davon.library.service;
 
 import com.davon.library.model.*;
+import com.davon.library.repository.FineRepository;
+import com.davon.library.repository.LoanRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.Builder;
+import lombok.Data;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -12,28 +17,26 @@ import java.util.stream.Collectors;
 public class ReportService {
 
     @Inject
-    LoanService loanService;
+    LoanRepository loanRepository;
+
+    @Inject
+    FineRepository fineRepository;
 
     @Inject
     FineService fineService;
 
-    /**
-     * Generates a comprehensive monthly report for library operations
-     */
     public MonthlyReport generateMonthlyReport(LocalDate startDate, LocalDate endDate) {
-        // Get all loans in the period (in a real app, this would be a database query)
-        List<Loan> loansInPeriod = getLoansInPeriod(startDate, endDate);
-
-        long reportingPeriodDays = ChronoUnit.DAYS.between(startDate, endDate) + 1; // +1 for inclusive end date
+        List<Loan> loansInPeriod = loanRepository.findByCheckoutDateBetween(startDate, endDate);
+        long reportingPeriodDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
 
         return MonthlyReport.builder()
                 .startDate(startDate)
                 .endDate(endDate)
                 .reportingPeriodDays(reportingPeriodDays)
                 .totalLoans(loansInPeriod.size())
-                .activeLoans(countLoansByStatus(loansInPeriod, Loan.LoanStatus.ACTIVE))
-                .overdueLoans(countLoansByStatus(loansInPeriod, Loan.LoanStatus.OVERDUE))
-                .returnedLoans(countLoansByStatus(loansInPeriod, Loan.LoanStatus.RETURNED))
+                .activeLoans(countLoansByStatus(loansInPeriod, "ACTIVE"))
+                .overdueLoans(countLoansByStatus(loansInPeriod, "OVERDUE"))
+                .returnedLoans(countLoansByStatus(loansInPeriod, "RETURNED"))
                 .avgLoansPerDay(calculateAverageLoansPerDay(loansInPeriod.size(), reportingPeriodDays))
                 .overdueRate(calculateOverdueRate(loansInPeriod))
                 .mostPopularBooks(findMostPopularBooks(loansInPeriod, 5))
@@ -41,11 +44,8 @@ public class ReportService {
                 .build();
     }
 
-    /**
-     * Generates an overdue books report
-     */
     public OverdueReport generateOverdueReport() {
-        List<Loan> overdueLoans = getOverdueLoans();
+        List<Loan> overdueLoans = loanRepository.findOverdueLoans();
 
         return OverdueReport.builder()
                 .reportDate(LocalDate.now())
@@ -56,49 +56,29 @@ public class ReportService {
                 .build();
     }
 
-    /**
-     * Generates a fine collection report
-     */
     public FineReport generateFineReport(LocalDate startDate, LocalDate endDate) {
-        List<Fine> finesInPeriod = getFinesInPeriod(startDate, endDate);
+        List<Fine> finesInPeriod = fineRepository.findByIssueDateBetween(startDate, endDate);
 
         return FineReport.builder()
                 .startDate(startDate)
                 .endDate(endDate)
                 .totalFinesIssued(finesInPeriod.size())
                 .totalFineAmount(calculateTotalFineAmount(finesInPeriod))
-                .finesPaid(countFinesByStatus(finesInPeriod, Fine.FineStatus.PAID))
-                .finesPending(countFinesByStatus(finesInPeriod, Fine.FineStatus.PENDING))
+                .finesPaid(countFinesByStatus(finesInPeriod, "PAID"))
+                .finesPending(countFinesByStatus(finesInPeriod, "PENDING"))
                 .collectionRate(calculateFineCollectionRate(finesInPeriod))
                 .build();
     }
 
-    // Helper methods
-    private List<Loan> getLoansInPeriod(LocalDate startDate, LocalDate endDate) {
-        // In a real application, this would be a database query
-        // For now, we'll use the service layer
-        return Collections.emptyList(); // Placeholder
-    }
-
-    private List<Loan> getOverdueLoans() {
-        // In a real application, this would be a database query
-        return Collections.emptyList(); // Placeholder
-    }
-
-    private List<Fine> getFinesInPeriod(LocalDate startDate, LocalDate endDate) {
-        // In a real application, this would be a database query
-        return Collections.emptyList(); // Placeholder
-    }
-
-    private int countLoansByStatus(List<Loan> loans, Loan.LoanStatus status) {
+    private int countLoansByStatus(List<Loan> loans, String status) {
         return (int) loans.stream()
-                .filter(loan -> loan.getStatus() == status)
+                .filter(loan -> status.equals(loan.getStatus().name()))
                 .count();
     }
 
-    private int countFinesByStatus(List<Fine> fines, Fine.FineStatus status) {
+    private int countFinesByStatus(List<Fine> fines, String status) {
         return (int) fines.stream()
-                .filter(fine -> fine.getStatus() == status)
+                .filter(fine -> status.equals(fine.getStatus().name()))
                 .count();
     }
 
@@ -109,11 +89,9 @@ public class ReportService {
     private double calculateOverdueRate(List<Loan> loans) {
         if (loans.isEmpty())
             return 0.0;
-
         long overdueCount = loans.stream()
-                .filter(loan -> loan.getStatus() == Loan.LoanStatus.OVERDUE)
+                .filter(loan -> "OVERDUE".equals(loan.getStatus().name()))
                 .count();
-
         return (double) overdueCount / loans.size() * 100;
     }
 
@@ -132,15 +110,15 @@ public class ReportService {
     private Map<String, Integer> generateMemberActivitySummary(List<Loan> loans) {
         return loans.stream()
                 .collect(Collectors.groupingBy(
-                        loan -> loan.getMember().getFullName(),
+                        loan -> loan.getMember().getUser().getFullName(),
                         Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
     }
 
     private double calculateTotalFinesOwed(List<Loan> overdueLoans) {
         return overdueLoans.stream()
                 .mapToDouble(loan -> {
-                    Fine fine = fineService.calculateOverdueFine(loan);
-                    return fine != null ? fine.getAmount() : 0.0;
+                    Fine fine = fineService.createOverdueFine(loan);
+                    return fine != null ? fine.getAmount().doubleValue() : 0.0;
                 })
                 .sum();
     }
@@ -150,14 +128,14 @@ public class ReportService {
             return 0.0;
 
         return overdueLoans.stream()
-                .mapToInt(Loan::getOverdueDays)
+                .mapToInt(loan -> (int) ChronoUnit.DAYS.between(loan.getDueDate(), LocalDate.now()))
                 .average()
                 .orElse(0.0);
     }
 
     private double calculateTotalFineAmount(List<Fine> fines) {
         return fines.stream()
-                .mapToDouble(Fine::getAmount)
+                .mapToDouble(fine -> fine.getAmount().doubleValue())
                 .sum();
     }
 
@@ -166,13 +144,14 @@ public class ReportService {
             return 0.0;
 
         long paidFines = fines.stream()
-                .filter(fine -> fine.getStatus() == Fine.FineStatus.PAID)
+                .filter(fine -> "PAID".equals(fine.getStatus().name()))
                 .count();
 
         return (double) paidFines / fines.size() * 100;
     }
 
-    // Report DTOs
+    @Data
+    @Builder
     public static class MonthlyReport {
         private LocalDate startDate;
         private LocalDate endDate;
@@ -185,187 +164,20 @@ public class ReportService {
         private double overdueRate;
         private List<String> mostPopularBooks;
         private Map<String, Integer> memberActivitySummary;
-
-        // Builder pattern
-        public static MonthlyReportBuilder builder() {
-            return new MonthlyReportBuilder();
-        }
-
-        // Getters
-        public LocalDate getStartDate() {
-            return startDate;
-        }
-
-        public LocalDate getEndDate() {
-            return endDate;
-        }
-
-        public long getReportingPeriodDays() {
-            return reportingPeriodDays;
-        }
-
-        public int getTotalLoans() {
-            return totalLoans;
-        }
-
-        public int getActiveLoans() {
-            return activeLoans;
-        }
-
-        public int getOverdueLoans() {
-            return overdueLoans;
-        }
-
-        public int getReturnedLoans() {
-            return returnedLoans;
-        }
-
-        public double getAvgLoansPerDay() {
-            return avgLoansPerDay;
-        }
-
-        public double getOverdueRate() {
-            return overdueRate;
-        }
-
-        public List<String> getMostPopularBooks() {
-            return mostPopularBooks;
-        }
-
-        public Map<String, Integer> getMemberActivitySummary() {
-            return memberActivitySummary;
-        }
-
-        public static class MonthlyReportBuilder {
-            private MonthlyReport report = new MonthlyReport();
-
-            public MonthlyReportBuilder startDate(LocalDate startDate) {
-                report.startDate = startDate;
-                return this;
-            }
-
-            public MonthlyReportBuilder endDate(LocalDate endDate) {
-                report.endDate = endDate;
-                return this;
-            }
-
-            public MonthlyReportBuilder reportingPeriodDays(long days) {
-                report.reportingPeriodDays = days;
-                return this;
-            }
-
-            public MonthlyReportBuilder totalLoans(int total) {
-                report.totalLoans = total;
-                return this;
-            }
-
-            public MonthlyReportBuilder activeLoans(int active) {
-                report.activeLoans = active;
-                return this;
-            }
-
-            public MonthlyReportBuilder overdueLoans(int overdue) {
-                report.overdueLoans = overdue;
-                return this;
-            }
-
-            public MonthlyReportBuilder returnedLoans(int returned) {
-                report.returnedLoans = returned;
-                return this;
-            }
-
-            public MonthlyReportBuilder avgLoansPerDay(double avg) {
-                report.avgLoansPerDay = avg;
-                return this;
-            }
-
-            public MonthlyReportBuilder overdueRate(double rate) {
-                report.overdueRate = rate;
-                return this;
-            }
-
-            public MonthlyReportBuilder mostPopularBooks(List<String> books) {
-                report.mostPopularBooks = books;
-                return this;
-            }
-
-            public MonthlyReportBuilder memberActivitySummary(Map<String, Integer> summary) {
-                report.memberActivitySummary = summary;
-                return this;
-            }
-
-            public MonthlyReport build() {
-                return report;
-            }
-        }
     }
 
+    @Data
+    @Builder
     public static class OverdueReport {
         private LocalDate reportDate;
         private int totalOverdueLoans;
         private List<Loan> overdueLoans;
         private double totalFinesOwed;
         private double averageDaysOverdue;
-
-        public static OverdueReportBuilder builder() {
-            return new OverdueReportBuilder();
-        }
-
-        // Getters
-        public LocalDate getReportDate() {
-            return reportDate;
-        }
-
-        public int getTotalOverdueLoans() {
-            return totalOverdueLoans;
-        }
-
-        public List<Loan> getOverdueLoans() {
-            return overdueLoans;
-        }
-
-        public double getTotalFinesOwed() {
-            return totalFinesOwed;
-        }
-
-        public double getAverageDaysOverdue() {
-            return averageDaysOverdue;
-        }
-
-        public static class OverdueReportBuilder {
-            private OverdueReport report = new OverdueReport();
-
-            public OverdueReportBuilder reportDate(LocalDate date) {
-                report.reportDate = date;
-                return this;
-            }
-
-            public OverdueReportBuilder totalOverdueLoans(int total) {
-                report.totalOverdueLoans = total;
-                return this;
-            }
-
-            public OverdueReportBuilder overdueLoans(List<Loan> loans) {
-                report.overdueLoans = loans;
-                return this;
-            }
-
-            public OverdueReportBuilder totalFinesOwed(double amount) {
-                report.totalFinesOwed = amount;
-                return this;
-            }
-
-            public OverdueReportBuilder averageDaysOverdue(double average) {
-                report.averageDaysOverdue = average;
-                return this;
-            }
-
-            public OverdueReport build() {
-                return report;
-            }
-        }
     }
 
+    @Data
+    @Builder
     public static class FineReport {
         private LocalDate startDate;
         private LocalDate endDate;
@@ -374,81 +186,5 @@ public class ReportService {
         private int finesPaid;
         private int finesPending;
         private double collectionRate;
-
-        public static FineReportBuilder builder() {
-            return new FineReportBuilder();
-        }
-
-        // Getters
-        public LocalDate getStartDate() {
-            return startDate;
-        }
-
-        public LocalDate getEndDate() {
-            return endDate;
-        }
-
-        public int getTotalFinesIssued() {
-            return totalFinesIssued;
-        }
-
-        public double getTotalFineAmount() {
-            return totalFineAmount;
-        }
-
-        public int getFinesPaid() {
-            return finesPaid;
-        }
-
-        public int getFinesPending() {
-            return finesPending;
-        }
-
-        public double getCollectionRate() {
-            return collectionRate;
-        }
-
-        public static class FineReportBuilder {
-            private FineReport report = new FineReport();
-
-            public FineReportBuilder startDate(LocalDate startDate) {
-                report.startDate = startDate;
-                return this;
-            }
-
-            public FineReportBuilder endDate(LocalDate endDate) {
-                report.endDate = endDate;
-                return this;
-            }
-
-            public FineReportBuilder totalFinesIssued(int total) {
-                report.totalFinesIssued = total;
-                return this;
-            }
-
-            public FineReportBuilder totalFineAmount(double amount) {
-                report.totalFineAmount = amount;
-                return this;
-            }
-
-            public FineReportBuilder finesPaid(int paid) {
-                report.finesPaid = paid;
-                return this;
-            }
-
-            public FineReportBuilder finesPending(int pending) {
-                report.finesPending = pending;
-                return this;
-            }
-
-            public FineReportBuilder collectionRate(double rate) {
-                report.collectionRate = rate;
-                return this;
-            }
-
-            public FineReport build() {
-                return report;
-            }
-        }
     }
 }

@@ -1,281 +1,123 @@
 package com.davon.library.service;
 
-import com.davon.library.model.*;
+import com.davon.library.model.Book;
+import com.davon.library.model.BookCopy;
+import com.davon.library.model.enums.CopyStatus;
+import com.davon.library.repository.BookCopyRepository;
+import com.davon.library.repository.BookRepository;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-class InventoryServiceTest {
-    private InventoryService inventoryService;
-    private Book testBook1;
-    private Book testBook2;
-    private BookCopy availableCopy;
-    private BookCopy checkedOutCopy;
-    private Author author;
-    private Publisher publisher;
-    private Category category;
+@QuarkusTest
+public class InventoryServiceTest {
+
+    @Inject
+    InventoryService inventoryService;
+
+    @InjectMock
+    BookRepository bookRepository;
+
+    @InjectMock
+    BookCopyRepository bookCopyRepository;
+
+    private Book book;
+    private BookCopy bookCopy;
 
     @BeforeEach
     void setUp() {
-        inventoryService = new InventoryService();
+        book = new Book();
+        book.setId(1L);
 
-        // Create test data
-        author = Author.builder()
-                .id(1L)
-                .name("Test Author")
-                .build();
-
-        publisher = Publisher.builder()
-                .id(1L)
-                .name("Test Publisher")
-                .build();
-
-        category = Category.builder()
-                .id(1L)
-                .name("Test Category")
-                .build();
-
-        Set<Author> authors = new HashSet<>();
-        authors.add(author);
-
-        testBook1 = Book.builder()
-                .id(1L)
-                .title("Java Programming")
-                .ISBN("1234567890")
-                .publicationYear(2022)
-                .authors(authors)
-                .publisher(publisher)
-                .category(category)
-                .build();
-
-        testBook2 = Book.builder()
-                .id(2L)
-                .title("Database Systems")
-                .ISBN("0987654321")
-                .publicationYear(2021)
-                .authors(authors)
-                .publisher(publisher)
-                .category(category)
-                .build();
-
-        // Add books to inventory
-        inventoryService.addBook(testBook1);
-        inventoryService.addBook(testBook2);
-
-        // Create book copies
-        availableCopy = BookCopy.builder()
-                .id(1L)
-                .book(testBook1)
-                .status(BookCopy.CopyStatus.AVAILABLE)
-                .location("Shelf A1")
-                .build();
-
-        checkedOutCopy = BookCopy.builder()
-                .id(2L)
-                .book(testBook1)
-                .status(BookCopy.CopyStatus.CHECKED_OUT)
-                .location("Checked Out")
-                .build();
-
-        // Add copies to inventory
-        inventoryService.addBookCopy(availableCopy);
-        inventoryService.addBookCopy(checkedOutCopy);
+        bookCopy = new BookCopy();
+        bookCopy.setId(1L);
+        bookCopy.setBook(book);
+        bookCopy.setStatus(CopyStatus.AVAILABLE);
     }
 
     @Test
-    void testGetTotalBooks() {
-        assertEquals(2, inventoryService.getTotalBooks());
+    void addBookCopy_Success() {
+        when(bookRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(book));
+        inventoryService.addBookCopy(1L, "Shelf A");
+
+        ArgumentCaptor<BookCopy> bookCopyCaptor = ArgumentCaptor.forClass(BookCopy.class);
+        verify(bookCopyRepository).persist(bookCopyCaptor.capture());
+
+        BookCopy persistedCopy = bookCopyCaptor.getValue();
+        assertEquals(book, persistedCopy.getBook());
+        assertEquals("Shelf A", persistedCopy.getLocation());
+        assertEquals(CopyStatus.AVAILABLE, persistedCopy.getStatus());
     }
 
     @Test
-    void testGetAvailableBooks() {
-        List<Book> availableBooks = inventoryService.getAvailableBooks();
-        assertEquals(1, availableBooks.size());
-        assertEquals("Java Programming", availableBooks.get(0).getTitle());
+    void addBookCopy_BookNotFound() {
+        when(bookRepository.findByIdOptional(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> inventoryService.addBookCopy(1L, "Shelf A"));
     }
 
     @Test
-    void testSearchBooks() {
-        // Search by title
-        List<Book> javaBooks = inventoryService.searchBooks("Java");
-        assertEquals(1, javaBooks.size());
-        assertEquals("Java Programming", javaBooks.get(0).getTitle());
-
-        // Search by ISBN
-        List<Book> isbnBooks = inventoryService.searchBooks("98765");
-        assertEquals(1, isbnBooks.size());
-        assertEquals("Database Systems", isbnBooks.get(0).getTitle());
-
-        // Search by author
-        List<Book> authorBooks = inventoryService.searchBooks("Test Author");
-        assertEquals(2, authorBooks.size());
-
-        // Search by publisher
-        List<Book> publisherBooks = inventoryService.searchBooks("Test Publisher");
-        assertEquals(2, publisherBooks.size());
-
-        // Search by category
-        List<Book> categoryBooks = inventoryService.searchBooks("Test Category");
-        assertEquals(2, categoryBooks.size());
-
-        // Search with no matches
-        List<Book> noMatches = inventoryService.searchBooks("xyz123");
-        assertEquals(0, noMatches.size());
+    void removeBookCopy_Success() {
+        when(bookCopyRepository.deleteById(anyLong())).thenReturn(true);
+        assertDoesNotThrow(() -> inventoryService.removeBookCopy(1L));
     }
 
     @Test
-    void testAddBook() {
-        Book newBook = Book.builder()
-                .id(3L)
-                .title("Python Programming")
-                .ISBN("5555555555")
-                .build();
-
-        boolean added = inventoryService.addBook(newBook);
-        assertTrue(added);
-        assertEquals(3, inventoryService.getTotalBooks());
-
-        // Try to add the same book again (should return false as Set doesn't allow
-        // duplicates)
-        boolean addedAgain = inventoryService.addBook(newBook);
-        assertFalse(addedAgain);
+    void removeBookCopy_NotFound() {
+        when(bookCopyRepository.deleteById(anyLong())).thenReturn(false);
+        assertThrows(NotFoundException.class, () -> inventoryService.removeBookCopy(1L));
     }
 
     @Test
-    void testRemoveBook() {
-        boolean removed = inventoryService.removeBook(1L);
-        assertTrue(removed);
-        assertEquals(1, inventoryService.getTotalBooks());
+    void updateBookCopyStatus_Success() {
+        when(bookCopyRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(bookCopy));
+        BookCopy updatedCopy = inventoryService.updateBookCopyStatus(1L, CopyStatus.CHECKED_OUT);
+        assertEquals(CopyStatus.CHECKED_OUT, updatedCopy.getStatus());
+    }
 
-        // Verify that copies of the book are also removed
+    @Test
+    void updateBookCopyStatus_NotFound() {
+        when(bookCopyRepository.findByIdOptional(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> inventoryService.updateBookCopyStatus(1L, CopyStatus.CHECKED_OUT));
+    }
+
+    @Test
+    void getCopiesForBook_Success() {
+        when(bookRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(book));
+        when(bookCopyRepository.findByBook(any(Book.class))).thenReturn(Collections.singletonList(bookCopy));
+
         List<BookCopy> copies = inventoryService.getCopiesForBook(1L);
-        assertEquals(0, copies.size());
 
-        // Try to remove a non-existent book
-        boolean removedNonExistent = inventoryService.removeBook(999L);
-        assertFalse(removedNonExistent);
-    }
-
-    @Test
-    void testAddBookCopy() {
-        BookCopy newCopy = BookCopy.builder()
-                .id(3L)
-                .book(testBook2)
-                .status(BookCopy.CopyStatus.AVAILABLE)
-                .location("Shelf B2")
-                .build();
-
-        boolean added = inventoryService.addBookCopy(newCopy);
-        assertTrue(added);
-
-        List<BookCopy> copies = inventoryService.getCopiesForBook(2L);
+        assertFalse(copies.isEmpty());
         assertEquals(1, copies.size());
-
-        // Try to add a copy for a non-existent book
-        Book nonExistentBook = Book.builder()
-                .id(999L)
-                .title("Non-existent Book")
-                .build();
-
-        BookCopy invalidCopy = BookCopy.builder()
-                .id(4L)
-                .book(nonExistentBook)
-                .status(BookCopy.CopyStatus.AVAILABLE)
-                .build();
-
-        boolean invalidAdded = inventoryService.addBookCopy(invalidCopy);
-        assertFalse(invalidAdded);
+        assertEquals(bookCopy, copies.get(0));
     }
 
     @Test
-    void testRemoveBookCopy() {
-        boolean removed = inventoryService.removeBookCopy(1L);
-        assertTrue(removed);
-
-        // Verify the copy was removed
-        List<BookCopy> copies = inventoryService.getCopiesForBook(1L);
-        assertEquals(1, copies.size()); // Only one copy left
-        assertEquals(BookCopy.CopyStatus.CHECKED_OUT, copies.get(0).getStatus());
-
-        // Try to remove a non-existent copy
-        boolean removedNonExistent = inventoryService.removeBookCopy(999L);
-        assertFalse(removedNonExistent);
+    void getCopiesForBook_BookNotFound() {
+        when(bookRepository.findByIdOptional(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> inventoryService.getCopiesForBook(1L));
     }
 
     @Test
-    void testUpdateBookStatus() {
-        // Update all copies of a book to IN_REPAIR
-        inventoryService.updateBookStatus(1L, BookCopy.CopyStatus.IN_REPAIR);
-
-        // Verify all copies were updated
-        List<BookCopy> copies = inventoryService.getCopiesForBook(1L);
-        for (BookCopy copy : copies) {
-            assertEquals(BookCopy.CopyStatus.IN_REPAIR, copy.getStatus());
-        }
-    }
-
-    @Test
-    void testUpdateBookCopyLocation() {
-        boolean updated = inventoryService.updateBookCopyLocation(1L, "New Location");
-        assertTrue(updated);
-
-        // Verify the location was updated
-        List<BookCopy> copies = inventoryService.getCopiesForBook(1L);
-        BookCopy updatedCopy = copies.stream()
-                .filter(c -> c.getId() == 1L)
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull(updatedCopy);
-        assertEquals("New Location", updatedCopy.getLocation());
-
-        // Try to update a non-existent copy
-        boolean updatedNonExistent = inventoryService.updateBookCopyLocation(999L, "Invalid Location");
-        assertFalse(updatedNonExistent);
-    }
-
-    @Test
-    void testGetCopiesForBook() {
-        List<BookCopy> copies = inventoryService.getCopiesForBook(1L);
-        assertEquals(2, copies.size());
-
-        // Verify that we have copies in different states
-        Set<BookCopy.CopyStatus> statuses = copies.stream()
-                .map(BookCopy::getStatus)
-                .collect(Collectors.toSet());
-
-        assertEquals(2, statuses.size());
-        assertTrue(statuses.contains(BookCopy.CopyStatus.AVAILABLE));
-        assertTrue(statuses.contains(BookCopy.CopyStatus.CHECKED_OUT));
-
-        // Check a book with no copies
-        List<BookCopy> noCopies = inventoryService.getCopiesForBook(2L);
-        assertEquals(0, noCopies.size());
-    }
-
-    @Test
-    void testProcessBookDisposal() {
-        boolean disposed = inventoryService.processBookDisposal(1L, "Damaged beyond repair");
-        assertTrue(disposed);
-
-        // Verify the status was updated
-        List<BookCopy> copies = inventoryService.getCopiesForBook(1L);
-        BookCopy disposedCopy = copies.stream()
-                .filter(c -> c.getId() == 1L)
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull(disposedCopy);
-        assertEquals(BookCopy.CopyStatus.LOST, disposedCopy.getStatus());
-
-        // Try to dispose a non-existent copy
-        boolean disposedNonExistent = inventoryService.processBookDisposal(999L, "Invalid");
-        assertFalse(disposedNonExistent);
+    void getAvailableBooks_Success() {
+        when(bookRepository.findAvailableBooks()).thenReturn(Collections.singletonList(book));
+        List<Book> books = inventoryService.getAvailableBooks();
+        assertFalse(books.isEmpty());
+        assertEquals(1, books.size());
     }
 }
+

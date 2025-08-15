@@ -24,9 +24,9 @@ public class LibraryManagementApp implements QuarkusApplication {
     @Override
     public int run(String... args) throws Exception {
         logger.info("Davon Library Management System started successfully!");
-        logger.info("Visit http://localhost:8080 for the application");
-        logger.info("Visit http://localhost:8080/q/swagger-ui for API documentation");
-        logger.info("Visit http://localhost:8080/q/health for health checks");
+        logger.info("Visit http://localhost:8083 for the application");
+        logger.info("Visit http://localhost:8083/q/swagger-ui for API documentation");
+        logger.info("Visit http://localhost:8083/q/health for health checks");
 
         Quarkus.waitForExit();
         return 0;

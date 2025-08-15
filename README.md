@@ -1,6 +1,6 @@
 # Davon Library Management System
 
-A comprehensive Java backend for managing library operations, including book management, inventory tracking, user management, and loan processing.
+A comprehensive Java backend and Next.js frontend for managing library operations, including book management, inventory tracking, user management, and loan processing.
 
 ## Project Structure
 
@@ -21,63 +21,88 @@ davon-library-system/
 │           ├── controller/ # Controller tests
 │           ├── repository/ # Repository tests
 │           └── service/  # Service tests
-└── docs/                # Documentation
-    ├── ClassDesign.md   # Class design documentation
+├── frontend/             # Next.js frontend code
+│   ├── app/              # Application pages
+│   ├── components/       # Reusable components
+│   ├── lib/              # Utility functions
+│   └── public/           # Static assets
+└── docs/                 # Documentation
+    ├── ClassDesign.md    # Class design documentation
     ├── CursorFeatures.md # Cursor IDE features
-    └── README.md        # This file
+    └── README.md         # This file
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Java JDK 17 or higher
-- Gradle 7.0 or higher
+- Java JDK 21 or higher
+- Maven 3.6 or higher
+- Node.js 18 or higher
 
 ### Build and Run
 
-1. Clone the repository
+1.  **Clone the repository**
 
-   ```bash
-   git clone https://github.com/username/davon-library-system.git
-   cd davon-library-system
-   ```
+    ```bash
+    git clone https://github.com/username/davon-library-system.git
+    cd davon-library-system
+    ```
 
-2. Build the project
+2.  **Run the backend**
 
-   ```bash
-   ./gradlew build
-   ```
+    ```bash
+    cd backend
+    mvn quarkus:dev
+    ```
 
-3. Run the application
-   ```bash
-   ./gradlew run
-   ```
+3.  **Run the frontend**
+
+    In a new terminal, navigate to the `frontend` directory:
+
+    ```bash
+    cd frontend
+    npm install
+    npm run dev
+    ```
+
+    The frontend will be available at `http://localhost:3000`.
 
 ### Running Tests
 
-To run the unit tests:
+To run the backend unit tests:
 
 ```bash
-./gradlew test
+cd backend
+mvn test
 ```
 
 ## Features
 
 - **Book Management**: Add, update, delete, and search for books
+- **User Management**: User registration and login
 - **Inventory Tracking**: Manage book copies and their availability
-- **User Management**: Handle different user types (members, librarians, admins)
 - **Loan Processing**: Manage book borrowing, returns, and extensions
 - **Data Validation**: Enforce business rules and validate data integrity
 
 ## Technology Stack
 
+### Backend
+
 - **Java**: Core programming language
-- **Gradle**: Build system and dependency management
+- **Quarkus**: Supersonic, subatomic Java framework
+- **Maven**: Build system and dependency management
 - **JUnit 5**: Testing framework
 - **Mockito**: Mocking framework for testing
 - **Lombok**: Reduces boilerplate code
 - **SLF4J**: Logging framework
+
+### Frontend
+
+- **Next.js**: React framework for production
+- **React**: A JavaScript library for building user interfaces
+- **TypeScript**: Typed JavaScript at scale
+- **Tailwind CSS**: A utility-first CSS framework
 
 ## Design Patterns
 

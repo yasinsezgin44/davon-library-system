@@ -1,93 +1,122 @@
 package com.davon.library.service;
 
-import com.davon.library.model.*;
+import com.davon.library.model.Book;
+import com.davon.library.model.Member;
+import com.davon.library.model.Reservation;
+import com.davon.library.model.enums.ReservationStatus;
+import com.davon.library.repository.BookRepository;
+import com.davon.library.repository.MemberRepository;
+import com.davon.library.repository.ReservationRepository;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
-import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-class ReservationServiceTest {
-    private ReservationService reservationService;
-    private Member member1;
-    private Member member2;
-    private Member member3;
+@QuarkusTest
+public class ReservationServiceTest {
+
+    @Inject
+    ReservationService reservationService;
+
+    @InjectMock
+    ReservationRepository reservationRepository;
+
+    @InjectMock
+    MemberRepository memberRepository;
+
+    @InjectMock
+    BookRepository bookRepository;
+
+    private Member member;
     private Book book;
+    private Reservation reservation;
 
     @BeforeEach
     void setUp() {
-        reservationService = new ReservationService();
+        member = new Member();
+        member.setId(1L);
 
-        // Create test objects
-        book = Book.builder()
-                .id(1L)
-                .title("Test Book")
-                .ISBN("1234567890")
-                .build();
+        book = new Book();
+        book.setId(1L);
 
-        member1 = Member.builder()
-                .id(1L)
-                .fullName("Member One")
-                .active(true)
-                .build();
-
-        member2 = Member.builder()
-                .id(2L)
-                .fullName("Member Two")
-                .active(true)
-                .build();
-
-        member3 = Member.builder()
-                .id(3L)
-                .fullName("Member Three")
-                .active(true)
-                .build();
+        reservation = new Reservation();
+        reservation.setId(1L);
+        reservation.setMember(member);
+        reservation.setBook(book);
+        reservation.setStatus(ReservationStatus.PENDING);
     }
 
     @Test
-    void testReservationCreation() {
-        Reservation reservation = reservationService.createReservation(member1, book);
+    void createReservation_Success() {
+        when(memberRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(member));
+        when(bookRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(book));
 
-        assertNotNull(reservation);
-        assertEquals(member1, reservation.getMember());
-        assertEquals(book, reservation.getBook());
-        assertEquals(Reservation.ReservationStatus.PENDING, reservation.getStatus());
-        assertEquals(1, reservation.getPriorityNumber());
+        Reservation createdReservation = reservationService.createReservation(1L, 1L);
+
+        ArgumentCaptor<Reservation> reservationCaptor = ArgumentCaptor.forClass(Reservation.class);
+        verify(reservationRepository).persist(reservationCaptor.capture());
+
+        Reservation persistedReservation = reservationCaptor.getValue();
+        assertEquals(member, persistedReservation.getMember());
+        assertEquals(book, persistedReservation.getBook());
+        assertEquals(ReservationStatus.PENDING, persistedReservation.getStatus());
     }
 
     @Test
-    void testReservationPriority() {
-        Reservation reservation1 = reservationService.createReservation(member1, book);
-        Reservation reservation2 = reservationService.createReservation(member2, book);
-        Reservation reservation3 = reservationService.createReservation(member3, book);
-
-        List<Reservation> reservations = reservationService.getReservationsForBook(book);
-
-        assertEquals(1, reservation1.getPriorityNumber(), "First reservation should have priority 1");
-        assertEquals(2, reservation2.getPriorityNumber(), "Second reservation should have priority 2");
-        assertEquals(3, reservation3.getPriorityNumber(), "Third reservation should have priority 3");
+    void createReservation_MemberNotFound() {
+        when(memberRepository.findByIdOptional(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> reservationService.createReservation(1L, 1L));
     }
 
     @Test
-    void testReservationCancellation() {
-        Reservation reservation = reservationService.createReservation(member1, book);
-        reservationService.cancelReservation(reservation);
-
-        assertEquals(Reservation.ReservationStatus.CANCELLED, reservation.getStatus());
-        assertTrue(reservationService.getReservationsForBook(book).isEmpty());
+    void createReservation_BookNotFound() {
+        when(memberRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(member));
+        when(bookRepository.findByIdOptional(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> reservationService.createReservation(1L, 1L));
     }
 
     @Test
-    void testReservationCompletion() {
-        Reservation reservation = reservationService.createReservation(member1, book);
+    void cancelReservation_Success() {
+        when(reservationRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(reservation));
+        reservationService.cancelReservation(1L);
+        assertEquals(ReservationStatus.CANCELLED, reservation.getStatus());
+    }
 
-        reservationService.markReservationReadyForPickup(reservation);
-        assertEquals(Reservation.ReservationStatus.READY_FOR_PICKUP, reservation.getStatus());
+    @Test
+    void cancelReservation_NotFound() {
+        when(reservationRepository.findByIdOptional(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> reservationService.cancelReservation(1L));
+    }
 
-        reservationService.completeReservation(reservation);
-        assertEquals(Reservation.ReservationStatus.COMPLETED, reservation.getStatus());
-        assertTrue(reservationService.getReservationsForBook(book).isEmpty());
+    @Test
+    void getReservationsByMember_Success() {
+        when(memberRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(member));
+        when(reservationRepository.findByMember(any(Member.class))).thenReturn(Collections.singletonList(reservation));
+
+        List<Reservation> reservations = reservationService.getReservationsByMember(1L);
+
+        assertFalse(reservations.isEmpty());
+        assertEquals(1, reservations.size());
+        assertEquals(reservation, reservations.get(0));
+    }
+
+    @Test
+    void getReservationsByMember_MemberNotFound() {
+        when(memberRepository.findByIdOptional(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> reservationService.getReservationsByMember(1L));
     }
 }
+

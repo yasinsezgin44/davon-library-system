@@ -2,102 +2,70 @@ package com.davon.library.service;
 
 import com.davon.library.model.Book;
 import com.davon.library.model.BookCopy;
-import com.davon.library.model.BookCopy.CopyStatus;
-
+import com.davon.library.model.enums.CopyStatus;
+import com.davon.library.repository.BookCopyRepository;
+import com.davon.library.repository.BookRepository;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.util.*;
-import java.util.stream.Collectors;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Service for managing library inventory.
- */
+import java.util.List;
+
 @ApplicationScoped
 public class InventoryService {
-    private final Set<Book> books = new HashSet<>();
-    private final Set<BookCopy> bookCopies = new HashSet<>();
 
-    public int getTotalBooks() {
-        return books.size();
+    private static final Logger log = LoggerFactory.getLogger(InventoryService.class);
+
+    @Inject
+    BookRepository bookRepository;
+
+    @Inject
+    BookCopyRepository bookCopyRepository;
+
+    @Transactional
+    public BookCopy addBookCopy(Long bookId, String location) {
+        log.info("Adding a new copy for book {}", bookId);
+        Book book = bookRepository.findByIdOptional(bookId)
+                .orElseThrow(() -> new NotFoundException("Book not found"));
+
+        BookCopy copy = new BookCopy();
+        copy.setBook(book);
+        copy.setLocation(location);
+        copy.setStatus(CopyStatus.AVAILABLE);
+        bookCopyRepository.persist(copy);
+
+        return copy;
+    }
+
+    @Transactional
+    public void removeBookCopy(Long bookCopyId) {
+        log.info("Removing book copy {}", bookCopyId);
+        boolean deleted = bookCopyRepository.deleteById(bookCopyId);
+        if (!deleted) {
+            throw new NotFoundException("Book copy not found");
+        }
+    }
+
+    @Transactional
+    public BookCopy updateBookCopyStatus(Long bookCopyId, CopyStatus status) {
+        log.info("Updating status of book copy {} to {}", bookCopyId, status);
+        BookCopy copy = bookCopyRepository.findByIdOptional(bookCopyId)
+                .orElseThrow(() -> new NotFoundException("Book copy not found"));
+
+        copy.setStatus(status);
+        return copy;
+    }
+
+    public List<BookCopy> getCopiesForBook(Long bookId) {
+        Book book = bookRepository.findByIdOptional(bookId)
+                .orElseThrow(() -> new NotFoundException("Book not found"));
+        return bookCopyRepository.findByBook(book);
     }
 
     public List<Book> getAvailableBooks() {
-        return books.stream()
-                .filter(this::isBookAvailable)
-                .collect(Collectors.toList());
-    }
-
-    public List<Book> searchBooks(String query) {
-        String q = query.toLowerCase();
-        return books.stream()
-                .filter(book -> book.getTitle().toLowerCase().contains(q)
-                        || book.getISBN().toLowerCase().contains(q)
-                        || (book.getAuthors() != null
-                                && book.getAuthors().stream().anyMatch(a -> a.getName().toLowerCase().contains(q)))
-                        || (book.getCategory() != null && book.getCategory().getName().toLowerCase().contains(q))
-                        || (book.getPublisher() != null && book.getPublisher().getName().toLowerCase().contains(q)))
-                .collect(Collectors.toList());
-    }
-
-    public boolean addBook(Book book) {
-        return books.add(book);
-    }
-
-    public boolean removeBook(long bookId) {
-        boolean removed = books.removeIf(book -> Objects.equals(book.getId(), bookId));
-        if (removed) {
-            bookCopies.removeIf(copy -> copy.getBook().getId() == bookId);
-        }
-        return removed;
-    }
-
-    public boolean addBookCopy(BookCopy copy) {
-        // Only add if the referenced book exists
-        boolean bookExists = books.stream().anyMatch(b -> Objects.equals(b.getId(), copy.getBook().getId()));
-        if (!bookExists)
-            return false;
-        return bookCopies.add(copy);
-    }
-
-    public boolean removeBookCopy(long bookCopyId) {
-        return bookCopies.removeIf(copy -> Objects.equals(copy.getId(), bookCopyId));
-    }
-
-    public void updateBookStatus(Long bookId, CopyStatus status) {
-        bookCopies.stream()
-                .filter(copy -> copy.getBook().getId().equals(bookId))
-                .forEach(copy -> copy.setStatus(status));
-    }
-
-    public boolean updateBookCopyLocation(long bookCopyId, String newLocation) {
-        Optional<BookCopy> copyOpt = bookCopies.stream()
-                .filter(copy -> Objects.equals(copy.getId(), bookCopyId))
-                .findFirst();
-        copyOpt.ifPresent(copy -> copy.setLocation(newLocation));
-        return copyOpt.isPresent();
-    }
-
-    private boolean isBookAvailable(Book book) {
-        return bookCopies.stream()
-                .anyMatch(copy -> copy.getBook().equals(book) && copy.getStatus() == CopyStatus.AVAILABLE);
-    }
-
-    public List<BookCopy> getCopiesForBook(long bookId) {
-        return bookCopies.stream()
-                .filter(copy -> copy.getBook().getId() == bookId)
-                .collect(Collectors.toList());
-    }
-
-    public boolean processBookDisposal(long bookCopyId, String disposalReason) {
-        Optional<BookCopy> copyOpt = bookCopies.stream()
-                .filter(copy -> Objects.equals(copy.getId(), bookCopyId))
-                .findFirst();
-        if (copyOpt.isPresent()) {
-            BookCopy copy = copyOpt.get();
-            // Consider adding a DISPOSED status to CopyStatus enum
-            copy.setStatus(CopyStatus.LOST); // Using LOST as alternative
-            // Consider adding disposalReason to BookCopy or create disposal log
-            return true;
-        }
-        return false;
+        return bookRepository.findAvailableBooks();
     }
 }

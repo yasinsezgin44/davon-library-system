@@ -1,35 +1,40 @@
 package com.davon.library.model;
 
+import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import java.time.LocalDate;
 
-/**
- * Represents a receipt for a transaction in the library system.
- */
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "receipts")
 @Data
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-public class Receipt extends BaseEntity {
-    private long transactionId;
+public class Receipt {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "transaction_id", nullable = false)
+    private Transaction transaction;
+
+    @Column(name = "issue_date")
     private LocalDate issueDate;
-    private ReceiptItem[] items;
-    private double total;
 
-    public void print() {
-    }
+    @Column(columnDefinition = "TEXT")
+    private String items;
 
-    public void email() {
-    }
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal total;
 
-    @Data
-    @AllArgsConstructor
-    public static class ReceiptItem {
-        private String description;
-        private double amount;
-        private int quantity;
-    }
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
