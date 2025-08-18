@@ -38,6 +38,15 @@ const Navbar = () => {
           >
             Davon Library
           </Link>
+
+          <div className="hidden md:flex items-center">
+            <Link
+              href="/catalog"
+              className="text-gray-800 hover:text-blue-400 ml-4"
+            >
+              Catalog
+            </Link>
+          </div>
         </div>
 
         <form onSubmit={handleSearchSubmit} className="relative mt-3 md:mt-0">
