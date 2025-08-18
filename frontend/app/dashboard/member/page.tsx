@@ -2,7 +2,6 @@
 
 import { useAuth } from "../../../context/AuthContext";
 import BorrowedBooks from "../../../components/dashboard/BorrowedBooks";
-import Reservations from "../../../components/dashboard/Reservations";
 import ReadingHistory from "../../../components/dashboard/ReadingHistory";
 
 const MemberDashboardPage = () => {
@@ -22,7 +21,6 @@ const MemberDashboardPage = () => {
       <p className="mb-8">Welcome, {user.username}!</p>
 
       <BorrowedBooks />
-      <Reservations />
       <ReadingHistory />
     </div>
   );

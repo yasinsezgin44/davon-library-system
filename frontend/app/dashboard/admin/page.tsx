@@ -3,7 +3,6 @@
 import { useAuth } from "../../../context/AuthContext";
 import BookManagementTable from "../../../components/dashboard/BookManagementTable";
 import UserManagementTable from "../../../components/dashboard/UserManagementTable";
-import ReservationsOverview from "../../../components/dashboard/ReservationsOverview";
 import AuthorManagementTable from "../../../components/dashboard/AuthorManagementTable";
 
 const AdminDashboardPage = () => {
@@ -26,7 +25,6 @@ const AdminDashboardPage = () => {
         <BookManagementTable />
         <AuthorManagementTable />
         <UserManagementTable />
-        <ReservationsOverview />
       </div>
     </div>
   );
