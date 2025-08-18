@@ -8,6 +8,8 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Set;
+
 @ApplicationScoped
 public class LibrarianService {
 
@@ -32,7 +34,7 @@ public class LibrarianService {
     }
 
     @Transactional
-    public Book updateBookInCatalog(Long bookId, Book bookDetails) {
+    public Book updateBookInCatalog(Long bookId, BookRequestDTO bookDetails) {
         log.info("Librarian updating book in catalog: {}", bookId);
         return bookService.updateBook(bookId, bookDetails);
     }
@@ -44,9 +46,9 @@ public class LibrarianService {
     }
 
     @Transactional
-    public User registerMember(User user) {
+    public User registerMember(User user, String password) {
         log.info("Librarian registering new member: {}", user.getUsername());
-        return userService.createUser(user);
+        return userService.createUser(user, password, Set.of(2L));
     }
 
     @Transactional
