@@ -20,6 +20,10 @@ public class LoanRepository implements PanacheRepository<Loan> {
         return list("member = ?1 and status = ?2", member, LoanStatus.ACTIVE);
     }
 
+    public List<Loan> findReturnedLoansByMember(Member member) {
+        return list("member = ?1 and status = ?2", member, LoanStatus.RETURNED);
+    }
+
     public long countActiveLoansByMember(Member member) {
         return count("member = ?1 and status = ?2", member, LoanStatus.ACTIVE);
     }

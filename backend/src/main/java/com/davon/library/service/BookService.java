@@ -94,10 +94,10 @@ public class BookService {
 
         existingBook.setTitle(bookRequestDTO.title());
         existingBook.setIsbn(bookRequestDTO.isbn());
-        existingBook.setPublicationYear(bookRequestDTO.publicationYear());
-        existingBook.setDescription(bookRequestDTO.description());
-        existingBook.setCoverImage(bookRequestDTO.coverImage());
-        existingBook.setPages(bookRequestDTO.pages());
+        existingBook.setPublicationDate(bookRequestDTO.publicationDate());
+        existingBook.setGenre(bookRequestDTO.genre());
+        existingBook.setLanguage(bookRequestDTO.language());
+        existingBook.setCoverImageUrl(bookRequestDTO.coverImageUrl());
 
         Publisher publisher = publisherRepository.findByIdOptional(bookRequestDTO.publisherId())
                 .orElseThrow(
@@ -124,13 +124,15 @@ public class BookService {
                 BookCopy bookCopy = new BookCopy();
                 bookCopy.setBook(existingBook);
                 bookCopy.setStatus(CopyStatus.AVAILABLE);
-                existingBook.getCopies().add(bookCopy);
+                bookCopyRepository.persist(bookCopy);
             }
         } else if (newStock < currentStock) {
-            existingBook.getCopies().stream()
+            List<BookCopy> copiesToRemove = existingBook.getCopies().stream()
                     .limit(currentStock - newStock)
-                    .collect(Collectors.toList())
-                    .forEach(existingBook.getCopies()::remove);
+                    .collect(Collectors.toList());
+            for (BookCopy copy : copiesToRemove) {
+                bookCopyRepository.delete(copy);
+            }
         }
 
         return existingBook;

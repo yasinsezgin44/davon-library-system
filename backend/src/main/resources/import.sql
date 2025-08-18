@@ -28,12 +28,12 @@ INSERT INTO categories (name, description, created_at, updated_at) VALUES
 -- 2. Book Information
 -- =================================================================
 -- Note: publisher_id and category_id correspond to the IDs from the inserts above
-INSERT INTO books (title, isbn, publication_year, description, publisher_id, category_id, created_at, updated_at) VALUES
-('1984', '9780451524935', 1949, 'A dystopian social science fiction novel and cautionary tale.', 1, 1, GETDATE(), GETDATE()),
-('The Lord of the Rings', '9780618640157', 1954, 'An epic high-fantasy novel.', 2, 2, GETDATE(), GETDATE()),
-('Dune', '9780441013593', 1965, 'A landmark science fiction novel.', 3, 3, GETDATE(), GETDATE()),
-('Pride and Prejudice', '9780141439518', 1813, 'A romantic novel of manners.', 1, 4, GETDATE(), GETDATE()),
-('Foundation', '9780553803719', 1951, 'The first book in the Foundation series.', 2, 3, GETDATE(), GETDATE());
+INSERT INTO books (title, isbn, publication_year, description, publisher_id, category_id, created_at, updated_at, publication_date, genre, cover_image_url, language) VALUES
+('1984', '9780451524935', 1949, 'A dystopian social science fiction novel and cautionary tale.', 1, 1, GETDATE(), GETDATE(), '1949-06-08', 'Dystopian', 'https://example.com/covers/1984.jpg', 'English'),
+('The Lord of the Rings', '9780618640157', 1954, 'An epic high-fantasy novel.', 2, 2, GETDATE(), GETDATE(), '1954-07-29', 'High Fantasy', 'https://example.com/covers/lotr.jpg', 'English'),
+('Dune', '9780441013593', 1965, 'A landmark science fiction novel.', 3, 3, GETDATE(), GETDATE(), '1965-08-01', 'Science Fiction', 'https://example.com/covers/dune.jpg', 'English'),
+('Pride and Prejudice', '9780141439518', 1813, 'A romantic novel of manners.', 1, 4, GETDATE(), GETDATE(), '1813-01-28', 'Romance', 'https://example.com/covers/pride_prejudice.jpg', 'English'),
+('Foundation', '9780553803719', 1951, 'The first book in the Foundation series.', 2, 3, GETDATE(), GETDATE(), '1951-06-01', 'Science Fiction', 'https://example.com/covers/foundation.jpg', 'English');
 
 -- Link books to their authors
 INSERT INTO book_authors (book_id, author_id) VALUES

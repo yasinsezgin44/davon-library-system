@@ -31,6 +31,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.davon.library.dto.LoanResponseDTO;
+import com.davon.library.model.Book;
+import com.davon.library.model.Publisher;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 
 @QuarkusTest
 public class LoanServiceTest {
@@ -54,6 +59,8 @@ public class LoanServiceTest {
     private BookCopy bookCopy;
     private Loan loan;
     private User user;
+    private Book book;
+    private Publisher publisher;
 
     @BeforeEach
     void setUp() {
@@ -66,9 +73,19 @@ public class LoanServiceTest {
         member.setFineBalance(BigDecimal.ZERO);
         member.setUser(user);
 
+        publisher = new Publisher();
+        publisher.setId(1L);
+        publisher.setName("Test Publisher");
+
+        book = new Book();
+        book.setId(1L);
+        book.setTitle("Test Book");
+        book.setPublisher(publisher);
+
         bookCopy = new BookCopy();
         bookCopy.setId(1L);
         bookCopy.setStatus(CopyStatus.AVAILABLE);
+        bookCopy.setBook(book);
 
         loan = new Loan();
         loan.setId(1L);
@@ -84,12 +101,12 @@ public class LoanServiceTest {
         when(loanRepository.countActiveLoansByMember(any(Member.class))).thenReturn(0L);
         when(bookCopyRepository.findAvailableByBookId(anyLong())).thenReturn(Optional.of(bookCopy));
 
-        Loan result = loanService.checkoutBook(1L, 1L);
+        LoanResponseDTO result = loanService.checkoutBook(1L, 1L);
 
         assertNotNull(result);
-        assertEquals(member, result.getMember());
-        assertEquals(bookCopy, result.getBookCopy());
-        assertEquals(LoanStatus.ACTIVE, result.getStatus());
+        assertEquals(member.getId(), result.member().id());
+        assertEquals(bookCopy.getBook().getId(), result.book().id());
+        assertEquals(LoanStatus.ACTIVE, result.status());
         assertEquals(CopyStatus.CHECKED_OUT, bookCopy.getStatus());
 
         ArgumentCaptor<Loan> loanCaptor = ArgumentCaptor.forClass(Loan.class);
@@ -106,7 +123,7 @@ public class LoanServiceTest {
     @Test
     void checkoutBook_MaxLoansReached() {
         when(memberRepository.findByIdOptional(anyLong())).thenReturn(Optional.of(member));
-        when(loanRepository.countActiveLoansByMember(any(Member.class))).thenReturn(5L);
+        when(loanRepository.countActiveLoansByMember(any(Member.class))).thenReturn(10L);
         assertThrows(BadRequestException.class, () -> loanService.checkoutBook(1L, 1L));
     }
 

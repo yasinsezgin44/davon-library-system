@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class LoanService {
@@ -102,6 +103,22 @@ public class LoanService {
                 bookCopy.getBook().getTitle());
         log.info("Book checked out successfully. Loan ID: {}", loan.getId());
         return LoanMapper.toResponseDTO(loan);
+    }
+
+    public List<LoanResponseDTO> getCurrentLoansByUsername(String username) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Member not found with username: " + username));
+        return loanRepository.findActiveLoansByMember(member).stream()
+                .map(LoanMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<LoanResponseDTO> getLoanHistoryByUsername(String username) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Member not found with username: " + username));
+        return loanRepository.findReturnedLoansByMember(member).stream()
+                .map(LoanMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional

@@ -23,6 +23,23 @@ public class LoanController {
     @Inject
     LoanService loanService;
 
+    @GET
+    @RolesAllowed({ "MEMBER", "LIBRARIAN" })
+    @Operation(summary = "Get all active loans for the current user")
+    public Response getCurrentLoans(@Context SecurityContext securityContext) {
+        String username = securityContext.getUserPrincipal().getName();
+        return Response.ok(loanService.getCurrentLoansByUsername(username)).build();
+    }
+
+    @GET
+    @Path("/history")
+    @RolesAllowed({ "MEMBER", "LIBRARIAN" })
+    @Operation(summary = "Get the loan history for the current user")
+    public Response getLoanHistory(@Context SecurityContext securityContext) {
+        String username = securityContext.getUserPrincipal().getName();
+        return Response.ok(loanService.getLoanHistoryByUsername(username)).build();
+    }
+
     @POST
     @Path("/borrow")
     @RolesAllowed("MEMBER")
@@ -32,6 +49,19 @@ public class LoanController {
             String username = securityContext.getUserPrincipal().getName();
             LoanResponseDTO loan = loanService.borrowBook(bookId, username);
             return Response.ok(loan).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+    }
+
+    @PUT
+    @Path("/{loanId}/return")
+    @RolesAllowed("MEMBER")
+    @Operation(summary = "Return a book")
+    public Response returnBook(@PathParam("loanId") Long loanId) {
+        try {
+            loanService.returnBook(loanId);
+            return Response.ok().build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
         }

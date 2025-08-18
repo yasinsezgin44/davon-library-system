@@ -46,8 +46,8 @@ class BookServiceTest {
 
     @Test
     void testCreateBook() {
-        BookRequestDTO requestDTO = new BookRequestDTO("Test Title", "1234567890123", 2023, "description", "cover.jpg",
-                100, 1L, 1L, 10, Set.of(1L));
+        BookRequestDTO requestDTO = new BookRequestDTO("Test Title", "1234567890123", null, "Fiction", "English",
+                "cover.jpg", 1L, 1L, Set.of(1L), 10);
         when(bookRepository.findByIsbn("1234567890123")).thenReturn(Optional.empty());
 
         bookService.createBook(requestDTO);
@@ -57,8 +57,8 @@ class BookServiceTest {
 
     @Test
     void testCreateBookDuplicateIsbn() {
-        BookRequestDTO requestDTO = new BookRequestDTO("Duplicate ISBN", "duplicate-isbn", 2023, "description",
-                "cover.jpg", 100, 1L, 1L, 10, Set.of(1L));
+        BookRequestDTO requestDTO = new BookRequestDTO("Duplicate ISBN", "duplicate-isbn", null, "Fiction",
+                "English", "cover.jpg", 1L, 1L, Set.of(1L), 10);
         when(bookRepository.findByIsbn("duplicate-isbn")).thenReturn(Optional.of(new Book()));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.createBook(requestDTO));
@@ -70,8 +70,8 @@ class BookServiceTest {
         existing.setId(1L);
         existing.setTitle("Old Title");
 
-        BookRequestDTO updated = new BookRequestDTO("New Title", "1234567890123", 2023, "description", "cover.jpg", 100,
-                1L, 1L, 10, Set.of(1L));
+        BookRequestDTO updated = new BookRequestDTO("New Title", "1234567890123", null, "Fiction", "English",
+                "cover.jpg", 1L, 1L, Set.of(1L), 10);
 
         when(bookRepository.findByIdOptional(1L)).thenReturn(Optional.of(existing));
 
@@ -84,8 +84,9 @@ class BookServiceTest {
     void testUpdateBookNotFound() {
         when(bookRepository.findByIdOptional(99L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> bookService.updateBook(99L, new BookRequestDTO("New Title",
-                "1234567890123", 2023, "description", "cover.jpg", 100, 1L, 1L, 10, Set.of(1L))));
+        assertThrows(NotFoundException.class, () -> bookService.updateBook(99L,
+                new BookRequestDTO("New Title", "1234567890123", null, "Fiction", "English", "cover.jpg", 1L, 1L,
+                        Set.of(1L), 10)));
     }
 
     @Test

@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 
 @QuarkusTest
 class UserServiceTest {
@@ -29,18 +31,20 @@ class UserServiceTest {
 
     @Test
     void testCreateUser() {
+        QuarkusTransaction.begin();
         User user = new User();
-        user.setUsername("testuser");
-        user.setEmail("test@example.com");
-        user.setFullName("Test User");
+        user.setUsername("testuser_create");
+        user.setEmail("test_create@example.com");
+        user.setFullName("Test User Create");
 
-        when(userRepository.existsByUsername("testuser")).thenReturn(false);
-        when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
+        when(userRepository.existsByUsername("testuser_create")).thenReturn(false);
+        when(userRepository.existsByEmail("test_create@example.com")).thenReturn(false);
 
         User created = userService.createUser(user, "password", new HashSet<>());
 
         verify(userRepository).persist(user);
         assertEquals(user, created);
+        QuarkusTransaction.rollback();
     }
 
     @Test

@@ -16,6 +16,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import com.davon.library.dto.BookRequestDTO;
 import io.quarkus.test.security.TestSecurity;
+import com.davon.library.model.Publisher;
+import com.davon.library.model.Author;
 
 @QuarkusTest
 class BookControllerTest {
@@ -26,8 +28,8 @@ class BookControllerTest {
     @Test
     @TestSecurity(user = "librarian", roles = { "LIBRARIAN" })
     void testCreateBookEndpoint() {
-        BookRequestDTO bookRequestDTO = new BookRequestDTO("New Book", "1234567890123", 2023, "description",
-                "cover.jpg", 100, 1L, 1L, 10, Set.of(1L));
+        BookRequestDTO bookRequestDTO = new BookRequestDTO("New Book", "1234567890123", null, "Fiction", "English",
+                "cover.jpg", 1L, 1L, Set.of(1L), 10);
 
         given()
                 .contentType("application/json")
@@ -50,6 +52,15 @@ class BookControllerTest {
     void testGetBookByIdEndpoint_found() {
         Book book = new Book();
         book.setId(1L);
+        book.setTitle("Test Book");
+        book.setIsbn("1234567890123");
+        Publisher publisher = new Publisher();
+        publisher.setName("Test Publisher");
+        book.setPublisher(publisher);
+        Author author = new Author();
+        author.setName("Test Author");
+        book.setAuthors(Set.of(author));
+
         when(bookService.getBookById(1L)).thenReturn(Optional.of(book));
 
         given()
