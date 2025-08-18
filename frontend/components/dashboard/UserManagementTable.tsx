@@ -48,6 +48,7 @@ const UserManagementTable = () => {
       phoneNumber: string;
       active: boolean;
       status: string;
+      roleIds: number[];
     }
   ) => {
     try {

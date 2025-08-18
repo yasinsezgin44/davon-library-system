@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserRow } from "./UserManagementTable";
+import apiClient from "../../lib/apiClient";
+
+interface Role {
+  id: number;
+  name: string;
+}
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -8,6 +14,7 @@ interface CreateUserModalProps {
     userData: Omit<UserRow, "id" | "roles"> & {
       password: string;
       username: string;
+      roleIds: number[];
     }
   ) => void;
 }
@@ -22,6 +29,30 @@ const CreateUserModal = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
+  const [allRoles, setAllRoles] = useState<Role[]>([]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await apiClient.get("/roles");
+        setAllRoles(response.data);
+      } catch (error) {
+        console.error("Failed to fetch roles:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchRoles();
+    }
+  }, [isOpen]);
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) =>
+      Number(option.value)
+    );
+    setSelectedRoles(selectedOptions);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +64,9 @@ const CreateUserModal = ({
       phoneNumber,
       active: true,
       status: "ACTIVE",
+      roleIds: selectedRoles,
     });
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -130,6 +163,29 @@ const CreateUserModal = ({
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   required
                 />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="roles"
+                  className="block text-sm font-medium text-gray-700 text-left"
+                >
+                  Roles
+                </label>
+                <select
+                  multiple
+                  name="roles"
+                  id="roles"
+                  value={selectedRoles.map(String)}
+                  onChange={handleRoleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
+                >
+                  {allRoles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="items-center px-4 py-3 sm:flex sm:flex-row-reverse">

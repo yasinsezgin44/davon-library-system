@@ -12,6 +12,11 @@ import io.quarkus.elytron.security.common.BcryptUtil;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.davon.library.model.Role;
+import com.davon.library.repository.RoleRepository;
 
 @ApplicationScoped
 public class UserService {
@@ -21,8 +26,11 @@ public class UserService {
     @Inject
     UserRepository userRepository;
 
+    @Inject
+    RoleRepository roleRepository;
+
     @Transactional
-    public User createUser(User user, String password) {
+    public User createUser(User user, String password, Set<Long> roleIds) {
         log.debug("Creating user: {}", user.getUsername());
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
@@ -31,6 +39,13 @@ public class UserService {
             throw new IllegalArgumentException("Email already exists");
         }
         user.setPasswordHash(BcryptUtil.bcryptHash(password));
+        if (roleIds != null && !roleIds.isEmpty()) {
+            Set<Role> roles = roleIds.stream()
+                    .map(roleId -> roleRepository.findByIdOptional(roleId)
+                            .orElseThrow(() -> new NotFoundException("Role not found with ID: " + roleId)))
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
+        }
         userRepository.persist(user);
         return user;
     }
