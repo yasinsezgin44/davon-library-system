@@ -87,17 +87,51 @@ public class BookService {
     }
 
     @Transactional
-    public Book updateBook(Long bookId, Book updatedBook) {
+    public Book updateBook(Long bookId, BookRequestDTO bookRequestDTO) {
         log.debug("Updating book: {}", bookId);
         Book existingBook = bookRepository.findByIdOptional(bookId)
                 .orElseThrow(() -> new NotFoundException("Book not found with ID: " + bookId));
 
-        existingBook.setTitle(updatedBook.getTitle());
-        existingBook.setDescription(updatedBook.getDescription());
-        existingBook.setPublicationYear(updatedBook.getPublicationYear());
-        existingBook.setPublisher(updatedBook.getPublisher());
-        existingBook.setCategory(updatedBook.getCategory());
-        existingBook.setAuthors(updatedBook.getAuthors());
+        existingBook.setTitle(bookRequestDTO.title());
+        existingBook.setIsbn(bookRequestDTO.isbn());
+        existingBook.setPublicationYear(bookRequestDTO.publicationYear());
+        existingBook.setDescription(bookRequestDTO.description());
+        existingBook.setCoverImage(bookRequestDTO.coverImage());
+        existingBook.setPages(bookRequestDTO.pages());
+
+        Publisher publisher = publisherRepository.findByIdOptional(bookRequestDTO.publisherId())
+                .orElseThrow(
+                        () -> new NotFoundException("Publisher not found with ID: " + bookRequestDTO.publisherId()));
+        existingBook.setPublisher(publisher);
+
+        Category category = categoryRepository.findByIdOptional(bookRequestDTO.categoryId())
+                .orElseThrow(() -> new NotFoundException("Category not found with ID: " + bookRequestDTO.categoryId()));
+        existingBook.setCategory(category);
+
+        if (bookRequestDTO.authorIds() != null && !bookRequestDTO.authorIds().isEmpty()) {
+            Set<Author> authors = bookRequestDTO.authorIds().stream()
+                    .map(authorId -> authorRepository.findByIdOptional(authorId)
+                            .orElseThrow(() -> new NotFoundException("Author not found with ID: " + authorId)))
+                    .collect(Collectors.toSet());
+            existingBook.setAuthors(authors);
+        }
+
+        int currentStock = existingBook.getCopies().size();
+        int newStock = bookRequestDTO.stock();
+
+        if (newStock > currentStock) {
+            for (int i = 0; i < newStock - currentStock; i++) {
+                BookCopy bookCopy = new BookCopy();
+                bookCopy.setBook(existingBook);
+                bookCopy.setStatus(CopyStatus.AVAILABLE);
+                existingBook.getCopies().add(bookCopy);
+            }
+        } else if (newStock < currentStock) {
+            existingBook.getCopies().stream()
+                    .limit(currentStock - newStock)
+                    .collect(Collectors.toList())
+                    .forEach(existingBook.getCopies()::remove);
+        }
 
         return existingBook;
     }

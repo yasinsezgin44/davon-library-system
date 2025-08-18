@@ -11,10 +11,22 @@ export type Author = {
   name: string;
 };
 
+export type Publisher = {
+  id: number;
+  name: string;
+};
+
+export type Category = {
+  id: number;
+  name: string;
+};
+
 export type Book = {
   id: number;
   title: string;
   authors: Author[];
+  publisher: Publisher;
+  category: Category;
   isbn: string;
   quantity: number; // This will be derived or fetched separately
   publicationYear?: number;
@@ -31,24 +43,24 @@ const BookManagementTable = () => {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      setLoading(true);
-      try {
-        const response = await apiClient.get("/books");
-        const adaptedBooks = response.data.map((book: any) => ({
-          ...book,
-          authors: book.authors || [],
-          quantity: book.copies?.length || 0,
-        }));
-        setBooks(adaptedBooks);
-      } catch (error) {
-        console.error("Failed to fetch books:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchBooks = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.get("/books");
+      const adaptedBooks = response.data.map((book: any) => ({
+        ...book,
+        authors: book.authors || [],
+        quantity: book.copies?.length || 0,
+      }));
+      setBooks(adaptedBooks);
+    } catch (error) {
+      console.error("Failed to fetch books:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBooks();
   }, []);
 
@@ -93,6 +105,7 @@ const BookManagementTable = () => {
         authorIds: number[];
         publisherId: number;
         categoryId: number;
+        stock: number;
       }
     >
   ) => {
@@ -106,6 +119,7 @@ const BookManagementTable = () => {
       setBooks(books.map((book) => (book.id === id ? updatedBook : book)));
       setUpdateModalOpen(false);
       setSelectedBook(null);
+      await fetchBooks();
     } catch (error) {
       console.error("Failed to update book:", error);
     }

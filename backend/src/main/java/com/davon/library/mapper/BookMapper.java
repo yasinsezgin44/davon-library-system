@@ -29,6 +29,10 @@ public class BookMapper {
         book.setCoverImage(dto.coverImage());
         book.setPages(dto.pages());
 
+        // This is a transient field in the Book entity, so we don't set it here.
+        // The stock information is used in the service layer to create BookCopy
+        // entities.
+
         if (dto.publisherId() != null) {
             Publisher publisher = new Publisher();
             publisher.setId(dto.publisherId());
@@ -101,7 +105,6 @@ public class BookMapper {
                         .map(AuthorMapper::toDTO)
                         .collect(Collectors.toList()),
                 book.getCreatedAt(),
-                book.getUpdatedAt()
-        );
+                book.getUpdatedAt());
     }
 }

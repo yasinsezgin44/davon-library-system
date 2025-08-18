@@ -77,7 +77,7 @@ public class BookController {
     @Operation(summary = "Update a book's details")
     @SecurityRequirement(name = "jwt")
     public Response updateBook(@PathParam("id") Long id, @Valid BookRequestDTO book) {
-        Book updatedBook = bookService.updateBook(id, BookMapper.toEntity(book));
+        Book updatedBook = bookService.updateBook(id, book);
         return Response.ok(BookMapper.toResponseDTO(updatedBook)).build();
     }
 

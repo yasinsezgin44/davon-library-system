@@ -24,6 +24,7 @@ interface UpdateBookModalProps {
         authorIds: number[];
         publisherId: number;
         categoryId: number;
+        stock: number;
       }
     >
   ) => void;
@@ -38,6 +39,11 @@ const UpdateBookModal = ({
 }: UpdateBookModalProps) => {
   const [title, setTitle] = useState("");
   const [isbn, setIsbn] = useState("");
+  const [publicationYear, setPublicationYear] = useState<number | undefined>();
+  const [description, setDescription] = useState<string | undefined>();
+  const [coverImage, setCoverImage] = useState<string | undefined>();
+  const [pages, setPages] = useState<number | undefined>();
+  const [stock, setStock] = useState(0);
   const [selectedAuthors, setSelectedAuthors] = useState<number[]>([]);
   const [publisherId, setPublisherId] = useState<number | "">("");
   const [categoryId, setCategoryId] = useState<number | "">("");
@@ -70,10 +76,14 @@ const UpdateBookModal = ({
     if (book) {
       setTitle(book.title);
       setIsbn(book.isbn);
+      setPublicationYear(book.publicationYear);
+      setDescription(book.description);
+      setCoverImage(book.coverImage);
+      setPages(book.pages);
+      setStock(book.quantity);
       setSelectedAuthors(book.authors.map((author) => author.id));
-      // Assuming book has publisher and category IDs
-      // setPublisherId(book.publisherId);
-      // setCategoryId(book.categoryId);
+      setPublisherId(book.publisher.id);
+      setCategoryId(book.category.id);
     }
   }, [book]);
 
@@ -95,9 +105,14 @@ const UpdateBookModal = ({
       onUpdate(book.id, {
         title,
         isbn,
+        publicationYear,
+        description,
+        coverImage,
+        pages,
         authorIds: selectedAuthors,
         publisherId: Number(publisherId),
         categoryId: Number(categoryId),
+        stock: Number(stock),
       });
     } else {
       alert("Please fill all fields and select at least one author.");
@@ -144,6 +159,22 @@ const UpdateBookModal = ({
                   id="isbn"
                   value={isbn}
                   onChange={(e) => setIsbn(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="stock"
+                  className="block text-sm font-medium text-gray-700 text-left"
+                >
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  name="stock"
+                  id="stock"
+                  value={stock}
+                  onChange={(e) => setStock(Number(e.target.value))}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
