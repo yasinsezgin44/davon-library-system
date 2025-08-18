@@ -4,12 +4,15 @@ import com.davon.library.dto.AuthorDTO;
 import com.davon.library.mapper.AuthorMapper;
 import com.davon.library.service.AuthorService;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -24,6 +27,14 @@ public class AuthorController {
 
     @Inject
     AuthorService authorService;
+
+    @POST
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
+    @Operation(summary = "Create a new author")
+    public Response createAuthor(AuthorDTO authorDTO) {
+        var author = authorService.createAuthor(authorDTO);
+        return Response.status(Response.Status.CREATED).entity(AuthorMapper.toDTO(author)).build();
+    }
 
     @GET
     @Operation(summary = "Get all authors")
