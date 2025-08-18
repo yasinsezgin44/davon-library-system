@@ -1,40 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { username, password } = body;
-
   try {
+    const body = await req.json();
+    const { username, fullName, email, password } = body;
+
     const backendResponse = await fetch(
-      "http://localhost:8083/api/auth/login",
+      "http://localhost:8083/api/auth/register",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, fullName, email, password }),
       }
     );
 
     if (!backendResponse.ok) {
       const errorData = await backendResponse.json();
       return NextResponse.json(
-        { message: errorData.message || "Invalid credentials" },
+        { message: errorData.message || "Registration failed" },
         { status: backendResponse.status }
       );
     }
 
-    const { token } = await backendResponse.json();
-
-    const response = NextResponse.json({ token });
-    response.cookies.set({
-      name: "token",
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== "development",
-      path: "/",
-      sameSite: "lax",
-    });
-
-    return response;
+    return NextResponse.json(
+      { message: "Registration successful" },
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json(
       { message: "An internal server error occurred" },

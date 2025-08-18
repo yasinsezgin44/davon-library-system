@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,9 +20,9 @@ export default function LoginPage() {
       });
 
       if (res.ok) {
-        const data = await res.json();
-        // Redirect to dashboard or home page
-        window.location.href = "/dashboard/member";
+        const { token } = await res.json();
+        localStorage.setItem("token", token);
+        await login(token);
       } else {
         const errorData = await res.json();
         setError(errorData.message || "Login failed");
