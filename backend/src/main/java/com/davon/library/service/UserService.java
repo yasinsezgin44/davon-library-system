@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.quarkus.elytron.security.common.BcryptUtil;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,7 @@ public class UserService {
     UserRepository userRepository;
 
     @Transactional
-    public User createUser(User user) {
+    public User createUser(User user, String password) {
         log.debug("Creating user: {}", user.getUsername());
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
@@ -29,6 +30,7 @@ public class UserService {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
+        user.setPasswordHash(BcryptUtil.bcryptHash(password));
         userRepository.persist(user);
         return user;
     }
@@ -53,7 +55,7 @@ public class UserService {
         user.setActive(false);
         return true;
     }
-    
+
     @Transactional
     public void deleteUser(Long userId) {
         log.debug("Deleting user: {}", userId);

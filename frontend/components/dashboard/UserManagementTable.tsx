@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
+import CreateUserModal from "./CreateUserModal";
 
 type Role = {
   id: number;
@@ -13,19 +14,22 @@ type UserRow = {
   id: number;
   fullName: string;
   email: string;
+  phoneNumber: string;
+  active: boolean;
+  status: string;
   roles: Role[];
 };
 
 const UserManagementTable = () => {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
-  // Add states for modals: const [isCreateModalOpen, setCreateModalOpen] = useState(false); etc.
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get("/admin/users");
+        const response = await apiClient.get("/users");
         setUsers(response.data);
       } catch (error) {
         console.error("Failed to fetch users:", error);
@@ -41,10 +45,13 @@ const UserManagementTable = () => {
     userData: Omit<UserRow, "id" | "roles"> & {
       password: string;
       username: string;
+      phoneNumber: string;
+      active: boolean;
+      status: string;
     }
   ) => {
     try {
-      const response = await apiClient.post("/admin/users", userData);
+      const response = await apiClient.post("/users", userData);
       setUsers([...users, response.data]);
     } catch (error) {
       console.error("Failed to create user:", error);
@@ -53,7 +60,7 @@ const UserManagementTable = () => {
 
   const handleUpdate = async (id: number, userData: Partial<UserRow>) => {
     try {
-      const response = await apiClient.put(`/admin/users/${id}`, userData);
+      const response = await apiClient.put(`/users/${id}`, userData);
       setUsers(users.map((user) => (user.id === id ? response.data : user)));
     } catch (error) {
       console.error("Failed to update user:", error);
@@ -62,7 +69,7 @@ const UserManagementTable = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/admin/users/${id}`);
+      await apiClient.delete(`/users/${id}`);
       setUsers(users.filter((user) => user.id !== id));
     } catch (error) {
       console.error("Failed to delete user:", error);
@@ -81,7 +88,10 @@ const UserManagementTable = () => {
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <div className="flex justify-between items-center mb-4 px-6 py-4">
         <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
-        <button className="px-4 py-2 rounded-md font-semibold text-sm bg-green-500 text-white hover:bg-green-600">
+        <button
+          onClick={() => setCreateModalOpen(true)}
+          className="px-4 py-2 rounded-md font-semibold text-sm bg-green-500 text-white hover:bg-green-600"
+        >
           Add New User
         </button>
       </div>
@@ -133,7 +143,11 @@ const UserManagementTable = () => {
           </tbody>
         </table>
       </div>
-      {/* Add Modals for Create, Update, Delete here */}
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreate={handleCreate}
+      />
     </div>
   );
 };

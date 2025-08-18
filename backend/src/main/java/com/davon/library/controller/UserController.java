@@ -47,7 +47,7 @@ public class UserController {
     @Operation(summary = "Create new user", description = "Add a new user to the system")
     public Response createUser(@Valid UserRequestDTO userData) {
         User newUser = UserMapper.toEntity(userData);
-        User createdUser = userService.createUser(newUser);
+        User createdUser = userService.createUser(newUser, userData.password());
         return Response.status(Response.Status.CREATED).entity(UserMapper.toResponseDTO(createdUser)).build();
     }
 
