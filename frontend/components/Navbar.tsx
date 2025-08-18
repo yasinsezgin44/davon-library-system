@@ -72,7 +72,7 @@ const Navbar = () => {
                 onClick={() => setDropdownOpen(!isDropdownOpen)}
                 className="flex items-center text-gray-800"
               >
-                <span className="mr-2">{user?.username}</span>
+                <span className="mr-2">{user?.fullName}</span>
                 <svg
                   className="h-5 w-5"
                   viewBox="0 0 20 20"
