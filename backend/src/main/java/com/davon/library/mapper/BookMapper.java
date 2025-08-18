@@ -7,6 +7,7 @@ import com.davon.library.model.Author;
 import com.davon.library.model.Book;
 import com.davon.library.model.Category;
 import com.davon.library.model.Publisher;
+import com.davon.library.model.enums.CopyStatus;
 
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -61,7 +62,8 @@ public class BookMapper {
             return null;
         }
 
-        log.info("Mapping book with ID: {}", book.getId());
+        boolean isAvailable = book.getCopies().stream()
+                .anyMatch(copy -> copy.getStatus() == CopyStatus.AVAILABLE);
 
         BookResponseDTO dto = new BookResponseDTO(
                 book.getId(),
@@ -71,6 +73,7 @@ public class BookMapper {
                 book.getPublicationYear(),
                 book.getPages(),
                 book.getCoverImageUrl(),
+                isAvailable,
                 PublisherMapper.toDTO(book.getPublisher()),
                 CategoryMapper.toDTO(book.getCategory()),
                 book.getAuthors().stream()
@@ -82,7 +85,6 @@ public class BookMapper {
                 book.getCreatedAt(),
                 book.getUpdatedAt());
 
-        log.info("Successfully mapped book with ID: {}", book.getId());
         return dto;
     }
 

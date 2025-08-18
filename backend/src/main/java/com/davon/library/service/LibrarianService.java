@@ -1,6 +1,7 @@
 package com.davon.library.service;
 
 import com.davon.library.dto.BookRequestDTO;
+import com.davon.library.dto.LoanResponseDTO;
 import com.davon.library.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -52,9 +53,9 @@ public class LibrarianService {
     }
 
     @Transactional
-    public Loan checkoutBookForMember(Long bookId, Long memberId) {
-        log.info("Librarian checking out book {} for member {}", bookId, memberId);
-        return loanService.checkoutBook(bookId, memberId);
+    public LoanResponseDTO checkoutBookForMember(Long bookId, Long userId) {
+        log.info("Librarian checking out book {} for member {}", bookId, userId);
+        return loanService.checkoutBook(bookId, userId);
     }
 
     @Transactional

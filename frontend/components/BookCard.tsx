@@ -3,17 +3,30 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import apiClient from "@/lib/apiClient";
 import toast from "react-hot-toast";
+import { useState, useEffect } from "react";
 
 type BookCardProps = {
   id: number;
   title: string;
   author: string;
   imageUrl: string;
+  isAvailable: boolean;
 };
 
-const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
+const BookCard = ({
+  id,
+  title,
+  author,
+  imageUrl,
+  isAvailable,
+}: BookCardProps) => {
   const { user } = useAuth();
+  const [available, setAvailable] = useState(isAvailable);
   const placeholderImage = "/images/default_book_image.jpeg";
+
+  useEffect(() => {
+    setAvailable(isAvailable);
+  }, [isAvailable]);
 
   let imageSrc = placeholderImage;
   if (imageUrl && imageUrl.trim() !== "") {
@@ -31,10 +44,9 @@ const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
     }
 
     try {
-      await apiClient.post(
-        `/librarian/checkout?bookId=${id}&memberId=${user.id}`
-      );
+      await apiClient.post(`/loans/borrow?bookId=${id}`);
       toast.success("Book borrowed successfully!");
+      setAvailable(false);
     } catch (error) {
       toast.error("Failed to borrow book. It may be unavailable.");
       console.error("Failed to borrow book:", error);
@@ -61,9 +73,14 @@ const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
         <div className="p-4 border-t">
           <button
             onClick={borrowBook}
-            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+            className={`w-full py-2 rounded-md transition-colors ${
+              !available
+                ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                : "bg-blue-500 text-white hover:bg-blue-600"
+            }`}
+            disabled={!available}
           >
-            Borrow
+            {available ? "Borrow" : "Borrowed"}
           </button>
         </div>
       )}

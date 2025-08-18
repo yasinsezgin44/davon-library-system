@@ -8,6 +8,7 @@ type TrendingBook = {
   title: string;
   author: string;
   coverImageUrl: string;
+  isAvailable: boolean;
 };
 
 const TrendingBooks = () => {
@@ -36,6 +37,7 @@ const TrendingBooks = () => {
             title={book.title}
             author={book.author}
             imageUrl={book.coverImageUrl || "/images/default_book_image.jpeg"}
+            isAvailable={book.isAvailable}
           />
         ))}
       </div>

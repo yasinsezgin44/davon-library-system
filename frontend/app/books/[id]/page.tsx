@@ -6,6 +6,7 @@ import apiClient from "../../../lib/apiClient";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext";
 import { FaSpinner } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 interface Book {
   id: number;
@@ -22,7 +23,7 @@ const BookDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const params = useParams();
   const { id } = params;
-  const { isAuthReady } = useAuth();
+  const { isAuthReady, user } = useAuth();
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -40,6 +41,23 @@ const BookDetailPage = () => {
     };
     fetchBook();
   }, [id, isAuthReady]);
+
+  const borrowBook = async () => {
+    if (!user || !book) {
+      toast.error("You must be logged in to borrow a book.");
+      return;
+    }
+
+    try {
+      await apiClient.post(
+        `/librarian/checkout?bookId=${book.id}&userId=${user.id}`
+      );
+      toast.success("Book borrowed successfully!");
+    } catch (error) {
+      toast.error("Failed to borrow book. It may be unavailable.");
+      console.error("Failed to borrow book:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -89,6 +107,16 @@ const BookDetailPage = () => {
               <strong className="font-semibold">ISBN:</strong> {book.isbn}
             </div>
           </div>
+          {user && (
+            <div className="mt-6">
+              <button
+                onClick={borrowBook}
+                className="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-600 transition-colors"
+              >
+                Borrow
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

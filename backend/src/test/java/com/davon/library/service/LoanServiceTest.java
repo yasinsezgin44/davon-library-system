@@ -13,6 +13,7 @@ import com.davon.library.repository.FineRepository;
 import com.davon.library.repository.LoanRepository;
 import com.davon.library.repository.MemberRepository;
 import io.quarkus.test.junit.QuarkusTest;
+import com.davon.library.model.User;
 import io.quarkus.test.InjectMock;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
@@ -52,12 +53,18 @@ public class LoanServiceTest {
     private Member member;
     private BookCopy bookCopy;
     private Loan loan;
+    private User user;
 
     @BeforeEach
     void setUp() {
+        user = new User();
+        user.setId(1L);
+        user.setUsername("testuser");
+
         member = new Member();
         member.setId(1L);
         member.setFineBalance(BigDecimal.ZERO);
+        member.setUser(user);
 
         bookCopy = new BookCopy();
         bookCopy.setId(1L);
@@ -161,4 +168,3 @@ public class LoanServiceTest {
         assertEquals(FineStatus.PENDING, fine.getStatus());
     }
 }
-

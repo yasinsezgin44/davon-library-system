@@ -142,6 +142,7 @@ public class BookService {
         Book book = bookRepository.findByIdOptional(bookId)
                 .orElseThrow(() -> new NotFoundException("Book not found with ID: " + bookId));
 
+        bookCopyRepository.delete("book.id", bookId);
         bookRepository.delete(book);
     }
 

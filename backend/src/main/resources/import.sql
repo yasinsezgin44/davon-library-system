@@ -85,7 +85,7 @@ INSERT INTO book_copies (book_id, status, location, created_at, updated_at) VALU
 (1, 'CHECKED_OUT', 'On Loan', GETDATE(), GETDATE()),         -- 1984
 (2, 'AVAILABLE', 'Fantasy Aisle 2', GETDATE(), GETDATE()),     -- The Lord of the Rings
 (2, 'AVAILABLE', 'Fantasy Aisle 2', GETDATE(), GETDATE()),     -- The Lord of the Rings
-(3, 'RESERVED', 'Reservation Shelf', GETDATE(), GETDATE()), -- Dune
+(3, 'AVAILABLE', 'Sci-Fi Aisle 3', GETDATE(), GETDATE()),      -- Dune
 (3, 'AVAILABLE', 'Sci-Fi Aisle 3', GETDATE(), GETDATE()),      -- Dune
 (4, 'AVAILABLE', 'Classics Aisle 4', GETDATE(), GETDATE()),    -- Pride and Prejudice
 (5, 'CHECKED_OUT', 'On Loan', GETDATE(), GETDATE());         -- Foundation

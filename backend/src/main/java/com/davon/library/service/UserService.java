@@ -9,17 +9,19 @@ import jakarta.ws.rs.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.quarkus.elytron.security.common.BcryptUtil;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import com.davon.library.model.Role;
 import com.davon.library.repository.RoleRepository;
-import com.davon.library.dto.UserRequestDTO;
 import com.davon.library.dto.UserUpdateDTO;
 import com.davon.library.dto.UserMeDTO;
+import com.davon.library.model.Member;
+import com.davon.library.repository.MemberRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import jakarta.ws.rs.BadRequestException;
 
 @ApplicationScoped
 public class UserService {
@@ -32,16 +34,23 @@ public class UserService {
     @Inject
     RoleRepository roleRepository;
 
+    @Inject
+    MemberRepository memberRepository;
+
     @Transactional
     public User createUser(User user, String password, Set<Long> roleIds) {
         log.debug("Creating user: {}", user.getUsername());
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new BadRequestException("Username already exists");
         }
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new BadRequestException("Email already exists");
         }
         user.setPasswordHash(BcryptUtil.bcryptHash(password));
+        user.setActive(true);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+
         if (roleIds != null && !roleIds.isEmpty()) {
             Set<Role> roles = roleIds.stream()
                     .map(roleId -> roleRepository.findByIdOptional(roleId)
@@ -50,6 +59,14 @@ public class UserService {
             user.setRoles(roles);
         }
         userRepository.persist(user);
+
+        Member member = Member.builder()
+                .user(user)
+                .id(user.getId())
+                .membershipStartDate(LocalDate.now())
+                .build();
+        memberRepository.persist(member);
+
         return user;
     }
 

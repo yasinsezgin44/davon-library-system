@@ -26,15 +26,16 @@ class BookControllerTest {
     @Test
     @TestSecurity(user = "librarian", roles = { "LIBRARIAN" })
     void testCreateBookEndpoint() {
-        BookRequestDTO bookRequestDTO = new BookRequestDTO("New Book", "1234567890123", 2023, "description", "cover.jpg", 100, 1L, 1L, Set.of(1L));
+        BookRequestDTO bookRequestDTO = new BookRequestDTO("New Book", "1234567890123", 2023, "description",
+                "cover.jpg", 100, 1L, 1L, 10, Set.of(1L));
 
         given()
-            .contentType("application/json")
-            .body(bookRequestDTO)
-        .when()
-            .post("/api/books")
-        .then()
-            .statusCode(201);
+                .contentType("application/json")
+                .body(bookRequestDTO)
+                .when()
+                .post("/api/books")
+                .then()
+                .statusCode(201);
     }
 
     @Test

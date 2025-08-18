@@ -1,5 +1,6 @@
 package com.davon.library.service;
 
+import com.davon.library.dto.UserUpdateDTO;
 import com.davon.library.model.User;
 import com.davon.library.repository.UserRepository;
 import io.quarkus.test.junit.QuarkusTest;
@@ -8,6 +9,7 @@ import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,11 +32,12 @@ class UserServiceTest {
         User user = new User();
         user.setUsername("testuser");
         user.setEmail("test@example.com");
+        user.setFullName("Test User");
 
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
 
-        User created = userService.createUser(user);
+        User created = userService.createUser(user, "password", new HashSet<>());
 
         verify(userRepository).persist(user);
         assertEquals(user, created);
@@ -47,7 +50,8 @@ class UserServiceTest {
 
         when(userRepository.existsByUsername("duplicate")).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(user));
+        assertThrows(jakarta.ws.rs.BadRequestException.class,
+                () -> userService.createUser(user, "password", new HashSet<>()));
     }
 
     @Test
@@ -56,8 +60,7 @@ class UserServiceTest {
         existing.setId(1L);
         existing.setFullName("Old Name");
 
-        User updated = new User();
-        updated.setFullName("New Name");
+        UserUpdateDTO updated = new UserUpdateDTO("New Name", "newemail@example.com", null, null, null, null);
 
         when(userRepository.findByIdOptional(1L)).thenReturn(Optional.of(existing));
 
@@ -70,7 +73,8 @@ class UserServiceTest {
     void testUpdateUserNotFound() {
         when(userRepository.findByIdOptional(99L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userService.updateUser(99L, new User()));
+        assertThrows(NotFoundException.class,
+                () -> userService.updateUser(99L, new UserUpdateDTO(null, null, null, null, null, null)));
     }
 
     @Test
