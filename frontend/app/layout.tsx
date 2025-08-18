@@ -9,10 +9,6 @@ import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "your-secret-key"
-);
-
 export const metadata: Metadata = {
   title: "Davon Library",
   description: "A modern library management system.",

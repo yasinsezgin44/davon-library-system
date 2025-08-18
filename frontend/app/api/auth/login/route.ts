@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const { username, password } = body;
 
   try {
-    const response = await fetch("http://localhost:8083/api/auth/login", {
+    const response = await fetch("http://127.0.0.1:8083/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
@@ -32,13 +32,13 @@ export async function POST(req: NextRequest) {
     const { token } = await response.json();
 
     const publicKey = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA72eygT6HYBeHVfRFXBAH
-AgFWGTLNuMWlCcdYdfse/izcLAj/aVu3C/5/cCae4HBBNK2MwaTyhZ+nCpkg2yhi
-m5pZB5HVqYKlVARP2Rk0YcKLFJELIpUy7smrrpac1bbgJH/KFuWokigg7+jxzFgg
-ubp1hVQbOPT6HgkKlbOAO6HFv5EBQ+BUuYgo2EpcodBgRmzZZi6u1lMWrxMgTP/C
-GFj/Ys0V0F4UHFiv1wxjTc7QwfUfKRh6ZI5QLBn/bL5AoH0Mkf0eTymIRTz9wEU5
-X0dfznxR35YMGhZNJwMdzUhjDjwYSH9M8kXJNT1EIeSvAS/7uGGHwvtb6XbOY7/A
-3QIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1U1SDocGLCYpg2jMeZ2Q
++ignO7yHZXGT1mff+YCSpdmtTSxLCj/uu8ATyT451meUV8PLxm7fjKSHpRsu8gBu
+bjjdZwulNUfVqM5Ib7ao7oxF/1/FdxBjuMQt3C7i2SDkje3gm07CtbwS0fe5XPtQ
+Cd/kA3Jv9GcxUD2hmflMIILn9jC8F1CHjN2ktfGKSMqRtlbsIdCda4b9yu0AWEqE
+TY8Zwqkf5M4bcOUkI/D0jR6cw0t805QDlbMXYBMvMp5FTbgKY0X5yPOQzvVoya74
+YH5R+uJBM5ip7kKDDUcmgD3nz0nHNFC8BDSzq8sIjtvjMbuv92M+nPrBP2iZC5pL
+CQIDAQAB
 -----END PUBLIC KEY-----`;
 
     const rsaPublicKey = await importSPKI(publicKey, "RS256");
