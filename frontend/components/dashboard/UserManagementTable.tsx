@@ -25,7 +25,7 @@ const UserManagementTable = () => {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get("/users");
+        const response = await apiClient.get("/admin/users");
         setUsers(response.data);
       } catch (error) {
         console.error("Failed to fetch users:", error);
@@ -44,7 +44,7 @@ const UserManagementTable = () => {
     }
   ) => {
     try {
-      const response = await apiClient.post("/users", userData);
+      const response = await apiClient.post("/admin/users", userData);
       setUsers([...users, response.data]);
     } catch (error) {
       console.error("Failed to create user:", error);
@@ -53,7 +53,7 @@ const UserManagementTable = () => {
 
   const handleUpdate = async (id: number, userData: Partial<UserRow>) => {
     try {
-      const response = await apiClient.put(`/users/${id}`, userData);
+      const response = await apiClient.put(`/admin/users/${id}`, userData);
       setUsers(users.map((user) => (user.id === id ? response.data : user)));
     } catch (error) {
       console.error("Failed to update user:", error);
@@ -62,7 +62,7 @@ const UserManagementTable = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/users/${id}`);
+      await apiClient.delete(`/admin/users/${id}`);
       setUsers(users.filter((user) => user.id !== id));
     } catch (error) {
       console.error("Failed to delete user:", error);

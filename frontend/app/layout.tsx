@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
+import { jwtVerify, importSPKI } from "jose";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -22,8 +22,21 @@ async function getUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
   if (!token) return null;
+
+  const publicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA72eygT6HYBeHVfRFXBAH
+AgFWGTLNuMWlCcdYdfse/izcLAj/aVu3C/5/cCae4HBBNK2MwaTyhZ+nCpkg2yhi
+m5pZB5HVqYKlVARP2Rk0YcKLFJELIpUy7smrrpac1bbgJH/KFuWokigg7+jxzFgg
+ubp1hVQbOPT6HgkKlbOAO6HFv5EBQ+BUuYgo2EpcodBgRmzZZi6u1lMWrxMgTP/C
+GFj/Ys0V0F4UHFiv1wxjTc7QwfUfKRh6ZI5QLBn/bL5AoH0Mkf0eTymIRTz9wEU5
+X0dfznxR35YMGhZNJwMdzUhjDjwYSH9M8kXJNT1EIeSvAS/7uGGHwvtb6XbOY7/A
+3QIDAQAB
+-----END PUBLIC KEY-----`;
+
+  const rsaPublicKey = await importSPKI(publicKey, "RS256");
+
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, rsaPublicKey);
     const roles = payload.groups as string[];
     return {
       username: payload.sub as string,
