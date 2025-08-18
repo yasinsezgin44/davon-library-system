@@ -66,7 +66,7 @@ public class UserController {
     @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Deactivate user", description = "Deactivate a user")
     public Response deleteUser(@PathParam("id") Long id) {
-        userService.deactivateUser(id);
+        userService.deleteUser(id);
         return Response.noContent().build();
     }
 

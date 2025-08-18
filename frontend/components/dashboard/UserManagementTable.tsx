@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
 import CreateUserModal from "./CreateUserModal";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 type Role = {
   id: number;
@@ -24,6 +25,8 @@ const UserManagementTable = () => {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -72,9 +75,16 @@ const UserManagementTable = () => {
     try {
       await apiClient.delete(`/users/${id}`);
       setUsers(users.filter((user) => user.id !== id));
+      setDeleteModalOpen(false);
+      setSelectedUser(null);
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
+  };
+
+  const openDeleteModal = (user: UserRow) => {
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
   };
 
   if (loading) {
@@ -132,7 +142,7 @@ const UserManagementTable = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(user.id)}
+                      onClick={() => openDeleteModal(user)}
                       className="px-4 py-2 rounded-md font-semibold text-sm bg-red-500 text-white hover:bg-red-600"
                     >
                       Delete
@@ -148,6 +158,19 @@ const UserManagementTable = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreate={handleCreate}
+      />
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedUser(null);
+        }}
+        onConfirm={() => {
+          if (selectedUser) {
+            handleDelete(selectedUser.id);
+          }
+        }}
+        itemName={selectedUser ? selectedUser.fullName : ""}
       />
     </div>
   );
