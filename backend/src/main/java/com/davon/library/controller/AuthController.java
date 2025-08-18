@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.davon.library.dto.UserMeDTO;
+import com.davon.library.service.UserService;
 
 @Path("/api/auth")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,6 +40,9 @@ public class AuthController {
 
     @Inject
     AuthenticationService authenticationService;
+
+    @Inject
+    UserService userService;
 
     @Inject
     JsonWebToken jwt;
@@ -54,13 +59,9 @@ public class AuthController {
         }
 
         String username = jwt.getName();
-        User user = authenticationService.findByUsername(username);
+        var userMeDTO = userService.getUserMe(username);
 
-        if (user == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        return Response.ok(user).build();
+        return Response.ok(userMeDTO).build();
     }
 
     @POST

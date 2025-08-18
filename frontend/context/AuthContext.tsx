@@ -16,7 +16,7 @@ interface Role {
 
 interface User {
   username: string;
-  roles: Role[];
+  roles: string[];
   fullName: string;
 }
 
@@ -65,10 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
-        if (
-          userData.roles &&
-          userData.roles.some((role: Role) => role.name === "ADMIN")
-        ) {
+        if (userData.roles && userData.roles.includes("ADMIN")) {
           router.push("/dashboard/admin");
         } else {
           router.push("/dashboard/member");

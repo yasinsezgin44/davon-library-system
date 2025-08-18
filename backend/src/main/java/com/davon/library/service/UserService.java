@@ -19,6 +19,7 @@ import com.davon.library.model.Role;
 import com.davon.library.repository.RoleRepository;
 import com.davon.library.dto.UserRequestDTO;
 import com.davon.library.dto.UserUpdateDTO;
+import com.davon.library.dto.UserMeDTO;
 
 @ApplicationScoped
 public class UserService {
@@ -50,6 +51,16 @@ public class UserService {
         }
         userRepository.persist(user);
         return user;
+    }
+
+    @Transactional
+    public UserMeDTO getUserMe(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+        Set<String> roles = user.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
+        return new UserMeDTO(user.getUsername(), user.getFullName(), roles);
     }
 
     @Transactional

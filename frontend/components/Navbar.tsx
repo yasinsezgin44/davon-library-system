@@ -89,11 +89,9 @@ const Navbar = () => {
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
                   <Link
                     href={(() => {
-                      if (user?.roles?.some((role) => role.name === "ADMIN"))
+                      if (user?.roles?.includes("ADMIN"))
                         return "/dashboard/admin";
-                      if (
-                        user?.roles?.some((role) => role.name === "LIBRARIAN")
-                      )
+                      if (user?.roles?.includes("LIBRARIAN"))
                         return "/dashboard/librarian";
                       return "/";
                     })()}
