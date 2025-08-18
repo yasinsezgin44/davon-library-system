@@ -93,6 +93,8 @@ const Navbar = () => {
                         return "/dashboard/admin";
                       if (user?.roles?.includes("LIBRARIAN"))
                         return "/dashboard/librarian";
+                      if (user?.roles?.includes("MEMBER"))
+                        return "/dashboard/member";
                       return "/";
                     })()}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
