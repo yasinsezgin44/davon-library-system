@@ -62,6 +62,7 @@ const BookManagementTable = () => {
     authorIds: number[];
     publisherId: number;
     categoryId: number;
+    stock: number;
   }) => {
     try {
       const newBookData = {
@@ -69,6 +70,7 @@ const BookManagementTable = () => {
         authorIds: bookData.authorIds,
         publisherId: bookData.publisherId,
         categoryId: bookData.categoryId,
+        stock: bookData.stock,
       };
       console.log("Creating book with data:", newBookData);
       const response = await apiClient.post("/books", newBookData);

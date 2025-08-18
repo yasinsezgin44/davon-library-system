@@ -2,25 +2,28 @@ package com.davon.library.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.util.Set;
 
 public record BookRequestDTO(
-                @NotBlank(message = "Title is required") @Size(max = 255, message = "Title must not exceed 255 characters") String title,
+        @NotBlank(message = "Title is required") @Size(max = 255, message = "Title must not exceed 255 characters") String title,
 
-                @NotBlank(message = "ISBN is required") @Size(min = 13, max = 13, message = "ISBN must be 13 characters") String isbn,
+        @NotBlank(message = "ISBN is required") @Size(min = 13, max = 13, message = "ISBN must be 13 characters") String isbn,
 
-                Integer publicationYear,
+        Integer publicationYear,
 
-                String description,
+        String description,
 
-                String coverImage,
+        String coverImage,
 
-                Integer pages,
+        Integer pages,
 
-                @NotNull(message = "Publisher ID is required") Long publisherId,
+        @NotNull(message = "Publisher ID is required") Long publisherId,
 
-                @NotNull(message = "Category ID is required") Long categoryId,
+        @NotNull(message = "Category ID is required") Long categoryId,
 
-                Set<Long> authorIds) {
+        @NotNull(message = "Stock is required") @PositiveOrZero(message = "Stock must be a positive number or zero") Integer stock,
+
+        Set<Long> authorIds) {
 }

@@ -23,6 +23,8 @@ import com.davon.library.model.Author;
 import com.davon.library.model.Publisher;
 import com.davon.library.repository.AuthorRepository;
 import com.davon.library.repository.PublisherRepository;
+import com.davon.library.model.BookCopy;
+import com.davon.library.model.enums.CopyStatus;
 
 @ApplicationScoped
 public class BookService {
@@ -55,7 +57,8 @@ public class BookService {
         Book book = BookMapper.toEntity(bookRequestDTO);
 
         Publisher publisher = publisherRepository.findByIdOptional(bookRequestDTO.publisherId())
-                .orElseThrow(() -> new NotFoundException("Publisher not found with ID: " + bookRequestDTO.publisherId()));
+                .orElseThrow(
+                        () -> new NotFoundException("Publisher not found with ID: " + bookRequestDTO.publisherId()));
         book.setPublisher(publisher);
 
         Category category = categoryRepository.findByIdOptional(bookRequestDTO.categoryId())
@@ -71,6 +74,14 @@ public class BookService {
         }
 
         bookRepository.persist(book);
+
+        for (int i = 0; i < bookRequestDTO.stock(); i++) {
+            BookCopy bookCopy = new BookCopy();
+            bookCopy.setBook(book);
+            bookCopy.setStatus(CopyStatus.AVAILABLE);
+            bookCopyRepository.persist(bookCopy);
+        }
+
         log.info("Successfully created book with ID: {}", book.getId());
         return book;
     }
@@ -96,7 +107,7 @@ public class BookService {
         log.debug("Deleting book: {}", bookId);
         Book book = bookRepository.findByIdOptional(bookId)
                 .orElseThrow(() -> new NotFoundException("Book not found with ID: " + bookId));
-        
+
         bookCopyRepository.delete("book.id", book.getId());
         bookRepository.delete(book);
     }

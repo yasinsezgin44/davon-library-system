@@ -27,6 +27,7 @@ interface CreateBookModalProps {
     authorIds: number[];
     publisherId: number;
     categoryId: number;
+    stock: number;
   }) => void;
 }
 
@@ -41,6 +42,7 @@ const CreateBookModal = ({
   const [description, setDescription] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [pages, setPages] = useState<number | "">("");
+  const [stock, setStock] = useState<number | "">("");
   const [selectedAuthors, setSelectedAuthors] = useState<number[]>([]);
   const [publisherId, setPublisherId] = useState<number | "">("");
   const [categoryId, setCategoryId] = useState<number | "">("");
@@ -95,6 +97,7 @@ const CreateBookModal = ({
         authorIds: selectedAuthors,
         publisherId: Number(publisherId),
         categoryId: Number(categoryId),
+        stock: Number(stock),
       });
       // Reset form
       setTitle("");
@@ -106,6 +109,7 @@ const CreateBookModal = ({
       setSelectedAuthors([]);
       setPublisherId("");
       setCategoryId("");
+      setStock("");
     } else {
       alert("Please fill all fields and select at least one author.");
     }
@@ -217,6 +221,23 @@ const CreateBookModal = ({
                   value={pages}
                   onChange={(e) => setPages(Number(e.target.value))}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="stock"
+                  className="block text-sm font-medium text-gray-700 text-left"
+                >
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  name="stock"
+                  id="stock"
+                  value={stock}
+                  onChange={(e) => setStock(Number(e.target.value))}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
                 />
               </div>
               <div className="mb-4">
