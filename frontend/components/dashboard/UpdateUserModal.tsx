@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { UserRow } from "./UserManagementTable";
 import apiClient from "../../lib/apiClient";
@@ -7,29 +9,23 @@ interface Role {
   name: string;
 }
 
-interface CreateUserModalProps {
+interface UpdateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (
-    userData: Omit<UserRow, "id" | "roles"> & {
-      password: string;
-      username: string;
-      roleIds: number[];
-    }
-  ) => void;
+  onUpdate: (id: number, userData: Partial<UserRow>) => void;
+  user: UserRow | null;
 }
 
-const CreateUserModal = ({
+const UpdateUserModal = ({
   isOpen,
   onClose,
-  onCreate,
-}: CreateUserModalProps) => {
-  const [username, setUsername] = useState("");
+  onUpdate,
+  user,
+}: UpdateUserModalProps) => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [status, setStatus] = useState("ACTIVE");
+  const [status, setStatus] = useState("");
   const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
   const [allRoles, setAllRoles] = useState<Role[]>([]);
 
@@ -48,6 +44,16 @@ const CreateUserModal = ({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (user) {
+      setFullName(user.fullName);
+      setEmail(user.email);
+      setPhoneNumber(user.phoneNumber);
+      setStatus(user.status);
+      setSelectedRoles(user.roles.map((role) => role.id));
+    }
+  }, [user]);
+
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(e.target.selectedOptions, (option) =>
       Number(option.value)
@@ -57,17 +63,16 @@ const CreateUserModal = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onCreate({
-      username,
-      fullName,
-      email,
-      password,
-      phoneNumber,
-      active: status === "ACTIVE",
-      status,
-      roleIds: selectedRoles,
-    });
-    onClose();
+    if (user) {
+      onUpdate(user.id, {
+        fullName,
+        email,
+        phoneNumber,
+        active: status === "ACTIVE",
+        status,
+        roleIds: selectedRoles,
+      });
+    }
   };
 
   if (!isOpen) return null;
@@ -77,27 +82,10 @@ const CreateUserModal = ({
       <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
         <div className="mt-3 text-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Add New User
+            Edit User
           </h3>
           <form className="mt-4" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="mb-4">
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium text-gray-700 text-left"
-                >
-                  Username
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  required
-                />
-              </div>
               <div className="mb-4">
                 <label
                   htmlFor="fullName"
@@ -150,23 +138,6 @@ const CreateUserModal = ({
               </div>
               <div className="mb-4">
                 <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 text-left"
-                >
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label
                   htmlFor="status"
                   className="block text-sm font-medium text-gray-700 text-left"
                 >
@@ -211,9 +182,9 @@ const CreateUserModal = ({
             <div className="items-center px-4 py-3 sm:flex sm:flex-row-reverse">
               <button
                 type="submit"
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
               >
-                Create User
+                Update User
               </button>
               <button
                 type="button"
@@ -230,4 +201,4 @@ const CreateUserModal = ({
   );
 };
 
-export default CreateUserModal;
+export default UpdateUserModal;

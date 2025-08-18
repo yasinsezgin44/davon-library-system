@@ -15,6 +15,7 @@ public class UserMapper {
         }
         return User.builder()
                 .username(dto.username())
+                .passwordHash(dto.password() != null ? BcryptUtil.bcryptHash(dto.password()) : null)
                 .fullName(dto.fullName())
                 .email(dto.email())
                 .phoneNumber(dto.phoneNumber())

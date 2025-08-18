@@ -2,6 +2,7 @@ package com.davon.library.controller;
 
 import com.davon.library.dto.UserRequestDTO;
 import com.davon.library.dto.UserResponseDTO;
+import com.davon.library.dto.UserUpdateDTO;
 import com.davon.library.mapper.UserMapper;
 import com.davon.library.model.User;
 import com.davon.library.service.UserService;
@@ -55,9 +56,8 @@ public class UserController {
     @Path("/{id}")
     @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Update user", description = "Update an existing user")
-    public Response updateUser(@PathParam("id") Long id, @Valid UserRequestDTO userData) {
-        User userToUpdate = UserMapper.toEntity(userData);
-        User updatedUser = userService.updateUser(id, userToUpdate);
+    public Response updateUser(@PathParam("id") Long id, @Valid UserUpdateDTO userData) {
+        User updatedUser = userService.updateUser(id, userData);
         return Response.ok(UserMapper.toResponseDTO(updatedUser)).build();
     }
 

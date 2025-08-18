@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import apiClient from "../../lib/apiClient";
 import CreateUserModal from "./CreateUserModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import UpdateUserModal from "./UpdateUserModal";
 
 type Role = {
   id: number;
@@ -25,6 +26,7 @@ const UserManagementTable = () => {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
 
@@ -66,6 +68,8 @@ const UserManagementTable = () => {
     try {
       const response = await apiClient.put(`/users/${id}`, userData);
       setUsers(users.map((user) => (user.id === id ? response.data : user)));
+      setUpdateModalOpen(false);
+      setSelectedUser(null);
     } catch (error) {
       console.error("Failed to update user:", error);
     }
@@ -80,6 +84,11 @@ const UserManagementTable = () => {
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
+  };
+
+  const openUpdateModal = (user: UserRow) => {
+    setSelectedUser(user);
+    setUpdateModalOpen(true);
   };
 
   const openDeleteModal = (user: UserRow) => {
@@ -138,7 +147,10 @@ const UserManagementTable = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end items-center space-x-2">
-                    <button className="px-4 py-2 rounded-md font-semibold text-sm bg-indigo-500 text-white hover:bg-indigo-600">
+                    <button
+                      onClick={() => openUpdateModal(user)}
+                      className="px-4 py-2 rounded-md font-semibold text-sm bg-indigo-500 text-white hover:bg-indigo-600"
+                    >
                       Edit
                     </button>
                     <button
@@ -158,6 +170,15 @@ const UserManagementTable = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreate={handleCreate}
+      />
+      <UpdateUserModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => {
+          setUpdateModalOpen(false);
+          setSelectedUser(null);
+        }}
+        onUpdate={handleUpdate}
+        user={selectedUser}
       />
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}

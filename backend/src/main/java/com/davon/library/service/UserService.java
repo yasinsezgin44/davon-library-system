@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 
 import com.davon.library.model.Role;
 import com.davon.library.repository.RoleRepository;
+import com.davon.library.dto.UserRequestDTO;
+import com.davon.library.dto.UserUpdateDTO;
 
 @ApplicationScoped
 public class UserService {
@@ -51,14 +53,33 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(Long userId, User updatedUser) {
+    public User updateUser(Long userId, UserUpdateDTO updatedUser) {
         log.debug("Updating user: {}", userId);
         User existingUser = findById(userId);
 
-        existingUser.setFullName(updatedUser.getFullName());
-        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-        existingUser.setStatus(updatedUser.getStatus());
-        existingUser.setActive(updatedUser.getActive());
+        if (updatedUser.fullName() != null) {
+            existingUser.setFullName(updatedUser.fullName());
+        }
+        if (updatedUser.phoneNumber() != null) {
+            existingUser.setPhoneNumber(updatedUser.phoneNumber());
+        }
+        if (updatedUser.status() != null) {
+            existingUser.setStatus(updatedUser.status());
+        }
+        if (updatedUser.active() != null) {
+            existingUser.setActive(updatedUser.active());
+        }
+        if (updatedUser.email() != null) {
+            existingUser.setEmail(updatedUser.email());
+        }
+
+        if (updatedUser.roleIds() != null && !updatedUser.roleIds().isEmpty()) {
+            Set<Role> roles = updatedUser.roleIds().stream()
+                    .map(roleId -> roleRepository.findByIdOptional(roleId)
+                            .orElseThrow(() -> new NotFoundException("Role not found with ID: " + roleId)))
+                    .collect(Collectors.toSet());
+            existingUser.setRoles(roles);
+        }
 
         return existingUser;
     }
