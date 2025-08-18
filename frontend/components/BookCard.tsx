@@ -1,5 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import apiClient from "@/lib/apiClient";
+import toast from "react-hot-toast";
 
 type BookCardProps = {
   id: number;
@@ -9,6 +12,7 @@ type BookCardProps = {
 };
 
 const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
+  const { user } = useAuth();
   const placeholderImage = "/images/default_book_image.jpeg";
 
   let imageSrc = placeholderImage;
@@ -20,9 +24,26 @@ const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
     }
   }
 
+  const borrowBook = async () => {
+    if (!user) {
+      toast.error("You must be logged in to borrow a book.");
+      return;
+    }
+
+    try {
+      await apiClient.post(
+        `/librarian/checkout?bookId=${id}&memberId=${user.id}`
+      );
+      toast.success("Book borrowed successfully!");
+    } catch (error) {
+      toast.error("Failed to borrow book. It may be unavailable.");
+      console.error("Failed to borrow book:", error);
+    }
+  };
+
   return (
-    <Link href={`/books/${id}`}>
-      <div className="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer h-full flex flex-col">
+    <div className="border rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
+      <Link href={`/books/${id}`} className="flex-grow">
         <div className="relative w-full h-64">
           <Image
             src={imageSrc}
@@ -31,12 +52,22 @@ const BookCard = ({ id, title, author, imageUrl }: BookCardProps) => {
             objectFit="cover"
           />
         </div>
-        <div className="p-4 flex-grow">
+        <div className="p-4">
           <h3 className="text-lg font-bold">{title}</h3>
           <p className="text-gray-400">{author}</p>
         </div>
-      </div>
-    </Link>
+      </Link>
+      {user && (
+        <div className="p-4 border-t">
+          <button
+            onClick={borrowBook}
+            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+          >
+            Borrow
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
