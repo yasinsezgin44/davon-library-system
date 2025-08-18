@@ -24,6 +24,23 @@ public class AuthorService {
         return author;
     }
 
+    @Transactional
+    public Author updateAuthor(Long id, AuthorDTO authorDTO) {
+        var author = authorRepository.findByIdOptional(id)
+                .orElseThrow(() -> new RuntimeException("Author not found"));
+        author.setName(authorDTO.name);
+        author.setBiography(authorDTO.biography);
+        author.setBirthDate(authorDTO.dateOfBirth);
+        return author;
+    }
+
+    @Transactional
+    public void deleteAuthor(Long id) {
+        var author = authorRepository.findByIdOptional(id)
+                .orElseThrow(() -> new RuntimeException("Author not found"));
+        authorRepository.delete(author);
+    }
+
     public List<Author> getAllAuthors() {
         return authorRepository.listAll();
     }
