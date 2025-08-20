@@ -81,6 +81,10 @@ public class BookService {
             bookCopy.setBook(book);
             bookCopy.setStatus(CopyStatus.AVAILABLE);
             bookCopyRepository.persist(bookCopy);
+            // Keep owning side collection in sync so DTO 'stock' reflects immediately
+            if (book.getCopies() != null) {
+                book.getCopies().add(bookCopy);
+            }
         }
 
         log.info("Successfully created book with ID: {}", book.getId());
@@ -126,6 +130,9 @@ public class BookService {
                 bookCopy.setBook(existingBook);
                 bookCopy.setStatus(CopyStatus.AVAILABLE);
                 bookCopyRepository.persist(bookCopy);
+                if (existingBook.getCopies() != null) {
+                    existingBook.getCopies().add(bookCopy);
+                }
             }
         } else if (newStock < currentStock) {
             int toRemove = currentStock - newStock;
