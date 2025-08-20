@@ -7,8 +7,9 @@ const BACKEND_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8
 export async function PUT(request: Request, { params }: any) {
   const token = (await cookies()).get("token")?.value;
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
   const body = await request.text();
-  const resp = await fetch(`${BACKEND_BASE}/loans/${encodeURIComponent(params.id)}`, {
+  const resp = await fetch(`${BACKEND_BASE}/loans/${encodeURIComponent(id)}`, {
     method: "PUT",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body,
