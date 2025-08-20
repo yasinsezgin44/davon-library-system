@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const scope = new URL(request.url).searchParams.get("scope");
   const url = scope === "admin"
     ? "http://localhost:8083/api/reservations"
-    : "http://localhost:8083/api/dashboard/reservations";
+    : "http://localhost:8083/api/reservations/me";
   const resp = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",

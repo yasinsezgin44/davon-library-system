@@ -75,4 +75,22 @@ public class ReservationController {
         reservationService.updateReservationStatus(id, request.status());
         return Response.noContent().build();
     }
+
+    @GET
+    @Path("/me")
+    @RolesAllowed({ "MEMBER", "LIBRARIAN", "ADMIN" })
+    @Operation(summary = "Get current user's reservations")
+    @SecurityRequirement(name = "jwt")
+    @Transactional
+    public List<ReservationResponseDTO> getMyReservations(@Context SecurityContext securityContext) {
+        String username = securityContext.getUserPrincipal().getName();
+        Long memberId = memberRepository.findByUsername(username)
+                .map(m -> m.getId())
+                .orElseGet(() -> userService.getUserByUsername(username)
+                        .orElseThrow(() -> new NotFoundException("User not found with username: " + username))
+                        .getId());
+        return reservationService.getReservationsByMember(memberId).stream()
+                .map(ReservationMapper::toResponseDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
 }
