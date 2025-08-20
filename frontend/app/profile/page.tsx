@@ -25,6 +25,14 @@ const ProfilePage = () => {
     fullName: "",
     phoneNumber: "",
   });
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -133,6 +141,54 @@ const ProfilePage = () => {
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const openPasswordModal = () => {
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setPasswordError(null);
+    setSuccessMessage(null);
+    setShowPasswordModal(true);
+  };
+
+  const closePasswordModal = () => setShowPasswordModal(false);
+
+  const submitPasswordChange = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
+      setPasswordError("Please fill all password fields");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+    setPasswordSaving(true);
+    setPasswordError(null);
+    try {
+      const resp = await fetch("/api/profile/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(text || "Failed to change password");
+      }
+      setShowPasswordModal(false);
+      setSuccessMessage("Password changed successfully.");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setPasswordError(e.message || "Failed to change password");
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -254,7 +310,104 @@ const ProfilePage = () => {
             </button>
           </div>
         )}
+        <div className="mt-4">
+          <button
+            onClick={openPasswordModal}
+            className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md shadow-sm bg-white text-gray-800 border-gray-300 hover:bg-gray-50 focus:outline-none"
+          >
+            Change password
+          </button>
+        </div>
       </div>
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 text-gray-900">
+            <h2 className="text-xl font-semibold mb-4">Change password</h2>
+            {passwordError && (
+              <div className="mb-3 bg-red-50 text-red-700 border border-red-200 rounded p-3">
+                {passwordError}
+              </div>
+            )}
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="currentPassword"
+                  className="block text-sm font-medium text-gray-900 mb-1"
+                >
+                  Current password
+                </label>
+                <input
+                  id="currentPassword"
+                  type="password"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({
+                      ...p,
+                      currentPassword: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-medium text-gray-900 mb-1"
+                >
+                  New password
+                </label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  value={passwordForm.newPassword}
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({
+                      ...p,
+                      newPassword: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-900 mb-1"
+                >
+                  Confirm new password
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({
+                      ...p,
+                      confirmPassword: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closePasswordModal}
+                className="px-4 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitPasswordChange}
+                disabled={passwordSaving}
+                className="px-4 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {passwordSaving ? "Saving..." : "Change password"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

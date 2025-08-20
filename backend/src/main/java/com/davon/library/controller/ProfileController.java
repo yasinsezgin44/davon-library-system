@@ -1,6 +1,7 @@
 package com.davon.library.controller;
 
 import com.davon.library.dto.ProfileResponse;
+import com.davon.library.dto.ChangePasswordRequest;
 import com.davon.library.dto.ProfileUpdateRequest;
 import com.davon.library.model.User;
 import com.davon.library.service.UserService;
@@ -46,6 +47,23 @@ public class ProfileController {
 
         User updatedUser = userService.updateUserByUsername(userName, updatedDetails);
         return Response.ok(toProfileResponse(updatedUser)).build();
+    }
+
+    @POST
+    @Path("/change-password")
+    @Operation(summary = "Change the current user's password")
+    public Response changePassword(ChangePasswordRequest request, @Context SecurityContext securityContext) {
+        String userName = securityContext.getUserPrincipal().getName();
+        var userOpt = userService.getUserByUsername(userName);
+        if (userOpt.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        boolean changed = userService.changePassword(userOpt.get().getId(), request.getCurrentPassword(),
+                request.getNewPassword());
+        if (!changed) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid current password").build();
+        }
+        return Response.noContent().build();
     }
 
     private ProfileResponse toProfileResponse(User user) {

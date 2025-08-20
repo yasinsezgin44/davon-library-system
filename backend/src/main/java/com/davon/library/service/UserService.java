@@ -170,4 +170,17 @@ public class UserService {
     public long countUsers() {
         return userRepository.count();
     }
+
+    @Transactional
+    public boolean changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId);
+        if (user == null) {
+            return false;
+        }
+        if (!BcryptUtil.matches(currentPassword, user.getPasswordHash())) {
+            return false;
+        }
+        user.setPasswordHash(BcryptUtil.bcryptHash(newPassword));
+        return true;
+    }
 }
