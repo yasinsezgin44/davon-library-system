@@ -6,15 +6,13 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public record ReservationRequestDTO(
-        @NotNull(message = "Member ID is required")
-        Long memberId,
+                Long memberId,
 
-        @NotNull(message = "Book ID is required")
-        Long bookId,
+                @NotNull(message = "Book ID is required") Long bookId,
 
-        LocalDateTime reservationTime,
+                LocalDateTime reservationTime,
 
-        ReservationStatus status,
+                ReservationStatus status,
 
-        Integer priorityNumber
-) {}
+                Integer priorityNumber) {
+}

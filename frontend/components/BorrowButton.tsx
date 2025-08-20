@@ -133,7 +133,8 @@ const BorrowButton = ({
     }
   };
 
-  const disabled = !isMember || !available || alreadyBorrowed || isSubmitting;
+  const isReserveState = !available && isMember && !alreadyBorrowed;
+  const disabled = !isMember || alreadyBorrowed || isSubmitting;
   const label = alreadyBorrowed
     ? "Already Borrowed"
     : !available
@@ -158,6 +159,8 @@ const BorrowButton = ({
         `w-full py-2 rounded-md transition-colors ` +
         (disabled
           ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+          : isReserveState
+          ? "bg-amber-500 text-white hover:bg-amber-600"
           : "bg-blue-500 text-white hover:bg-blue-600") +
         (className ? ` ${className}` : "")
       }
