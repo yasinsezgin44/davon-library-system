@@ -12,7 +12,10 @@ interface Role {
 interface UpdateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (id: number, userData: Partial<UserRow>) => void;
+  onUpdate: (
+    id: number,
+    userData: Partial<UserRow> & { roleIds?: number[] }
+  ) => void;
   user: UserRow | null;
 }
 

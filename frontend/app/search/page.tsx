@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { publicApiClient } from "../../lib/apiClient";
 import BookCard from "../../components/BookCard";
 
@@ -13,7 +13,7 @@ interface Book {
   isAvailable?: boolean;
 }
 
-const SearchPage = () => {
+const SearchPageContent = () => {
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
   const categoryId = searchParams.get("categoryId");
@@ -84,4 +84,12 @@ const SearchPage = () => {
   );
 };
 
-export default SearchPage;
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={<div className="container mx-auto py-10">Loading...</div>}
+    >
+      <SearchPageContent />
+    </Suspense>
+  );
+}

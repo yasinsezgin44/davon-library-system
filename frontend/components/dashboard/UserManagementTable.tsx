@@ -6,13 +6,13 @@ import CreateUserModal from "./CreateUserModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import UpdateUserModal from "./UpdateUserModal";
 
-type Role = {
+export type Role = {
   id: number;
   name: string;
   description: string;
 };
 
-type UserRow = {
+export type UserRow = {
   id: number;
   fullName: string;
   email: string;
@@ -64,7 +64,10 @@ const UserManagementTable = () => {
     }
   };
 
-  const handleUpdate = async (id: number, userData: Partial<UserRow>) => {
+  const handleUpdate = async (
+    id: number,
+    userData: Partial<UserRow> & { roleIds?: number[] }
+  ) => {
     try {
       const response = await apiClient.put(`/users/${id}`, userData);
       setUsers(users.map((user) => (user.id === id ? response.data : user)));
