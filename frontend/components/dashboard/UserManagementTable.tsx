@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { apiClient } from "../../lib/apiClient";
 import CreateUserModal from "./CreateUserModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import UpdateUserModal from "./UpdateUserModal";
@@ -34,8 +33,15 @@ const UserManagementTable = () => {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get("/users");
-        setUsers(response.data);
+        const resp = await fetch("/api/users", {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (!resp.ok) {
+          throw new Error(await resp.text());
+        }
+        const data = await resp.json();
+        setUsers(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch users:", error);
       } finally {
@@ -57,8 +63,15 @@ const UserManagementTable = () => {
     }
   ) => {
     try {
-      const response = await apiClient.post("/users", userData);
-      setUsers([...users, response.data]);
+      const resp = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(userData),
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      const created = await resp.json();
+      setUsers([...users, created]);
     } catch (error) {
       console.error("Failed to create user:", error);
     }
@@ -69,8 +82,15 @@ const UserManagementTable = () => {
     userData: Partial<UserRow> & { roleIds?: number[] }
   ) => {
     try {
-      const response = await apiClient.put(`/users/${id}`, userData);
-      setUsers(users.map((user) => (user.id === id ? response.data : user)));
+      const resp = await fetch(`/api/users/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(userData),
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      const updated = await resp.json();
+      setUsers(users.map((user) => (user.id === id ? updated : user)));
       setUpdateModalOpen(false);
       setSelectedUser(null);
     } catch (error) {
@@ -80,7 +100,11 @@ const UserManagementTable = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/users/${id}`);
+      const resp = await fetch(`/api/users/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!resp.ok && resp.status !== 204) throw new Error(await resp.text());
       setUsers(users.filter((user) => user.id !== id));
       setDeleteModalOpen(false);
       setSelectedUser(null);
