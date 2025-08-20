@@ -58,6 +58,8 @@ const AdminDashboardPage = () => {
   const AdminActiveLoansTable = () => {
     const [loans, setLoans] = useState<ActiveLoan[]>([]);
     const [loading, setLoading] = useState(false);
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [dueDateInput, setDueDateInput] = useState<string>("");
     useEffect(() => {
       const fetchLoans = async () => {
         setLoading(true);
@@ -75,6 +77,39 @@ const AdminDashboardPage = () => {
       };
       fetchLoans();
     }, []);
+    const refresh = async () => {
+      setLoading(true);
+      try {
+        const resp = await fetch("/api/loans?scope=admin-active", { cache: "no-store" });
+        if (resp.ok) setLoans(await resp.json());
+      } finally {
+        setLoading(false);
+      }
+    };
+    const startEdit = (loan: ActiveLoan) => {
+      setEditingId(loan.id);
+      setDueDateInput(loan.dueDate);
+    };
+    const saveEdit = async (loanId: number) => {
+      const resp = await fetch(`/api/loans/${loanId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dueDate: dueDateInput }),
+      });
+      if (resp.ok) {
+        setEditingId(null);
+        setDueDateInput("");
+        await refresh();
+      }
+    };
+    const cancelEdit = () => {
+      setEditingId(null);
+      setDueDateInput("");
+    };
+    const returnLoan = async (loanId: number) => {
+      const resp = await fetch(`/api/loans/${loanId}/return`, { method: "PUT" });
+      if (resp.ok) await refresh();
+    };
     if (loading) return <div className="p-4">Loading loans...</div>;
     return (
       <div className="overflow-x-auto">
@@ -93,6 +128,7 @@ const AdminDashboardPage = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Due
               </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -110,7 +146,29 @@ const AdminDashboardPage = () => {
                   {loan.checkoutDate}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {loan.dueDate}
+                  {editingId === loan.id ? (
+                    <input
+                      type="date"
+                      value={dueDateInput}
+                      onChange={(e) => setDueDateInput(e.target.value)}
+                      className="border rounded px-2 py-1"
+                    />
+                  ) : (
+                    loan.dueDate
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                  {editingId === loan.id ? (
+                    <div className="space-x-2">
+                      <button onClick={() => saveEdit(loan.id)} className="px-3 py-1 rounded bg-green-600 text-white">Save</button>
+                      <button onClick={cancelEdit} className="px-3 py-1 rounded bg-gray-300 text-gray-800">Cancel</button>
+                    </div>
+                  ) : (
+                    <div className="space-x-2">
+                      <button onClick={() => startEdit(loan)} className="px-3 py-1 rounded bg-indigo-600 text-white">Edit</button>
+                      <button onClick={() => returnLoan(loan.id)} className="px-3 py-1 rounded bg-red-600 text-white">Mark Returned</button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -146,6 +204,27 @@ const AdminDashboardPage = () => {
       };
       fetchReservations();
     }, []);
+    const refresh = async () => {
+      setLoading(true);
+      try {
+        const resp = await fetch("/api/reservations?scope=admin", { cache: "no-store" });
+        if (resp.ok) setReservations(await resp.json());
+      } finally {
+        setLoading(false);
+      }
+    };
+    const deleteReservation = async (id: number) => {
+      const resp = await fetch(`/api/reservations/${id}`, { method: "DELETE" });
+      if (resp.ok || resp.status === 204) await refresh();
+    };
+    const promoteReservation = async (id: number) => {
+      const resp = await fetch(`/api/reservations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "READY_FOR_PICKUP" }),
+      });
+      if (resp.ok || resp.status === 204) await refresh();
+    };
     if (loading) return <div className="p-4">Loading reservations...</div>;
     return (
       <div className="overflow-x-auto">
@@ -164,6 +243,7 @@ const AdminDashboardPage = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -180,6 +260,12 @@ const AdminDashboardPage = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {r?.status}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                  <div className="space-x-2">
+                    <button onClick={() => promoteReservation(r.id)} className="px-3 py-1 rounded bg-indigo-600 text-white">Mark Ready</button>
+                    <button onClick={() => deleteReservation(r.id)} className="px-3 py-1 rounded bg-red-600 text-white">Delete</button>
+                  </div>
                 </td>
               </tr>
             ))}

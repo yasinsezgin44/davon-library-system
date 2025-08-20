@@ -71,8 +71,28 @@ public class ReservationController {
     @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Update reservation status")
     @SecurityRequirement(name = "jwt")
-    public Response updateReservationStatus(@PathParam("id") Long id, @Valid ReservationRequestDTO request) {
-        reservationService.updateReservationStatus(id, request.status());
+    public Response updateReservationStatus(@PathParam("id") Long id, com.fasterxml.jackson.databind.node.ObjectNode body) {
+        if (body == null || body.get("status") == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing status").build();
+        }
+        ReservationStatus status;
+        try {
+            status = ReservationStatus.valueOf(body.get("status").asText());
+        } catch (IllegalArgumentException ex) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid status").build();
+        }
+        reservationService.updateReservationStatus(id, status);
+        return Response.noContent().build();
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
+    @Operation(summary = "Delete/cancel a reservation")
+    @SecurityRequirement(name = "jwt")
+    @Transactional
+    public Response deleteReservation(@PathParam("id") Long id) {
+        reservationService.cancelReservation(id);
         return Response.noContent().build();
     }
 

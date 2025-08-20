@@ -151,18 +151,44 @@ public class LoanService {
             createFineForOverdueLoan(loan);
         }
 
-        // reservation queue promotion: mark the earliest PENDING reservation as
-        // READY_FOR_PICKUP
+        // reservation queue processing: try to auto-checkout to the first eligible reservation
         try {
             Book book = bookCopy.getBook();
             var pending = reservationRepository.findPendingReservationsByBook(book);
             if (!pending.isEmpty()) {
-                var next = pending.stream()
-                        .sorted(java.util.Comparator.comparingInt(
-                                r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()))
-                        .findFirst().get();
-                next.setStatus(com.davon.library.model.enums.ReservationStatus.READY_FOR_PICKUP);
-                // Optionally adjust others' priority
+                // sort by smallest priority number first
+                java.util.List<com.davon.library.model.Reservation> sorted = new java.util.ArrayList<>(pending);
+                sorted.sort(java.util.Comparator.comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
+
+                boolean autoAssigned = false;
+                com.davon.library.model.Reservation completedReservation = null;
+                for (com.davon.library.model.Reservation reservation : sorted) {
+                    try {
+                        // Attempt automatic checkout for this reservation's member
+                        checkoutBook(book.getId(), reservation.getMember().getId());
+                        reservation.setStatus(com.davon.library.model.enums.ReservationStatus.COMPLETED);
+                        completedReservation = reservation;
+                        autoAssigned = true;
+                        break;
+                    } catch (Exception ex) {
+                        // Not eligible; try next in queue
+                        log.info("Auto-assign skipped reservation {}: {}", reservation.getId(), ex.getMessage());
+                    }
+                }
+
+                if (autoAssigned) {
+                    // Re-number remaining pending reservations to fill gaps
+                    int nextPriority = 1;
+                    for (com.davon.library.model.Reservation r : reservationRepository.findPendingReservationsByBook(book)) {
+                        if (!r.equals(completedReservation)) {
+                            r.setPriorityNumber(nextPriority++);
+                        }
+                    }
+                } else {
+                    // No eligible member found; mark the first as READY_FOR_PICKUP
+                    var first = sorted.get(0);
+                    first.setStatus(com.davon.library.model.enums.ReservationStatus.READY_FOR_PICKUP);
+                }
             }
         } catch (Exception e) {
             log.warn("Failed to process reservation queue on return: {}", e.getMessage());
@@ -202,5 +228,19 @@ public class LoanService {
 
     public List<Loan> getLoansByStatus(LoanStatus status) {
         return loanRepository.findByStatus(status);
+    }
+
+    @Transactional
+    public LoanResponseDTO updateLoanDueDate(Long loanId, LocalDate newDueDate) {
+        Loan loan = loanRepository.findByIdOptional(loanId)
+                .orElseThrow(() -> new NotFoundException("Loan not found"));
+        if (loan.getStatus() != LoanStatus.ACTIVE) {
+            throw new BadRequestException("Only active loans can be updated.");
+        }
+        if (newDueDate.isBefore(loan.getCheckoutDate())) {
+            throw new BadRequestException("Due date cannot be before checkout date.");
+        }
+        loan.setDueDate(newDueDate);
+        return LoanMapper.toResponseDTO(loan);
     }
 }
