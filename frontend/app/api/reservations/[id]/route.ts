@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 const BACKEND_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8083/api";
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const token = request.cookies.get("token")?.value;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function PUT(request: Request, { params }: any) {
+  const token = (await cookies()).get("token")?.value;
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await request.text();
   const resp = await fetch(`${BACKEND_BASE}/reservations/${encodeURIComponent(params.id)}`, {
@@ -15,8 +17,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   return new NextResponse(text, { status: resp.status, headers: { "Content-Type": resp.headers.get("Content-Type") || "application/json" } });
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const token = request.cookies.get("token")?.value;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function DELETE(_request: Request, { params }: any) {
+  const token = (await cookies()).get("token")?.value;
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const resp = await fetch(`${BACKEND_BASE}/reservations/${encodeURIComponent(params.id)}`, {
     method: "DELETE",

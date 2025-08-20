@@ -144,8 +144,16 @@ const ProfilePage = () => {
     fetchReservations();
   }, [user]);
 
-  const isFinePending = (status: unknown): boolean => {
-    const s = typeof status === "string" ? status : (status as any)?.name;
+  const isFinePending = (
+    status: string | { name?: unknown } | null | undefined
+  ): boolean => {
+    let s: string | undefined = undefined;
+    if (typeof status === "string") {
+      s = status;
+    } else if (status && typeof status === "object" && "name" in status) {
+      const name = (status as { name?: unknown }).name;
+      if (typeof name === "string") s = name;
+    }
     return typeof s === "string" && s.toUpperCase() === "PENDING";
   };
 
