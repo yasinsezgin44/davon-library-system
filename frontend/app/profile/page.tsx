@@ -39,6 +39,7 @@ const ProfilePage = () => {
     amount: number | string;
     reason?: string;
     status?: string;
+    issueDate?: string;
   };
   const [fines, setFines] = useState<Fine[]>([]);
   const [loadingFines, setLoadingFines] = useState(false);
@@ -113,6 +114,19 @@ const ProfilePage = () => {
           const data = await resp.json();
           setFines(Array.isArray(data) ? data : []);
         }
+        const payFine = async (fineId: number) => {
+          try {
+            const resp = await fetch(`/api/fines?id=${fineId}`, {
+              method: "PUT",
+            });
+            if (!resp.ok) throw new Error(await resp.text());
+            // Refresh list after payment
+            const refreshed = await fetch("/api/fines", { cache: "no-store" });
+            if (refreshed.ok) setFines(await refreshed.json());
+          } catch (e) {
+            console.error("Failed to pay fine", e);
+          }
+        };
       } finally {
         setLoadingFines(false);
       }
@@ -392,6 +406,10 @@ const ProfilePage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Issued
+                  </th>
+                  <th className="px-6 py-3"></th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -408,6 +426,21 @@ const ProfilePage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {fine.status}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine.issueDate
+                        ? new Date(fine.issueDate).toLocaleDateString()
+                        : "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                      {fine.status !== "PAID" && (
+                        <button
+                          onClick={() => payFine(fine.id)}
+                          className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                        >
+                          Pay
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -40,7 +40,7 @@ public class FineController {
     @RolesAllowed("ADMIN")
     @Operation(summary = "List all fines")
     public List<FineResponseDTO> getAllFines() {
-        return fineRepository.listAll().stream()
+        return fineRepository.listAllOrderByIssueDateDesc().stream()
                 .map(FineMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -53,7 +53,7 @@ public class FineController {
         String username = securityContext.getUserPrincipal().getName();
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Member not found"));
-        List<FineResponseDTO> fines = fineService.getFinesForMember(member.getId()).stream()
+        List<FineResponseDTO> fines = fineRepository.findByMemberOrderByIssueDateDesc(member).stream()
                 .map(FineMapper::toResponseDTO)
                 .collect(Collectors.toList());
         return Response.ok(fines).build();
