@@ -46,6 +46,9 @@ public class ReservationService {
         reservation.setBook(book);
         reservation.setReservationTime(LocalDateTime.now());
         reservation.setStatus(ReservationStatus.PENDING);
+        // assign queue position: 1 + number of existing pending reservations for this book
+        int queueSize = reservationRepository.findPendingReservationsByBook(book).size();
+        reservation.setPriorityNumber(queueSize + 1);
         reservationRepository.persist(reservation);
 
         log.info("Reservation created successfully with ID {}", reservation.getId());

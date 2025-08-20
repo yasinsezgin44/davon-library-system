@@ -26,6 +26,14 @@ public class BookMapper {
         dto.genre = book.getGenre();
         dto.language = book.getLanguage();
         dto.coverImageUrl = book.getCoverImageUrl();
+        // expose stock count for admin UI needs
+        if (book.getCopies() != null) {
+            try {
+                java.lang.reflect.Field f = BookResponseDTO.class.getDeclaredField("stock");
+                f.setAccessible(true);
+                f.set(dto, book.getCopies().size());
+            } catch (Exception ignored) {}
+        }
         return dto;
     }
 

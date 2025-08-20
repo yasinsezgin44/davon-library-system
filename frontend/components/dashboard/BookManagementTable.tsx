@@ -59,6 +59,7 @@ const BookManagementTable = () => {
         pages?: number;
         publisher?: { id: number; name: string } | string;
         category?: { id: number; name: string };
+        stock?: number;
       };
       const adaptedBooks = (response.data as ApiBook[]).map((book) => {
         const publisherObj =
@@ -73,7 +74,11 @@ const BookManagementTable = () => {
           publisher: publisherObj,
           category: categoryObj,
           isbn: book.isbn,
-          quantity: Array.isArray(book.copies) ? book.copies.length : 0,
+          quantity: typeof book.stock === "number"
+            ? book.stock
+            : Array.isArray(book.copies)
+            ? book.copies.length
+            : 0,
           publicationYear: book.publicationYear,
           description: book.description,
           coverImage: book.coverImage,

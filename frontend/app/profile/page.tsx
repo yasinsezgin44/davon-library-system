@@ -33,6 +33,8 @@ const ProfilePage = () => {
   });
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [fines, setFines] = useState<any[]>([]);
+  const [loadingFines, setLoadingFines] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -84,6 +86,23 @@ const ProfilePage = () => {
       }
     };
     fetchProfile();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchFines = async () => {
+      if (!user) return;
+      setLoadingFines(true);
+      try {
+        const resp = await fetch("/api/fines", { cache: "no-store" });
+        if (resp.ok) {
+          const data = await resp.json();
+          setFines(Array.isArray(data) ? data : []);
+        }
+      } finally {
+        setLoadingFines(false);
+      }
+    };
+    fetchFines();
   }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -319,6 +338,53 @@ const ProfilePage = () => {
           </button>
         </div>
       </div>
+      <div className="mt-8 bg-white shadow-md rounded-lg p-6 border border-gray-200 text-gray-900">
+        <h2 className="text-2xl font-bold mb-4">My Fines</h2>
+        {loadingFines ? (
+          <div>Loading fines...</div>
+        ) : fines.length === 0 ? (
+          <div>No fines.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Book
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Reason
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {fines.map((fine) => (
+                  <tr key={fine.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine?.loan?.book?.title || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine.amount}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine.reason}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine.status}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 text-gray-900">
@@ -393,7 +459,7 @@ const ProfilePage = () => {
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={closePasswordModal}
-                className="px-4 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
+                className="px-4 py-2 text-sm rounded-md border border-gray-300 bg:white text-gray-800 hover:bg-gray-50"
               >
                 Cancel
               </button>
