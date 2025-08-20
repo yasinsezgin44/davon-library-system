@@ -24,14 +24,15 @@ export async function POST(req: NextRequest) {
 
     const { token } = await backendResponse.json();
 
-    const response = NextResponse.json({ token });
+    const response = NextResponse.json({ ok: true });
     response.cookies.set({
       name: "token",
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV !== "development",
+      secure: false,
       path: "/",
       sameSite: "lax",
+      maxAge: 60 * 60, // 1 hour
     });
 
     return response;
