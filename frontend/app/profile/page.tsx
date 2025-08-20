@@ -42,6 +42,14 @@ const ProfilePage = () => {
   };
   const [fines, setFines] = useState<Fine[]>([]);
   const [loadingFines, setLoadingFines] = useState(false);
+  type MyReservation = {
+    id: number;
+    book?: { title?: string };
+    priorityNumber?: number;
+    status?: string;
+  };
+  const [reservations, setReservations] = useState<MyReservation[]>([]);
+  const [loadingReservations, setLoadingReservations] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -110,6 +118,22 @@ const ProfilePage = () => {
       }
     };
     fetchFines();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      if (!user) return;
+      setLoadingReservations(true);
+      try {
+        const resp = await fetch("/api/reservations", { cache: "no-store" });
+        if (resp.ok) {
+          setReservations(await resp.json());
+        }
+      } finally {
+        setLoadingReservations(false);
+      }
+    };
+    fetchReservations();
   }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -384,6 +408,47 @@ const ProfilePage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {fine.status}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <div className="mt-8 bg-white shadow-md rounded-lg p-6 border border-gray-200 text-gray-900">
+        <h2 className="text-2xl font-bold mb-4">My Reservations</h2>
+        {loadingReservations ? (
+          <div>Loading reservations...</div>
+        ) : reservations.length === 0 ? (
+          <div>No reservations.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Book
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Queue
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {reservations.map((r) => (
+                  <tr key={r.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {r?.book?.title || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {r?.priorityNumber ?? "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {r?.status}
                     </td>
                   </tr>
                 ))}

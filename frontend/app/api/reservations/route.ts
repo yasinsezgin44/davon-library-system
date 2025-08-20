@@ -19,7 +19,11 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const resp = await fetch("http://localhost:8083/api/dashboard/reservations", {
+  const scope = new URL(request.url).searchParams.get("scope");
+  const url = scope === "admin"
+    ? "http://localhost:8083/api/reservations"
+    : "http://localhost:8083/api/dashboard/reservations";
+  const resp = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });

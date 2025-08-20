@@ -48,7 +48,7 @@ public class ReservationController {
     }
 
     @GET
-    @PermitAll
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "List all reservations")
     @SecurityRequirement(name = "jwt")
     public List<ReservationResponseDTO> getAllReservations() {

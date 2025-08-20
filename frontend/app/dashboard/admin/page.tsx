@@ -120,6 +120,75 @@ const AdminDashboardPage = () => {
     );
   };
 
+  const AdminReservationsTable = () => {
+    type ReservationRow = {
+      id: number;
+      book?: { title?: string };
+      member?: { fullName?: string; user?: { fullName?: string } };
+      priorityNumber?: number;
+      status?: string;
+    };
+    const [reservations, setReservations] = useState<ReservationRow[]>([]);
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+      const fetchReservations = async () => {
+        setLoading(true);
+        try {
+          const resp = await fetch("/api/reservations?scope=admin", {
+            cache: "no-store",
+          });
+          if (resp.ok) {
+            setReservations(await resp.json());
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchReservations();
+    }, []);
+    if (loading) return <div className="p-4">Loading reservations...</div>;
+    return (
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Book
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Member
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Queued
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {reservations.map((r) => (
+              <tr key={r.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {r?.book?.title || "-"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {r?.member?.fullName || r?.member?.user?.fullName || "-"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {r?.priorityNumber ?? "-"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {r?.status}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
@@ -137,6 +206,12 @@ const AdminDashboardPage = () => {
             </Link>
           </div>
           <AdminActiveLoansTable />
+        </div>
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <div className="flex justify-between items-center mb-4 px-6 py-4">
+            <h2 className="text-2xl font-bold text-gray-800">Reservations</h2>
+          </div>
+          <AdminReservationsTable />
         </div>
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <div className="flex justify-between items-center mb-4 px-6 py-4">
