@@ -64,6 +64,26 @@ const BorrowButton = ({
     }
 
     if (!available || alreadyBorrowed) {
+      // When not available, offer reservation
+      if (!available) {
+        try {
+          setIsSubmitting(true);
+          const resp = await fetch(`/api/reservations`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ memberId: user.id, bookId }),
+          });
+          if (!resp.ok) {
+            const text = await resp.text();
+            throw new Error(text || "Reservation failed");
+          }
+          toast.success("Reserved. We'll notify you when it's ready!");
+        } catch (e) {
+          toast.error("Failed to reserve book.");
+        } finally {
+          setIsSubmitting(false);
+        }
+      }
       return;
     }
 
@@ -95,7 +115,7 @@ const BorrowButton = ({
   const label = alreadyBorrowed
     ? "Already Borrowed"
     : !available
-    ? "Borrowed"
+    ? (isMember ? (isSubmitting ? "Reserving..." : "Reserve") : "Unavailable")
     : !user
     ? "Sign in to borrow"
     : !isMember

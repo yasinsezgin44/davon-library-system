@@ -25,8 +25,10 @@ const AuthorManagementTable = () => {
     const fetchAuthors = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get("/authors");
-        setAuthors(response.data);
+        const resp = await fetch("/api/authors", { cache: "no-store" });
+        if (resp.ok) {
+          setAuthors(await resp.json());
+        }
       } catch (error) {
         console.error("Failed to fetch authors:", error);
       } finally {
@@ -39,8 +41,13 @@ const AuthorManagementTable = () => {
 
   const handleCreate = async (authorData: Partial<Author>) => {
     try {
-      const response = await apiClient.post("/authors", authorData);
-      setAuthors([...authors, response.data]);
+      const response = await fetch("/api/authors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(authorData),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      setAuthors([...authors, await response.json()]);
       setCreateModalOpen(false);
     } catch (error) {
       console.error("Failed to create author:", error);
@@ -49,10 +56,14 @@ const AuthorManagementTable = () => {
 
   const handleUpdate = async (id: number, authorData: Partial<Author>) => {
     try {
-      const response = await apiClient.put(`/authors/${id}`, authorData);
-      setAuthors(
-        authors.map((author) => (author.id === id ? response.data : author))
-      );
+      const response = await fetch(`/api/authors/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(authorData),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      const updated = await response.json();
+      setAuthors(authors.map((author) => (author.id === id ? updated : author)));
       setUpdateModalOpen(false);
       setSelectedAuthor(null);
     } catch (error) {
@@ -62,7 +73,8 @@ const AuthorManagementTable = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/authors/${id}`);
+      const resp = await fetch(`/api/authors/${id}`, { method: "DELETE" });
+      if (!resp.ok) throw new Error(await resp.text());
       setAuthors(authors.filter((author) => author.id !== id));
       setDeleteModalOpen(false);
       setSelectedAuthor(null);
