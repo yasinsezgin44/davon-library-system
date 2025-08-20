@@ -46,8 +46,9 @@ const BookManagementTable = () => {
   const fetchBooks = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get("/books");
-      const data = response.data;
+      const response = await fetch("/api/books", { cache: "no-store" });
+      if (!response.ok) throw new Error(await response.text());
+      const data = await response.json();
       type ApiBook = {
         id: number;
         title: string;
@@ -120,7 +121,13 @@ const BookManagementTable = () => {
         stock: bookData.stock,
       };
       console.log("Creating book with data:", newBookData);
-      const { data: created } = await apiClient.post("/books", newBookData);
+      const resp = await fetch("/api/books", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newBookData),
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      const created = await resp.json();
       const newBook = {
         ...created,
         authors: created.authors || [],
@@ -150,10 +157,13 @@ const BookManagementTable = () => {
     >
   ) => {
     try {
-      const { data: updatedData } = await apiClient.put(
-        `/books/${id}`,
-        bookData
-      );
+      const resp = await fetch(`/api/books/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookData),
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      const updatedData = await resp.json();
       const updatedBook = {
         ...updatedData,
         authors: updatedData.authors || [],
@@ -175,7 +185,8 @@ const BookManagementTable = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/books/${id}`);
+      const resp = await fetch(`/api/books/${id}`, { method: "DELETE" });
+      if (!resp.ok) throw new Error(await resp.text());
       setBooks(books.filter((book) => book.id !== id));
       setDeleteModalOpen(false);
       setSelectedBook(null);
