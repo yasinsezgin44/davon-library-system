@@ -5,6 +5,7 @@ import BookManagementTable from "../../../components/dashboard/BookManagementTab
 import AuthorManagementTable from "../../../components/dashboard/AuthorManagementTable";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import DeleteConfirmationModal from "../../../components/dashboard/DeleteConfirmationModal";
 
 const LibrarianDashboardPage = () => {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ const LibrarianDashboardPage = () => {
 
   const ReservationsTable = () => {
     const [reservations, setReservations] = useState<ReservationRow[]>([]);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: number; itemName: string } | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -152,7 +154,7 @@ const LibrarianDashboardPage = () => {
                       Cancel
                     </button>
                     <button
-                      onClick={() => hardDeleteReservation(r.id)}
+                      onClick={() => setDeleteTarget({ id: r.id, itemName: r?.book?.title || "reservation" })}
                       className="px-3 py-1 rounded bg-red-600 text-white"
                     >
                       Delete
@@ -164,6 +166,17 @@ const LibrarianDashboardPage = () => {
           </tbody>
         </table>
       </div>
+      <DeleteConfirmationModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) {
+            await hardDeleteReservation(deleteTarget.id);
+            setDeleteTarget(null);
+          }
+        }}
+        itemName={deleteTarget?.itemName || "reservation"}
+      />
     );
   };
 

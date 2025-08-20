@@ -102,7 +102,7 @@ INSERT INTO loans (member_id, book_copy_id, checkout_date, due_date, status, cre
 
 INSERT INTO reservations (member_id, book_id, status, reservation_time) VALUES
 (3, 3, 'PENDING', GETDATE()), -- Charlie reserved Dune
-(3, 4, 'PENDING', GETDATE()); -- Charlie reserved Pride and Prejudice
+(4, 4, 'PENDING', GETDATE()); -- Diana reserved Dune
 
 
 -- =================================================================

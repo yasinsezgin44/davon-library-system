@@ -77,6 +77,7 @@ public class ReservationService {
         Book book = reservation.getBook();
         boolean wasReady = reservation.getStatus() == ReservationStatus.READY_FOR_PICKUP;
         reservation.setStatus(ReservationStatus.CANCELLED);
+        reservation.setPriorityNumber(null);
 
         // If the cancelled reservation was READY_FOR_PICKUP, promote the next pending one (if any)
         if (wasReady) {
@@ -118,6 +119,7 @@ public class ReservationService {
         Book book = reservation.getBook();
         boolean wasReady = reservation.getStatus() == ReservationStatus.READY_FOR_PICKUP;
         reservation.setStatus(ReservationStatus.CANCELLED);
+        reservation.setPriorityNumber(null);
 
         if (wasReady) {
             promoteNextPendingToReady(book);
@@ -189,6 +191,7 @@ public class ReservationService {
 
         // Mark reservation as completed and renumber pending queue
         reservation.setStatus(ReservationStatus.COMPLETED);
+        reservation.setPriorityNumber(null);
         renumberPendingQueue(reservation.getBook());
 
         return loan;

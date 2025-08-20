@@ -5,6 +5,7 @@ import BookManagementTable from "../../../components/dashboard/BookManagementTab
 import UserManagementTable from "../../../components/dashboard/UserManagementTable";
 import AuthorManagementTable from "../../../components/dashboard/AuthorManagementTable";
 import { useEffect, useState } from "react";
+import DeleteConfirmationModal from "../../../components/dashboard/DeleteConfirmationModal";
 import Link from "next/link";
 
 const AdminDashboardPage = () => {
@@ -238,6 +239,7 @@ const AdminDashboardPage = () => {
       status?: string;
     };
     const [reservations, setReservations] = useState<ReservationRow[]>([]);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: number; itemName: string } | null>(null);
     const [loading, setLoading] = useState(false);
     useEffect(() => {
       const fetchReservations = async () => {
@@ -354,7 +356,7 @@ const AdminDashboardPage = () => {
                       Cancel
                     </button>
                     <button
-                      onClick={() => hardDeleteReservation(r.id)}
+                      onClick={() => setDeleteTarget({ id: r.id, itemName: r?.book?.title || "reservation" })}
                       className="px-3 py-1 rounded bg-red-600 text-white"
                     >
                       Delete
@@ -366,6 +368,17 @@ const AdminDashboardPage = () => {
           </tbody>
         </table>
       </div>
+      <DeleteConfirmationModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) {
+            await hardDeleteReservation(deleteTarget.id);
+            setDeleteTarget(null);
+          }
+        }}
+        itemName={deleteTarget?.itemName || "reservation"}
+      />
     );
   };
 
