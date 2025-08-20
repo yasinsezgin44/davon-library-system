@@ -112,6 +112,28 @@ public class LoanService {
                 member.getUser().getFullName(),
                 bookCopy.getBook().getTitle());
         log.info("Book checked out successfully. Loan ID: {}", loan.getId());
+        // After successful checkout, clean up any active reservations for this member/book
+        try {
+            Book book = bookCopy.getBook();
+            Member m = member;
+            // Delete READY or PENDING reservations for this member and this book
+            java.util.List<com.davon.library.model.Reservation> toDelete = reservationRepository.list(
+                    "member = ?1 and book = ?2 and status in (?3, ?4)",
+                    m, book,
+                    com.davon.library.model.enums.ReservationStatus.PENDING,
+                    com.davon.library.model.enums.ReservationStatus.READY_FOR_PICKUP);
+            for (com.davon.library.model.Reservation r : toDelete) {
+                reservationRepository.delete(r);
+            }
+            // Renumber pending queue after deletions
+            int next = 1;
+            for (com.davon.library.model.Reservation r : reservationRepository.findPendingReservationsByBook(book)) {
+                r.setPriorityNumber(next++);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to cleanup reservations after checkout: {}", e.getMessage());
+        }
+
         return LoanMapper.toResponseDTO(loan);
     }
 

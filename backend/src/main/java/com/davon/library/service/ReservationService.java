@@ -213,10 +213,10 @@ public class ReservationService {
         // Perform checkout for this reservation's book and member
         LoanResponseDTO loan = loanService.checkoutBook(reservation.getBook().getId(), reservation.getMember().getId());
 
-        // Mark reservation as completed and renumber pending queue
-        reservation.setStatus(ReservationStatus.COMPLETED);
-        reservation.setPriorityNumber(null);
-        renumberPendingQueue(reservation.getBook());
+        // Remove reservation so it does not restart the queue after borrowing
+        Book book = reservation.getBook();
+        reservationRepository.delete(reservation);
+        renumberPendingQueue(book);
 
         return loan;
     }
