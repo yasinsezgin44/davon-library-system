@@ -9,6 +9,7 @@ type BorrowButtonProps = {
   bookId: number;
   isAvailable: boolean;
   onBorrowSuccess?: () => void;
+  onReserveSuccess?: (position?: number) => void;
   className?: string;
 };
 
@@ -16,6 +17,7 @@ const BorrowButton = ({
   bookId,
   isAvailable,
   onBorrowSuccess,
+  onReserveSuccess,
   className,
 }: BorrowButtonProps) => {
   const { user } = useAuth();
@@ -83,7 +85,21 @@ const BorrowButton = ({
             const text = await resp.text();
             throw new Error(text || "Reservation failed");
           }
+          let position: number | undefined = undefined;
+          try {
+            const body = await resp.json();
+            if (
+              body &&
+              typeof body === "object" &&
+              typeof body.priorityNumber === "number"
+            ) {
+              position = body.priorityNumber as number;
+            }
+          } catch (_) {
+            // ignore json parse
+          }
           toast.success("Reserved. We'll notify you when it's ready!");
+          onReserveSuccess?.(position);
         } catch (e) {
           toast.error("Failed to reserve book.");
         } finally {
