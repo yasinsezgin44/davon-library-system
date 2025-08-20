@@ -6,6 +6,7 @@ import com.davon.library.mapper.ReservationMapper;
 import com.davon.library.model.Reservation;
 import com.davon.library.model.enums.ReservationStatus;
 import com.davon.library.service.ReservationService;
+import com.davon.library.repository.MemberRepository;
 import com.davon.library.service.UserService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -34,6 +35,9 @@ public class ReservationController {
     ReservationService reservationService;
 
     @Inject
+    MemberRepository memberRepository;
+
+    @Inject
     UserService userService;
 
     @POST
@@ -43,8 +47,11 @@ public class ReservationController {
     @Transactional
     public Response reserveBook(@Valid ReservationRequestDTO request, @Context SecurityContext securityContext) {
         String username = securityContext.getUserPrincipal().getName();
-        Long memberId = userService.getUserByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found")).getId();
+        Long memberId = memberRepository.findByUsername(username)
+                .map(m -> m.getId())
+                .orElseGet(() -> userService.getUserByUsername(username)
+                        .orElseThrow(() -> new NotFoundException("User not found with username: " + username))
+                        .getId());
         Reservation reservation = reservationService.createReservation(memberId, request.bookId());
         return Response.status(Response.Status.CREATED).entity(ReservationMapper.toResponseDTO(reservation)).build();
     }
