@@ -24,6 +24,7 @@ const BorrowButton = ({
   const [available, setAvailable] = useState<boolean>(isAvailable);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [alreadyBorrowed, setAlreadyBorrowed] = useState<boolean>(false);
+  const [alreadyReserved, setAlreadyReserved] = useState<boolean>(false);
 
   useEffect(() => {
     setAvailable(isAvailable);
@@ -36,6 +37,7 @@ const BorrowButton = ({
     const checkAlreadyBorrowed = async () => {
       if (!user || !isMember) {
         setAlreadyBorrowed(false);
+        setAlreadyReserved(false);
         return;
       }
       try {
@@ -58,6 +60,34 @@ const BorrowButton = ({
       }
     };
     checkAlreadyBorrowed();
+  }, [user, isMember, bookId]);
+
+  useEffect(() => {
+    const checkAlreadyReserved = async () => {
+      if (!user || !isMember) {
+        setAlreadyReserved(false);
+        return;
+      }
+      try {
+        const resp = await fetch(`/api/reservations`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (!resp.ok) return;
+        const reservations = await resp.json();
+        const hasActiveReservation =
+          Array.isArray(reservations) &&
+          reservations.some(
+            (r: { book?: { id?: number }; status?: string }) =>
+              r?.book?.id === bookId &&
+              (r?.status === "PENDING" || r?.status === "READY_FOR_PICKUP")
+          );
+        setAlreadyReserved(hasActiveReservation);
+      } catch (_) {
+        // ignore
+      }
+    };
+    checkAlreadyReserved();
   }, [user, isMember, bookId]);
 
   const handleBorrow = async () => {
@@ -99,9 +129,18 @@ const BorrowButton = ({
             // ignore json parse
           }
           toast.success("Reserved. We'll notify you when it's ready!");
+          setAlreadyReserved(true);
           onReserveSuccess?.(position);
         } catch (e) {
-          toast.error("Failed to reserve book.");
+          const errMsg = (e as Error)?.message || "Failed to reserve book.";
+          if (errMsg.includes("active reservation")) {
+            setAlreadyReserved(true);
+            toast("Already reserved.");
+          } else if (errMsg.includes("maximum number of active reservations")) {
+            toast.error("You reached the maximum active reservations (3).");
+          } else {
+            toast.error("Failed to reserve book.");
+          }
         } finally {
           setIsSubmitting(false);
         }
@@ -133,9 +172,13 @@ const BorrowButton = ({
     }
   };
 
-  const isReserveState = !available && isMember && !alreadyBorrowed;
-  const disabled = !isMember || alreadyBorrowed || isSubmitting;
-  const label = alreadyBorrowed
+  const isReserveState =
+    !available && isMember && !alreadyBorrowed && !alreadyReserved;
+  const disabled =
+    !isMember || alreadyBorrowed || isSubmitting || alreadyReserved;
+  const label = alreadyReserved
+    ? "Already Reserved"
+    : alreadyBorrowed
     ? "Already Borrowed"
     : !available
     ? isMember
@@ -157,7 +200,9 @@ const BorrowButton = ({
       disabled={disabled}
       className={
         `w-full py-2 rounded-md transition-colors ` +
-        (disabled
+        (alreadyReserved
+          ? "bg-amber-300 text-amber-900 cursor-not-allowed"
+          : disabled
           ? "bg-gray-400 text-gray-700 cursor-not-allowed"
           : isReserveState
           ? "bg-amber-500 text-white hover:bg-amber-600"
