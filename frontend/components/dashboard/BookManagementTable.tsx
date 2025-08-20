@@ -141,7 +141,9 @@ const BookManagementTable = () => {
       setBooks([...books, newBook]);
       setCreateModalOpen(false);
     } catch (error) {
-      console.error("Failed to create book:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Failed to create book:", message);
+      alert(message);
     }
   };
 
@@ -179,7 +181,9 @@ const BookManagementTable = () => {
       setSelectedBook(null);
       await fetchBooks();
     } catch (error) {
-      console.error("Failed to update book:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Failed to update book:", message);
+      alert(message);
     }
   };
 
@@ -191,7 +195,9 @@ const BookManagementTable = () => {
       setDeleteModalOpen(false);
       setSelectedBook(null);
     } catch (error) {
-      console.error("Failed to delete book:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Failed to delete book:", message);
+      alert(message);
     }
   };
 
