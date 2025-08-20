@@ -28,7 +28,10 @@ const LibrarianDashboardPage = () => {
 
   const ReservationsTable = () => {
     const [reservations, setReservations] = useState<ReservationRow[]>([]);
-    const [deleteTarget, setDeleteTarget] = useState<{ id: number; itemName: string } | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<{
+      id: number;
+      itemName: string;
+    } | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -85,98 +88,105 @@ const LibrarianDashboardPage = () => {
     if (loading) return <div className="p-4">Loading reservations...</div>;
 
     return (
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Book
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Member
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Queued
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {reservations.map((r) => (
-              <tr key={r.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {r?.book?.title || "-"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {r?.member?.fullName || r?.member?.user?.fullName || "-"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      defaultValue={r?.priorityNumber ?? 0}
-                      min={1}
-                      className="w-16 border rounded px-2 py-1"
-                      onBlur={async (e) => {
-                        const val = parseInt(e.target.value, 10);
-                        if (!Number.isNaN(val) && val > 0) {
-                          await fetch(`/api/reservations/${r.id}/priority`, {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ priority: val }),
-                          });
-                          await refresh();
-                        }
-                      }}
-                    />
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {r?.status}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                  <div className="space-x-2">
-                    <button
-                      onClick={() => promoteReservation(r.id)}
-                      className="px-3 py-1 rounded bg-indigo-600 text-white"
-                    >
-                      Mark Ready
-                    </button>
-                    <button
-                      onClick={() => cancelReservation(r.id)}
-                      className="px-3 py-1 rounded bg-yellow-600 text-white"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget({ id: r.id, itemName: r?.book?.title || "reservation" })}
-                      className="px-3 py-1 rounded bg-red-600 text-white"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
+      <>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Book
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Member
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Queued
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <DeleteConfirmationModal
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={async () => {
-          if (deleteTarget) {
-            await hardDeleteReservation(deleteTarget.id);
-            setDeleteTarget(null);
-          }
-        }}
-        itemName={deleteTarget?.itemName || "reservation"}
-      />
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {reservations.map((r) => (
+                <tr key={r.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {r?.book?.title || "-"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {r?.member?.fullName || r?.member?.user?.fullName || "-"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        defaultValue={r?.priorityNumber ?? 0}
+                        min={1}
+                        className="w-16 border rounded px-2 py-1"
+                        onBlur={async (e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!Number.isNaN(val) && val > 0) {
+                            await fetch(`/api/reservations/${r.id}/priority`, {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ priority: val }),
+                            });
+                            await refresh();
+                          }
+                        }}
+                      />
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {r?.status}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                    <div className="space-x-2">
+                      <button
+                        onClick={() => promoteReservation(r.id)}
+                        className="px-3 py-1 rounded bg-indigo-600 text-white"
+                      >
+                        Mark Ready
+                      </button>
+                      <button
+                        onClick={() => cancelReservation(r.id)}
+                        className="px-3 py-1 rounded bg-yellow-600 text-white"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() =>
+                          setDeleteTarget({
+                            id: r.id,
+                            itemName: r?.book?.title || "reservation",
+                          })
+                        }
+                        className="px-3 py-1 rounded bg-red-600 text-white"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <DeleteConfirmationModal
+          isOpen={Boolean(deleteTarget)}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={async () => {
+            if (deleteTarget) {
+              await hardDeleteReservation(deleteTarget.id);
+              setDeleteTarget(null);
+            }
+          }}
+          itemName={deleteTarget?.itemName || "reservation"}
+        />
+      </>
     );
   };
 
