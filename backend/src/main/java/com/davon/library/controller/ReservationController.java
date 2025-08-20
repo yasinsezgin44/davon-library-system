@@ -41,7 +41,8 @@ public class ReservationController {
     @SecurityRequirement(name = "jwt")
     public Response reserveBook(@Valid ReservationRequestDTO request, @Context SecurityContext securityContext) {
         String username = securityContext.getUserPrincipal().getName();
-        Long memberId = userService.getUserByUsername(username).orElseThrow().getId();
+        Long memberId = userService.getUserByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found")).getId();
         Reservation reservation = reservationService.createReservation(memberId, request.bookId());
         return Response.status(Response.Status.CREATED).entity(ReservationMapper.toResponseDTO(reservation)).build();
     }

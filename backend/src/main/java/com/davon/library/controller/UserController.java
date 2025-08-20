@@ -29,6 +29,7 @@ public class UserController {
     UserService userService;
 
     @GET
+    @RolesAllowed("ADMIN")
     @Operation(summary = "Get all users", description = "Retrieve a list of all users")
     public Response getUsers(@QueryParam("filter") String filter) {
         List<User> users;
@@ -44,7 +45,7 @@ public class UserController {
     }
 
     @POST
-    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
+    @RolesAllowed("ADMIN")
     @Operation(summary = "Create new user", description = "Add a new user to the system")
     public Response createUser(@Valid UserRequestDTO userData) {
         User newUser = UserMapper.toEntity(userData);
@@ -54,7 +55,7 @@ public class UserController {
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
+    @RolesAllowed("ADMIN")
     @Operation(summary = "Update user", description = "Update an existing user")
     public Response updateUser(@PathParam("id") Long id, @Valid UserUpdateDTO userData) {
         User updatedUser = userService.updateUser(id, userData);
@@ -63,7 +64,7 @@ public class UserController {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
+    @RolesAllowed("ADMIN")
     @Operation(summary = "Deactivate user", description = "Deactivate a user")
     public Response deleteUser(@PathParam("id") Long id) {
         userService.deleteUser(id);
@@ -72,6 +73,7 @@ public class UserController {
 
     @GET
     @Path("/{id}")
+    @RolesAllowed("ADMIN")
     @Operation(summary = "Get user by ID", description = "Retrieve a specific user by their ID")
     public Response getUserById(@PathParam("id") Long id) {
         User user = userService.findById(id);
@@ -80,6 +82,7 @@ public class UserController {
 
     @GET
     @Path("/search")
+    @RolesAllowed("ADMIN")
     @Operation(summary = "Search users", description = "Search for users by various criteria")
     public Response searchUsers(@QueryParam("q") String query) {
         List<User> users = userService.searchUsers(query != null ? query : "");
@@ -91,6 +94,7 @@ public class UserController {
 
     @GET
     @Path("/count")
+    @RolesAllowed("ADMIN")
     @Operation(summary = "Count users", description = "Get the total number of users")
     public Response countUsers() {
         long count = userService.countUsers();
