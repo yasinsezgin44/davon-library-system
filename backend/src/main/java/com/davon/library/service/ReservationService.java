@@ -8,6 +8,7 @@ import com.davon.library.model.enums.ReservationStatus;
 import com.davon.library.repository.BookRepository;
 import com.davon.library.repository.MemberRepository;
 import com.davon.library.repository.ReservationRepository;
+import com.davon.library.repository.BookCopyRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -36,6 +37,9 @@ public class ReservationService {
     @Inject
     LoanService loanService;
 
+    @Inject
+    BookCopyRepository bookCopyRepository;
+
     @Transactional
     public Reservation createReservation(Long memberId, Long bookId) {
         log.info("Creating reservation for member {} and book {}", memberId, bookId);
@@ -59,9 +63,26 @@ public class ReservationService {
         reservation.setBook(book);
         reservation.setReservationTime(LocalDateTime.now());
         reservation.setStatus(ReservationStatus.PENDING);
-        // assign queue position: 1 + number of existing pending reservations for this book
+        // assign queue position: 1 + number of existing pending reservations for this
+        // book
         int queueSize = reservationRepository.findPendingReservationsByBook(book).size();
         reservation.setPriorityNumber(queueSize + 1);
+
+        // If this is the first reservation and a copy is currently available, mark
+        // READY_FOR_PICKUP
+        // and set priority to 1 so the first in queue is ready automatically
+        boolean isFirstInQueue = queueSize == 0;
+        boolean hasAvailableCopy = bookCopyRepository.findAvailableByBookId(bookId).isPresent();
+        if (isFirstInQueue && hasAvailableCopy) {
+            // Ensure there isn't already a READY reservation for this book
+            boolean hasReady = !reservationRepository
+                    .list("book = ?1 and status = ?2", book, ReservationStatus.READY_FOR_PICKUP)
+                    .isEmpty();
+            if (!hasReady) {
+                reservation.setStatus(ReservationStatus.READY_FOR_PICKUP);
+                reservation.setPriorityNumber(1);
+            }
+        }
         reservationRepository.persist(reservation);
 
         log.info("Reservation created successfully with ID {}", reservation.getId());
@@ -79,7 +100,8 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservation.setPriorityNumber(null);
 
-        // If the cancelled reservation was READY_FOR_PICKUP, promote the next pending one (if any)
+        // If the cancelled reservation was READY_FOR_PICKUP, promote the next pending
+        // one (if any)
         if (wasReady) {
             promoteNextPendingToReady(book);
         }
@@ -154,9 +176,11 @@ public class ReservationService {
         }
 
         Book book = target.getBook();
-        java.util.List<Reservation> pending = new java.util.ArrayList<>(reservationRepository.findPendingReservationsByBook(book));
+        java.util.List<Reservation> pending = new java.util.ArrayList<>(
+                reservationRepository.findPendingReservationsByBook(book));
         // Sort by existing priority number (nulls last)
-        pending.sort(java.util.Comparator.comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
+        pending.sort(java.util.Comparator
+                .comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
 
         // Remove the target from the list if present
         pending.removeIf(r -> r.getId().equals(target.getId()));
@@ -198,16 +222,21 @@ public class ReservationService {
     }
 
     private void promoteNextPendingToReady(Book book) {
-        java.util.List<Reservation> pending = new java.util.ArrayList<>(reservationRepository.findPendingReservationsByBook(book));
-        if (pending.isEmpty()) return;
-        pending.sort(java.util.Comparator.comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
+        java.util.List<Reservation> pending = new java.util.ArrayList<>(
+                reservationRepository.findPendingReservationsByBook(book));
+        if (pending.isEmpty())
+            return;
+        pending.sort(java.util.Comparator
+                .comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
         Reservation next = pending.get(0);
         next.setStatus(ReservationStatus.READY_FOR_PICKUP);
     }
 
     private void renumberPendingQueue(Book book) {
-        java.util.List<Reservation> pending = new java.util.ArrayList<>(reservationRepository.findPendingReservationsByBook(book));
-        pending.sort(java.util.Comparator.comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
+        java.util.List<Reservation> pending = new java.util.ArrayList<>(
+                reservationRepository.findPendingReservationsByBook(book));
+        pending.sort(java.util.Comparator
+                .comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
         int i = 1;
         for (Reservation r : pending) {
             r.setPriorityNumber(i++);
