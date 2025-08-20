@@ -2,11 +2,18 @@
 
 import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
-import apiClient from "../../lib/apiClient";
+import { apiClient } from "../../lib/apiClient";
+
+interface ProfileRoleString { name: string }
+interface ProfileData {
+  fullName: string;
+  email: string;
+  roles: Array<string | ProfileRoleString>;
+}
 
 const ProfilePage = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,13 +41,10 @@ const ProfilePage = () => {
           status: response.status,
         });
         setProfile(response.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to fetch profile:", err);
-        setError(
-          err?.response?.data?.message ||
-            err?.message ||
-            "Failed to load profile"
-        );
+        const e = err as { response?: { data?: { message?: string } }; message?: string };
+        setError(e?.response?.data?.message || e?.message || "Failed to load profile");
       } finally {
         setLoading(false);
       }
@@ -74,9 +78,7 @@ const ProfilePage = () => {
           <strong className="font-semibold">Roles:</strong>{" "}
           {Array.isArray(profile.roles)
             ? profile.roles
-                .map((role: any) =>
-                  typeof role === "string" ? role : role?.name
-                )
+                .map((role) => (typeof role === "string" ? role : role?.name))
                 .filter(Boolean)
                 .join(", ")
             : ""}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient";
+import { apiClient } from "../../lib/apiClient";
 import NewCreateBookModal from "./CreateBookModal";
 import UpdateBookModal from "./UpdateBookModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -47,11 +47,39 @@ const BookManagementTable = () => {
     setLoading(true);
     try {
       const response = await apiClient.get("/books");
-      const adaptedBooks = response.data.map((book: any) => ({
-        ...book,
-        authors: book.authors || [],
-        quantity: book.copies?.length || 0,
-      }));
+      type ApiBook = {
+        id: number;
+        title: string;
+        authors?: { id: number; name: string }[];
+        copies?: unknown[];
+        isbn: string;
+        publicationYear?: number;
+        description?: string;
+        coverImage?: string;
+        pages?: number;
+        publisher?: { id: number; name: string } | string;
+        category?: { id: number; name: string };
+      };
+      const adaptedBooks = (response.data as ApiBook[]).map((book) => {
+        const publisherObj =
+          typeof book.publisher === "string"
+            ? { id: 0, name: book.publisher || "Unknown" }
+            : book.publisher ?? { id: 0, name: "Unknown" };
+        const categoryObj = book.category ?? { id: 0, name: "Unknown" };
+        return {
+          id: book.id,
+          title: book.title,
+          authors: book.authors || [],
+          publisher: publisherObj,
+          category: categoryObj,
+          isbn: book.isbn,
+          quantity: Array.isArray(book.copies) ? book.copies.length : 0,
+          publicationYear: book.publicationYear,
+          description: book.description,
+          coverImage: book.coverImage,
+          pages: book.pages,
+        } as Book;
+      });
       setBooks(adaptedBooks);
     } catch (error) {
       console.error("Failed to fetch books:", error);

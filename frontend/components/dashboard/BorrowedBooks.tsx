@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient";
+import { apiClient } from "../../lib/apiClient";
 import { toast } from "react-hot-toast";
 
 interface Book {

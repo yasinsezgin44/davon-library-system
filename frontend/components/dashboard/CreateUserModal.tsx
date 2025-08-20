@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { UserRow } from "./UserManagementTable";
-import apiClient from "../../lib/apiClient";
+import { apiClient } from "../../lib/apiClient";
 
 interface Role {
   id: number;

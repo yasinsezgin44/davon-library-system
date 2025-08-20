@@ -51,7 +51,9 @@ const BookDetailPage = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <FaSpinner className="animate-spin text-4xl text-gray-500" />
+        <div className="animate-spin text-gray-500">
+          <FaSpinner size={32} />
+        </div>
       </div>
     );
   }

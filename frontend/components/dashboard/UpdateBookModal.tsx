@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Book, Author } from "./BookManagementTable";
-import apiClient from "../../lib/apiClient";
+import { apiClient } from "../../lib/apiClient";
 
 interface Publisher {
   id: number;

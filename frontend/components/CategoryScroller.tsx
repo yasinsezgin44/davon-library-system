@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import apiClient from "../lib/apiClient";
+import { publicApiClient } from "../lib/apiClient";
 import { useRouter } from "next/navigation";
 
 type Category = { id: number; name: string };
@@ -12,7 +12,7 @@ const CategoryScroller = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await apiClient.get("/books/genres");
+        const response = await publicApiClient.get("/books/genres");
         setCategories(response.data);
       } catch (err) {
         console.error("Failed to fetch categories:", err);

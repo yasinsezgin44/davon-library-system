@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient";
+import { apiClient } from "../../lib/apiClient";
 import CreateUserModal from "./CreateUserModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import UpdateUserModal from "./UpdateUserModal";
