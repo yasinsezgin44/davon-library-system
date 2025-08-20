@@ -101,10 +101,10 @@ INSERT INTO loans (member_id, book_copy_id, checkout_date, due_date, status, cre
    (4, 8, DATEADD(day, -5, GETDATE()), DATEADD(day, 9, GETDATE()), 'ACTIVE', GETDATE(), GETDATE()), -- Diana borrowed a copy of Foundation
    (4, 3, DATEADD(day, -20, GETDATE()), DATEADD(day, -10, GETDATE()), 'ACTIVE', GETDATE(), GETDATE());   
 
-INSERT INTO reservations (member_id, book_id, status, reservation_time) VALUES
-(3, 4, 'PENDING', GETDATE()), -- Charlie reserved Dune
-(4, 4, 'PENDING', GETDATE()); -- Diana reserved Dune
-(5, 4, 'PENDING', GETDATE()); -- Ethan reserved Dune
+INSERT INTO reservations (priority_number, member_id, book_id, status, reservation_time) VALUES
+(1, 3, 4, 'PENDING', GETDATE()), -- Charlie reserved Dune
+(2, 4, 4, 'PENDING', GETDATE()), -- Diana reserved Dune
+(3, 5, 4, 'PENDING', GETDATE()); -- Ethan reserved Dune
 
 
 -- =================================================================
