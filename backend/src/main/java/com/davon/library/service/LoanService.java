@@ -3,6 +3,7 @@ package com.davon.library.service;
 import com.davon.library.mapper.LoanMapper;
 import com.davon.library.dto.LoanResponseDTO;
 import com.davon.library.model.BookCopy;
+import com.davon.library.model.Book;
 import com.davon.library.model.Fine;
 import com.davon.library.model.Loan;
 import com.davon.library.model.Member;
@@ -14,6 +15,7 @@ import com.davon.library.repository.BookCopyRepository;
 import com.davon.library.repository.FineRepository;
 import com.davon.library.repository.LoanRepository;
 import com.davon.library.repository.MemberRepository;
+import com.davon.library.repository.ReservationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -48,6 +50,9 @@ public class LoanService {
 
     @Inject
     MemberRepository memberRepository;
+
+    @Inject
+    ReservationRepository reservationRepository;
 
     @Transactional
     public LoanResponseDTO borrowBook(Long bookId, String username) {
@@ -145,6 +150,23 @@ public class LoanService {
         if (loan.getDueDate().isBefore(LocalDate.now())) {
             createFineForOverdueLoan(loan);
         }
+
+        // reservation queue promotion: mark the earliest PENDING reservation as
+        // READY_FOR_PICKUP
+        try {
+            Book book = bookCopy.getBook();
+            var pending = reservationRepository.findPendingReservationsByBook(book);
+            if (!pending.isEmpty()) {
+                var next = pending.stream()
+                        .sorted(java.util.Comparator.comparingInt(
+                                r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()))
+                        .findFirst().get();
+                next.setStatus(com.davon.library.model.enums.ReservationStatus.READY_FOR_PICKUP);
+                // Optionally adjust others' priority
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process reservation queue on return: {}", e.getMessage());
+        }
     }
 
     private void createFineForOverdueLoan(Loan loan) {
@@ -175,5 +197,9 @@ public class LoanService {
 
     public List<Loan> getOverdueLoans() {
         return loanRepository.findOverdueLoans();
+    }
+
+    public List<Loan> getLoansByStatus(LoanStatus status) {
+        return loanRepository.findByStatus(status);
     }
 }

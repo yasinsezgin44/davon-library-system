@@ -39,4 +39,8 @@ public class LoanRepository implements PanacheRepository<Loan> {
     public List<Loan> findByCheckoutDateBetween(LocalDate startDate, LocalDate endDate) {
         return list("checkoutDate >= ?1 and checkoutDate <= ?2", startDate, endDate);
     }
+
+    public List<Loan> findByStatus(LoanStatus status) {
+        return list("status", status);
+    }
 }

@@ -6,7 +6,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
-    const resp = await fetch("http://localhost:8083/api/loans", {
+    const url = new URL(request.url);
+    const scope = url.searchParams.get("scope");
+    const endpoint = scope === "admin-active" ? "http://localhost:8083/api/admin/dashboard/loans/active" : "http://localhost:8083/api/loans";
+    const resp = await fetch(endpoint, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
