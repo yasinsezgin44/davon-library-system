@@ -37,6 +37,9 @@ export async function PUT(request: NextRequest) {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
+    if (resp.status === 204) {
+      return new NextResponse(null, { status: 204 });
+    }
     const body = await resp.text();
     return new NextResponse(body, {
       status: resp.status,

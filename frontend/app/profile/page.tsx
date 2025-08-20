@@ -157,15 +157,20 @@ const ProfilePage = () => {
         credentials: "include",
       });
       if (!resp.ok && resp.status !== 204) throw new Error(await resp.text());
-      const refreshed = await fetch("/api/fines", {
-        cache: "no-store",
-        credentials: "include",
-      });
-      if (refreshed.ok) setFines(await refreshed.json());
     } catch (e) {
       console.error("Failed to pay fine", e);
     } finally {
       setPayingFineId(null);
+      // Always refresh fines to reflect the latest state, even if the PUT errored
+      try {
+        const refreshed = await fetch("/api/fines", {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (refreshed.ok) setFines(await refreshed.json());
+      } catch {
+        // ignore refresh errors; UI will remain as-is
+      }
     }
   };
 
