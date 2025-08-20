@@ -28,7 +28,7 @@ public class DashboardAdminController {
 
     @GET
     @Path("/loans/active")
-    @RolesAllowed("ADMIN")
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "List all active loans")
     @Transactional
     public List<LoanResponseDTO> listActiveLoans() {

@@ -37,7 +37,7 @@ public class FineController {
     MemberRepository memberRepository;
 
     @GET
-    @RolesAllowed("ADMIN")
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "List all fines")
     public List<FineResponseDTO> getAllFines() {
         return fineRepository.listAllOrderByIssueDateDesc().stream()
@@ -47,7 +47,7 @@ public class FineController {
 
     @GET
     @Path("/my")
-    @RolesAllowed({"MEMBER", "ADMIN"})
+    @RolesAllowed({ "MEMBER", "ADMIN" })
     @Operation(summary = "Get current user's fines")
     public Response getMyFines(@Context SecurityContext securityContext) {
         String username = securityContext.getUserPrincipal().getName();
@@ -61,12 +61,10 @@ public class FineController {
 
     @PUT
     @Path("/{id}/pay")
-    @RolesAllowed({"MEMBER", "ADMIN"})
+    @RolesAllowed({ "MEMBER", "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Mark a fine as paid")
     public Response payFine(@PathParam("id") Long id) {
         fineService.payFine(id);
         return Response.noContent().build();
     }
 }
-
-
