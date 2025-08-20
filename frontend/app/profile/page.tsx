@@ -33,7 +33,14 @@ const ProfilePage = () => {
   });
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [fines, setFines] = useState<any[]>([]);
+  type Fine = {
+    id: number;
+    loan?: { book?: { title?: string } };
+    amount: number | string;
+    reason?: string;
+    status?: string;
+  };
+  const [fines, setFines] = useState<Fine[]>([]);
   const [loadingFines, setLoadingFines] = useState(false);
 
   useEffect(() => {
