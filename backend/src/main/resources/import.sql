@@ -102,3 +102,15 @@ INSERT INTO loans (member_id, book_copy_id, checkout_date, due_date, status, cre
 INSERT INTO reservations (member_id, book_id, status, reservation_time) VALUES
 (4, 3, 'READY_FOR_PICKUP', GETDATE()); -- Diana reserved Dune
 
+
+-- =================================================================
+-- 6. Fines seed
+-- =================================================================
+-- Pending fine for Charlie (member 3) on loan 1
+INSERT INTO fines (member_id, loan_id, amount, reason, issue_date, status, created_at, updated_at)
+VALUES (3, 1, 5.00, 'OVERDUE', DATEADD(day, -2, GETDATE()), 'PENDING', GETDATE(), GETDATE());
+
+-- Paid fine for Diana (member 4) on loan 2
+INSERT INTO fines (member_id, loan_id, amount, reason, issue_date, status, created_at, updated_at)
+VALUES (4, 2, 2.50, 'OVERDUE', DATEADD(day, -5, GETDATE()), 'PAID', GETDATE(), GETDATE());
+

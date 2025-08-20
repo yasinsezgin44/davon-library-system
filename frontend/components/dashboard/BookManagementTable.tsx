@@ -72,15 +72,16 @@ const BookManagementTable = () => {
         return {
           id: book.id,
           title: book.title,
-          authors: book.authors || [],
+          authors: Array.isArray(book.authors) ? book.authors : [],
           publisher: publisherObj,
           category: categoryObj,
           isbn: book.isbn,
-          quantity: typeof book.stock === "number"
-            ? book.stock
-            : Array.isArray(book.copies)
-            ? book.copies.length
-            : 0,
+          quantity:
+            typeof book.stock === "number"
+              ? book.stock
+              : Array.isArray(book.copies)
+              ? book.copies.length
+              : 0,
           publicationYear: book.publicationYear,
           description: book.description,
           coverImage: book.coverImage,
@@ -241,7 +242,9 @@ const BookManagementTable = () => {
                   {book.title}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {book.authors.map((author) => author.name).join(", ")}
+                  {Array.isArray(book.authors) && book.authors.length > 0
+                    ? book.authors.map((author) => author.name).join(", ")
+                    : "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {book.isbn}

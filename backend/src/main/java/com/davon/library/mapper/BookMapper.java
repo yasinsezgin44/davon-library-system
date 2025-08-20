@@ -14,9 +14,10 @@ public class BookMapper {
         BookResponseDTO dto = new BookResponseDTO();
         dto.id = book.getId();
         dto.title = book.getTitle();
-        dto.authorName = book.getAuthors() == null ? "" : book.getAuthors().stream()
-                .map(author -> author.getName())
-                .collect(Collectors.joining(", "));
+        dto.authorName = book.getAuthors() == null ? ""
+                : book.getAuthors().stream()
+                        .map(author -> author.getName())
+                        .collect(Collectors.joining(", "));
         dto.isbn = book.getIsbn();
         dto.publicationYear = book.getPublicationYear() == null ? 0 : book.getPublicationYear();
         dto.description = book.getDescription();
@@ -26,14 +27,11 @@ public class BookMapper {
         dto.genre = book.getGenre();
         dto.language = book.getLanguage();
         dto.coverImageUrl = book.getCoverImageUrl();
-        // expose stock count for admin UI needs
-        if (book.getCopies() != null) {
-            try {
-                java.lang.reflect.Field f = BookResponseDTO.class.getDeclaredField("stock");
-                f.setAccessible(true);
-                f.set(dto, book.getCopies().size());
-            } catch (Exception ignored) {}
-        }
+        // expose stock and authors for admin UI needs
+        dto.stock = (book.getCopies() == null) ? 0 : book.getCopies().size();
+        dto.authors = (book.getAuthors() == null) ? java.util.List.of()
+                : book.getAuthors().stream().map(AuthorMapper::toResponseDTO)
+                        .collect(java.util.stream.Collectors.toList());
         return dto;
     }
 
