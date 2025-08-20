@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(of = "id")
 @ToString(exclude = { "authors", "copies" })
 public class Book {
@@ -93,26 +95,4 @@ public class Book {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public Book() {
-        this.authors = new HashSet<>();
-        this.copies = new HashSet<>();
-    }
-
-    public Book(Long id, String title, String isbn, Integer publicationYear, String description,
-            String coverImage, Integer pages, Publisher publisher, Category category,
-            Set<Author> authors, Set<BookCopy> copies, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.title = title;
-        this.isbn = isbn;
-        this.publicationYear = publicationYear;
-        this.description = description;
-        this.coverImage = coverImage;
-        this.pages = pages;
-        this.publisher = publisher;
-        this.category = category;
-        this.authors = authors;
-        this.copies = copies;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
 }

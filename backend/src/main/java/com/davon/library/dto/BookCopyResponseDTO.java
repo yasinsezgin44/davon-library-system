@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public record BookCopyResponseDTO(
         Long id,
-        BookShallowResponseDTO book,
+        ShallowBookResponseDTO book,
         LocalDate acquisitionDate,
         String condition,
         CopyStatus status,
