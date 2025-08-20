@@ -64,7 +64,8 @@ public class FineController {
     @RolesAllowed({"MEMBER", "ADMIN"})
     @Operation(summary = "Mark a fine as paid")
     public Response payFine(@PathParam("id") Long id) {
-        return Response.ok(FineMapper.toResponseDTO(fineService.payFine(id))).build();
+        fineService.payFine(id);
+        return Response.noContent().build();
     }
 }
 

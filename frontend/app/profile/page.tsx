@@ -156,7 +156,7 @@ const ProfilePage = () => {
         method: "PUT",
         credentials: "include",
       });
-      if (!resp.ok) throw new Error(await resp.text());
+      if (!resp.ok && resp.status !== 204) throw new Error(await resp.text());
       const refreshed = await fetch("/api/fines", {
         cache: "no-store",
         credentials: "include",
