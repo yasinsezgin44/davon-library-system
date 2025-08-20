@@ -21,6 +21,7 @@ const BorrowButton = ({
   const { user } = useAuth();
   const [available, setAvailable] = useState<boolean>(isAvailable);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [alreadyBorrowed, setAlreadyBorrowed] = useState<boolean>(false);
 
   useEffect(() => {
     setAvailable(isAvailable);
@@ -28,6 +29,28 @@ const BorrowButton = ({
 
   const isMember =
     !!user && Array.isArray(user.roles) && user.roles.includes("MEMBER");
+
+  useEffect(() => {
+    const checkAlreadyBorrowed = async () => {
+      if (!user || !isMember) {
+        setAlreadyBorrowed(false);
+        return;
+      }
+      try {
+        const resp = await fetch(`/api/loans`, { method: "GET", cache: "no-store" });
+        if (!resp.ok) {
+          return; // silently ignore
+        }
+        const loans = await resp.json();
+        const hasLoan = Array.isArray(loans)
+          && loans.some((loan: { book?: { id?: number } }) => loan?.book?.id === bookId);
+        setAlreadyBorrowed(hasLoan);
+      } catch (_) {
+        // ignore
+      }
+    };
+    checkAlreadyBorrowed();
+  }, [user, isMember, bookId]);
 
   const handleBorrow = async () => {
     if (!user) {
@@ -40,7 +63,7 @@ const BorrowButton = ({
       return;
     }
 
-    if (!available) {
+    if (!available || alreadyBorrowed) {
       return;
     }
 
@@ -55,6 +78,7 @@ const BorrowButton = ({
       }
       toast.success("Book borrowed successfully!");
       setAvailable(false);
+      setAlreadyBorrowed(true);
       onBorrowSuccess?.();
     } catch (error: unknown) {
       const err = error as { response?: { data?: unknown } } | undefined;
@@ -67,8 +91,10 @@ const BorrowButton = ({
     }
   };
 
-  const disabled = !isMember || !available || isSubmitting;
-  const label = !available
+  const disabled = !isMember || !available || alreadyBorrowed || isSubmitting;
+  const label = alreadyBorrowed
+    ? "Already Borrowed"
+    : !available
     ? "Borrowed"
     : !user
     ? "Sign in to borrow"
