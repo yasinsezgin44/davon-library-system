@@ -45,8 +45,13 @@ const BorrowedBooks = () => {
 
   const handleReturn = async (loanId: number) => {
     try {
-      // Use direct backend with Bearer via axios since PUT isn't proxied yet
-      await apiClient.put(`/loans/${loanId}/return`);
+      // Use Next API proxy for return so httpOnly token is used
+      const resp = await fetch(`/api/loans/return?loanId=${loanId}`, {
+        method: "PUT",
+      });
+      if (!resp.ok) {
+        throw new Error(await resp.text());
+      }
       toast.success("Book returned successfully!");
       fetchBorrowedBooks();
     } catch (error) {

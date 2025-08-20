@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { apiClient } from "@/lib/apiClient";
+// Use Next API proxy to avoid reading httpOnly token on client
 import toast from "react-hot-toast";
 
 type BorrowButtonProps = {
@@ -12,7 +12,12 @@ type BorrowButtonProps = {
   className?: string;
 };
 
-const BorrowButton = ({ bookId, isAvailable, onBorrowSuccess, className }: BorrowButtonProps) => {
+const BorrowButton = ({
+  bookId,
+  isAvailable,
+  onBorrowSuccess,
+  className,
+}: BorrowButtonProps) => {
   const { user } = useAuth();
   const [available, setAvailable] = useState<boolean>(isAvailable);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -21,7 +26,8 @@ const BorrowButton = ({ bookId, isAvailable, onBorrowSuccess, className }: Borro
     setAvailable(isAvailable);
   }, [isAvailable]);
 
-  const isMember = !!user && Array.isArray(user.roles) && user.roles.includes("MEMBER");
+  const isMember =
+    !!user && Array.isArray(user.roles) && user.roles.includes("MEMBER");
 
   const handleBorrow = async () => {
     if (!user) {
@@ -40,14 +46,22 @@ const BorrowButton = ({ bookId, isAvailable, onBorrowSuccess, className }: Borro
 
     try {
       setIsSubmitting(true);
-      await apiClient.post(`/loans/borrow?bookId=${bookId}`);
+      const resp = await fetch(`/api/loans/borrow?bookId=${bookId}`, {
+        method: "POST",
+      });
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(text || "Borrow failed");
+      }
       toast.success("Book borrowed successfully!");
       setAvailable(false);
       onBorrowSuccess?.();
     } catch (error: unknown) {
       const err = error as { response?: { data?: unknown } } | undefined;
       const message = err?.response?.data;
-      toast.error(typeof message === "string" ? message : "Failed to borrow book.");
+      toast.error(
+        typeof message === "string" ? message : "Failed to borrow book."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -70,7 +84,9 @@ const BorrowButton = ({ bookId, isAvailable, onBorrowSuccess, className }: Borro
       disabled={disabled}
       className={
         `w-full py-2 rounded-md transition-colors ` +
-        (disabled ? "bg-gray-400 text-gray-700 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-600") +
+        (disabled
+          ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+          : "bg-blue-500 text-white hover:bg-blue-600") +
         (className ? ` ${className}` : "")
       }
     >
@@ -80,5 +96,3 @@ const BorrowButton = ({ bookId, isAvailable, onBorrowSuccess, className }: Borro
 };
 
 export default BorrowButton;
-
-
