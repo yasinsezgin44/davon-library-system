@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -11,6 +11,14 @@ const Navbar = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Clear search box when navigating away from search page
+    if (pathname !== "/search") {
+      setSearchQuery("");
+    }
+  }, [pathname]);
 
   const handleDropdownClick = () => {
     setDropdownOpen(false);
@@ -25,6 +33,9 @@ const Navbar = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?query=${searchQuery}`);
+      // Optionally clear after navigating to search
+      // Comment out if you prefer keeping the query visible on the search page
+      setSearchQuery("");
     }
   };
 
@@ -71,6 +82,9 @@ const Navbar = () => {
             placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setSearchQuery("");
+            }}
           />
         </form>
 
