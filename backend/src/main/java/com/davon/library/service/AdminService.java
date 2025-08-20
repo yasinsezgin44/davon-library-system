@@ -24,7 +24,7 @@ public class AdminService {
     private RoleRepository roleRepository;
 
     @Transactional
-    public User createUserWithRole(User user, String roleName) {
+    public User createUserWithRole(User user, String password, String roleName) {
         log.info("Admin creating user {} with role {}", user.getUsername(), roleName);
         Role role = roleRepository.find("name", roleName).firstResultOptional()
                 .orElseGet(() -> {
@@ -33,8 +33,8 @@ public class AdminService {
                     roleRepository.persist(newRole);
                     return newRole;
                 });
-        user.setRoles(Set.of(role));
-        return userService.createUser(user);
+        Set<Long> roleIds = Set.of(role.getId());
+        return userService.createUser(user, password, roleIds);
     }
 
     @Transactional

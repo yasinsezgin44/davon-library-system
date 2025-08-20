@@ -42,14 +42,13 @@ public class LoanMapper {
         return new LoanResponseDTO(
                 loan.getId(),
                 MemberMapper.toResponseDTO(loan.getMember()),
-                BookCopyMapper.toResponseDTO(loan.getBookCopy()),
+                BookMapper.toResponseDTO(loan.getBookCopy().getBook(), false),
                 loan.getCheckoutDate(),
                 loan.getDueDate(),
                 loan.getReturnDate(),
                 loan.getStatus(),
                 loan.getRenewalCount(),
                 loan.getCreatedAt(),
-                loan.getUpdatedAt()
-        );
+                loan.getUpdatedAt());
     }
 }

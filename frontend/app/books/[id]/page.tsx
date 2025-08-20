@@ -2,19 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import apiClient from "../../../lib/apiClient";
+import { apiClient } from "../../../lib/apiClient";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext";
+import BorrowButton from "@/components/BorrowButton";
 import { FaSpinner } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 interface Book {
   id: number;
   title: string;
-  author: string;
+  authorName: string;
   description: string;
   publicationYear: number;
   isbn: string;
   coverImageUrl: string;
+  isAvailable: boolean;
 }
 
 const BookDetailPage = () => {
@@ -22,7 +25,7 @@ const BookDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const params = useParams();
   const { id } = params;
-  const { isAuthReady } = useAuth();
+  const { isAuthReady, user } = useAuth();
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -41,10 +44,16 @@ const BookDetailPage = () => {
     fetchBook();
   }, [id, isAuthReady]);
 
+  const handleBorrowSuccess = () => {
+    if (book) setBook({ ...book, isAvailable: false });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <FaSpinner className="animate-spin text-4xl text-gray-500" />
+        <div className="animate-spin text-gray-500">
+          <FaSpinner size={32} />
+        </div>
       </div>
     );
   }
@@ -78,7 +87,7 @@ const BookDetailPage = () => {
         </div>
         <div className="md:col-span-2">
           <h1 className="text-4xl font-bold mb-4">{book.title}</h1>
-          <p className="text-xl mb-4">by {book.author}</p>
+          <p className="text-xl mb-4">by {book.authorName}</p>
           <p className="mb-6">{book.description}</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -88,6 +97,13 @@ const BookDetailPage = () => {
             <div>
               <strong className="font-semibold">ISBN:</strong> {book.isbn}
             </div>
+          </div>
+          <div className="mt-6 max-w-xs">
+            <BorrowButton
+              bookId={book.id}
+              isAvailable={book.isAvailable}
+              onBorrowSuccess={handleBorrowSuccess}
+            />
           </div>
         </div>
       </div>

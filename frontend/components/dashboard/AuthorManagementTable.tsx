@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient";
+import { apiClient } from "../../lib/apiClient";
 import CreateAuthorModal from "./CreateAuthorModal";
 import UpdateAuthorModal from "./UpdateAuthorModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -9,6 +9,8 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 export type Author = {
   id: number;
   name: string;
+  biography: string;
+  dateOfBirth: string;
 };
 
 const AuthorManagementTable = () => {

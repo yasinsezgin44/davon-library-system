@@ -1,13 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import apiClient from "../lib/apiClient";
+import { publicApiClient } from "../lib/apiClient";
 import BookCard from "./BookCard";
 
 type TrendingBook = {
   id: number;
   title: string;
-  author: string;
+  authorName: string;
   coverImageUrl: string;
+  isAvailable: boolean;
 };
 
 const TrendingBooks = () => {
@@ -16,7 +17,7 @@ const TrendingBooks = () => {
   useEffect(() => {
     const fetchTrendingBooks = async () => {
       try {
-        const response = await apiClient.get("/books/trending");
+        const response = await publicApiClient.get("/books/trending");
         setBooks(response.data);
       } catch (err) {
         console.error("Failed to fetch trending books:", err);
@@ -34,8 +35,9 @@ const TrendingBooks = () => {
             key={book.id}
             id={book.id}
             title={book.title}
-            author={book.author}
+            author={book.authorName}
             imageUrl={book.coverImageUrl || "/images/default_book_image.jpeg"}
+            isAvailable={book.isAvailable}
           />
         ))}
       </div>

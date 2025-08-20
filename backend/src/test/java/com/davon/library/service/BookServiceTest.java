@@ -19,6 +19,10 @@ import static org.mockito.Mockito.*;
 import jakarta.inject.Inject;
 import com.davon.library.dto.BookRequestDTO;
 import com.davon.library.model.Category;
+import com.davon.library.model.Publisher;
+import com.davon.library.model.Author;
+import com.davon.library.repository.PublisherRepository;
+import com.davon.library.repository.AuthorRepository;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -37,16 +41,31 @@ class BookServiceTest {
     @Inject
     BookService bookService;
 
+    @InjectMock
+    PublisherRepository publisherRepository;
+
+    @InjectMock
+    AuthorRepository authorRepository;
+
     @BeforeEach
     void setUp() {
         Category category = new Category();
         category.setId(1L);
         when(categoryRepository.findByIdOptional(1L)).thenReturn(Optional.of(category));
+
+        Publisher publisher = new Publisher();
+        publisher.setId(1L);
+        when(publisherRepository.findByIdOptional(1L)).thenReturn(Optional.of(publisher));
+
+        Author author = new Author();
+        author.setId(1L);
+        when(authorRepository.findByIdOptional(1L)).thenReturn(Optional.of(author));
     }
 
     @Test
     void testCreateBook() {
-        BookRequestDTO requestDTO = new BookRequestDTO("Test Title", "1234567890123", 2023, "description", "cover.jpg", 100, 1L, 1L, Set.of(1L));
+        BookRequestDTO requestDTO = new BookRequestDTO("Test Title", "1234567890123", null, "Fiction", "English",
+                "cover.jpg", 1L, 1L, Set.of(1L), 10);
         when(bookRepository.findByIsbn("1234567890123")).thenReturn(Optional.empty());
 
         bookService.createBook(requestDTO);
@@ -56,7 +75,8 @@ class BookServiceTest {
 
     @Test
     void testCreateBookDuplicateIsbn() {
-        BookRequestDTO requestDTO = new BookRequestDTO("Duplicate ISBN", "duplicate-isbn", 2023, "description", "cover.jpg", 100, 1L, 1L, Set.of(1L));
+        BookRequestDTO requestDTO = new BookRequestDTO("Duplicate ISBN", "duplicate-isbn", null, "Fiction",
+                "English", "cover.jpg", 1L, 1L, Set.of(1L), 10);
         when(bookRepository.findByIsbn("duplicate-isbn")).thenReturn(Optional.of(new Book()));
 
         assertThrows(IllegalArgumentException.class, () -> bookService.createBook(requestDTO));
@@ -68,8 +88,8 @@ class BookServiceTest {
         existing.setId(1L);
         existing.setTitle("Old Title");
 
-        Book updated = new Book();
-        updated.setTitle("New Title");
+        BookRequestDTO updated = new BookRequestDTO("New Title", "1234567890123", null, "Fiction", "English",
+                "cover.jpg", 1L, 1L, Set.of(1L), 10);
 
         when(bookRepository.findByIdOptional(1L)).thenReturn(Optional.of(existing));
 
@@ -82,7 +102,9 @@ class BookServiceTest {
     void testUpdateBookNotFound() {
         when(bookRepository.findByIdOptional(99L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> bookService.updateBook(99L, new Book()));
+        assertThrows(NotFoundException.class, () -> bookService.updateBook(99L,
+                new BookRequestDTO("New Title", "1234567890123", null, "Fiction", "English", "cover.jpg", 1L, 1L,
+                        Set.of(1L), 10)));
     }
 
     @Test

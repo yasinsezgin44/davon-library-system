@@ -1,20 +1,44 @@
 package com.davon.library.mapper;
 
-import com.davon.library.dto.BookRequestDTO;
 import com.davon.library.dto.BookResponseDTO;
-import com.davon.library.dto.BookShallowResponseDTO;
-import com.davon.library.model.Author;
+import com.davon.library.dto.ShallowBookResponseDTO;
 import com.davon.library.model.Book;
-import com.davon.library.model.Category;
-import com.davon.library.model.Publisher;
+import com.davon.library.dto.BookRequestDTO;
+import com.davon.library.model.Author;
 
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BookMapper {
 
-    private static final Logger log = LoggerFactory.getLogger(BookMapper.class);
+    public static BookResponseDTO toResponseDTO(Book book, boolean isAvailable) {
+        BookResponseDTO dto = new BookResponseDTO();
+        dto.id = book.getId();
+        dto.title = book.getTitle();
+        dto.authorName = book.getAuthors() == null ? "" : book.getAuthors().stream()
+                .map(author -> author.getName())
+                .collect(Collectors.joining(", "));
+        dto.isbn = book.getIsbn();
+        dto.publicationYear = book.getPublicationYear() == null ? 0 : book.getPublicationYear();
+        dto.description = book.getDescription();
+        dto.isAvailable = isAvailable;
+        dto.publisher = (book.getPublisher() == null) ? null : book.getPublisher().getName();
+        dto.publicationDate = book.getPublicationDate();
+        dto.genre = book.getGenre();
+        dto.language = book.getLanguage();
+        dto.coverImageUrl = book.getCoverImageUrl();
+        return dto;
+    }
+
+    public static BookResponseDTO toResponseDTO(Book book) {
+        return toResponseDTO(book, false);
+    }
+
+    public static ShallowBookResponseDTO toShallowResponseDTO(Book book) {
+        if (book == null) {
+            return null;
+        }
+        return new ShallowBookResponseDTO(book.getId(), book.getTitle());
+    }
 
     public static Book toEntity(BookRequestDTO dto) {
         if (dto == null) {
@@ -24,84 +48,11 @@ public class BookMapper {
         Book book = new Book();
         book.setTitle(dto.title());
         book.setIsbn(dto.isbn());
-        book.setPublicationYear(dto.publicationYear());
-        book.setDescription(dto.description());
-        book.setCoverImage(dto.coverImage());
-        book.setPages(dto.pages());
-
-        if (dto.publisherId() != null) {
-            Publisher publisher = new Publisher();
-            publisher.setId(dto.publisherId());
-            book.setPublisher(publisher);
-        }
-
-        if (dto.categoryId() != null) {
-            Category category = new Category();
-            category.setId(dto.categoryId());
-            book.setCategory(category);
-        }
-
-        if (dto.authorIds() != null) {
-            book.setAuthors(dto.authorIds().stream().map(authorId -> {
-                Author author = new Author();
-                author.setId(authorId);
-                return author;
-            }).collect(Collectors.toSet()));
-        }
+        book.setPublicationDate(dto.publicationDate());
+        book.setGenre(dto.genre());
+        book.setLanguage(dto.language());
+        book.setCoverImageUrl(dto.coverImageUrl());
 
         return book;
-    }
-
-    public static BookResponseDTO toResponseDTO(Book book) {
-        if (book == null) {
-            return null;
-        }
-
-        log.info("Mapping book with ID: {}", book.getId());
-
-        BookResponseDTO dto = new BookResponseDTO(
-                book.getId(),
-                book.getTitle(),
-                book.getIsbn(),
-                book.getDescription(),
-                book.getPublicationYear(),
-                book.getPages(),
-                book.getCoverImageUrl(),
-                PublisherMapper.toDTO(book.getPublisher()),
-                CategoryMapper.toDTO(book.getCategory()),
-                book.getAuthors().stream()
-                        .map(AuthorMapper::toDTO)
-                        .collect(Collectors.toList()),
-                book.getCopies().stream()
-                        .map(BookCopyMapper::toResponseDTO)
-                        .collect(Collectors.toList()),
-                book.getCreatedAt(),
-                book.getUpdatedAt());
-
-        log.info("Successfully mapped book with ID: {}", book.getId());
-        return dto;
-    }
-
-    public static BookShallowResponseDTO toShallowResponseDTO(Book book) {
-        if (book == null) {
-            return null;
-        }
-
-        return new BookShallowResponseDTO(
-                book.getId(),
-                book.getTitle(),
-                book.getIsbn(),
-                book.getDescription(),
-                book.getPublicationYear(),
-                book.getPages(),
-                book.getCoverImageUrl(),
-                PublisherMapper.toDTO(book.getPublisher()),
-                CategoryMapper.toDTO(book.getCategory()),
-                book.getAuthors().stream()
-                        .map(AuthorMapper::toDTO)
-                        .collect(Collectors.toList()),
-                book.getCreatedAt(),
-                book.getUpdatedAt()
-        );
     }
 }

@@ -6,16 +6,19 @@ import com.davon.library.dto.RegisterRequest;
 import com.davon.library.model.User;
 import com.davon.library.service.AuthenticationService;
 import io.smallrye.jwt.build.Jwt;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.NotAuthorizedException;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.time.Duration;
 import java.util.HashSet;
@@ -24,6 +27,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.davon.library.dto.UserMeDTO;
+import com.davon.library.service.UserService;
 
 @Path("/api/auth")
 @Produces(MediaType.APPLICATION_JSON)
@@ -36,8 +41,28 @@ public class AuthController {
     @Inject
     AuthenticationService authenticationService;
 
+    @Inject
+    UserService userService;
+
+    @Inject
+    JsonWebToken jwt;
+
     @ConfigProperty(name = "mp.jwt.verify.issuer")
     String issuer;
+
+    @GET
+    @Path("/me")
+    @RolesAllowed({ "ADMIN", "MEMBER" })
+    public Response getMe() {
+        if (jwt == null || jwt.getName() == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+
+        String username = jwt.getName();
+        var userMeDTO = userService.getUserMe(username);
+
+        return Response.ok(userMeDTO).build();
+    }
 
     @POST
     @Path("/register")

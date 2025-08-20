@@ -33,6 +33,18 @@ public class Book {
     @Column(unique = true, nullable = false, length = 13)
     private String isbn;
 
+    @Column(name = "publication_date")
+    private java.time.LocalDate publicationDate;
+
+    @Column
+    private String genre;
+
+    @Column
+    private String language;
+
+    @Column(name = "cover_image_url", length = 255)
+    private String coverImageUrl;
+
     @Column(name = "publication_year")
     private Integer publicationYear;
 
@@ -87,8 +99,8 @@ public class Book {
     }
 
     public Book(Long id, String title, String isbn, Integer publicationYear, String description,
-                String coverImage, Integer pages, Publisher publisher, Category category,
-                Set<Author> authors, Set<BookCopy> copies, LocalDateTime createdAt, LocalDateTime updatedAt) {
+            String coverImage, Integer pages, Publisher publisher, Category category,
+            Set<Author> authors, Set<BookCopy> copies, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.isbn = isbn;

@@ -23,6 +23,8 @@ import com.davon.library.model.Author;
 import com.davon.library.model.Publisher;
 import com.davon.library.repository.AuthorRepository;
 import com.davon.library.repository.PublisherRepository;
+import com.davon.library.model.BookCopy;
+import com.davon.library.model.enums.CopyStatus;
 
 @ApplicationScoped
 public class BookService {
@@ -55,7 +57,8 @@ public class BookService {
         Book book = BookMapper.toEntity(bookRequestDTO);
 
         Publisher publisher = publisherRepository.findByIdOptional(bookRequestDTO.publisherId())
-                .orElseThrow(() -> new NotFoundException("Publisher not found with ID: " + bookRequestDTO.publisherId()));
+                .orElseThrow(
+                        () -> new NotFoundException("Publisher not found with ID: " + bookRequestDTO.publisherId()));
         book.setPublisher(publisher);
 
         Category category = categoryRepository.findByIdOptional(bookRequestDTO.categoryId())
@@ -71,22 +74,66 @@ public class BookService {
         }
 
         bookRepository.persist(book);
+
+        for (int i = 0; i < bookRequestDTO.stock(); i++) {
+            BookCopy bookCopy = new BookCopy();
+            bookCopy.setBook(book);
+            bookCopy.setStatus(CopyStatus.AVAILABLE);
+            bookCopyRepository.persist(bookCopy);
+        }
+
         log.info("Successfully created book with ID: {}", book.getId());
         return book;
     }
 
     @Transactional
-    public Book updateBook(Long bookId, Book updatedBook) {
+    public Book updateBook(Long bookId, BookRequestDTO bookRequestDTO) {
         log.debug("Updating book: {}", bookId);
         Book existingBook = bookRepository.findByIdOptional(bookId)
                 .orElseThrow(() -> new NotFoundException("Book not found with ID: " + bookId));
 
-        existingBook.setTitle(updatedBook.getTitle());
-        existingBook.setDescription(updatedBook.getDescription());
-        existingBook.setPublicationYear(updatedBook.getPublicationYear());
-        existingBook.setPublisher(updatedBook.getPublisher());
-        existingBook.setCategory(updatedBook.getCategory());
-        existingBook.setAuthors(updatedBook.getAuthors());
+        existingBook.setTitle(bookRequestDTO.title());
+        existingBook.setIsbn(bookRequestDTO.isbn());
+        existingBook.setPublicationDate(bookRequestDTO.publicationDate());
+        existingBook.setGenre(bookRequestDTO.genre());
+        existingBook.setLanguage(bookRequestDTO.language());
+        existingBook.setCoverImageUrl(bookRequestDTO.coverImageUrl());
+
+        Publisher publisher = publisherRepository.findByIdOptional(bookRequestDTO.publisherId())
+                .orElseThrow(
+                        () -> new NotFoundException("Publisher not found with ID: " + bookRequestDTO.publisherId()));
+        existingBook.setPublisher(publisher);
+
+        Category category = categoryRepository.findByIdOptional(bookRequestDTO.categoryId())
+                .orElseThrow(() -> new NotFoundException("Category not found with ID: " + bookRequestDTO.categoryId()));
+        existingBook.setCategory(category);
+
+        if (bookRequestDTO.authorIds() != null && !bookRequestDTO.authorIds().isEmpty()) {
+            Set<Author> authors = bookRequestDTO.authorIds().stream()
+                    .map(authorId -> authorRepository.findByIdOptional(authorId)
+                            .orElseThrow(() -> new NotFoundException("Author not found with ID: " + authorId)))
+                    .collect(Collectors.toSet());
+            existingBook.setAuthors(authors);
+        }
+
+        int currentStock = existingBook.getCopies().size();
+        int newStock = bookRequestDTO.stock();
+
+        if (newStock > currentStock) {
+            for (int i = 0; i < newStock - currentStock; i++) {
+                BookCopy bookCopy = new BookCopy();
+                bookCopy.setBook(existingBook);
+                bookCopy.setStatus(CopyStatus.AVAILABLE);
+                bookCopyRepository.persist(bookCopy);
+            }
+        } else if (newStock < currentStock) {
+            List<BookCopy> copiesToRemove = existingBook.getCopies().stream()
+                    .limit(currentStock - newStock)
+                    .collect(Collectors.toList());
+            for (BookCopy copy : copiesToRemove) {
+                bookCopyRepository.delete(copy);
+            }
+        }
 
         return existingBook;
     }
@@ -96,8 +143,8 @@ public class BookService {
         log.debug("Deleting book: {}", bookId);
         Book book = bookRepository.findByIdOptional(bookId)
                 .orElseThrow(() -> new NotFoundException("Book not found with ID: " + bookId));
-        
-        bookCopyRepository.delete("book.id", book.getId());
+
+        bookCopyRepository.delete("book.id", bookId);
         bookRepository.delete(book);
     }
 

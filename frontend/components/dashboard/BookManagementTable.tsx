@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient";
+import { apiClient } from "../../lib/apiClient";
 import NewCreateBookModal from "./CreateBookModal";
 import UpdateBookModal from "./UpdateBookModal";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
@@ -11,10 +11,22 @@ export type Author = {
   name: string;
 };
 
+export type Publisher = {
+  id: number;
+  name: string;
+};
+
+export type Category = {
+  id: number;
+  name: string;
+};
+
 export type Book = {
   id: number;
   title: string;
   authors: Author[];
+  publisher: Publisher;
+  category: Category;
   isbn: string;
   quantity: number; // This will be derived or fetched separately
   publicationYear?: number;
@@ -31,24 +43,52 @@ const BookManagementTable = () => {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      setLoading(true);
-      try {
-        const response = await apiClient.get("/books");
-        const adaptedBooks = response.data.map((book: any) => ({
-          ...book,
+  const fetchBooks = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.get("/books");
+      type ApiBook = {
+        id: number;
+        title: string;
+        authors?: { id: number; name: string }[];
+        copies?: unknown[];
+        isbn: string;
+        publicationYear?: number;
+        description?: string;
+        coverImage?: string;
+        pages?: number;
+        publisher?: { id: number; name: string } | string;
+        category?: { id: number; name: string };
+      };
+      const adaptedBooks = (response.data as ApiBook[]).map((book) => {
+        const publisherObj =
+          typeof book.publisher === "string"
+            ? { id: 0, name: book.publisher || "Unknown" }
+            : book.publisher ?? { id: 0, name: "Unknown" };
+        const categoryObj = book.category ?? { id: 0, name: "Unknown" };
+        return {
+          id: book.id,
+          title: book.title,
           authors: book.authors || [],
-          quantity: book.copies?.length || 0,
-        }));
-        setBooks(adaptedBooks);
-      } catch (error) {
-        console.error("Failed to fetch books:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+          publisher: publisherObj,
+          category: categoryObj,
+          isbn: book.isbn,
+          quantity: Array.isArray(book.copies) ? book.copies.length : 0,
+          publicationYear: book.publicationYear,
+          description: book.description,
+          coverImage: book.coverImage,
+          pages: book.pages,
+        } as Book;
+      });
+      setBooks(adaptedBooks);
+    } catch (error) {
+      console.error("Failed to fetch books:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBooks();
   }, []);
 
@@ -62,6 +102,7 @@ const BookManagementTable = () => {
     authorIds: number[];
     publisherId: number;
     categoryId: number;
+    stock: number;
   }) => {
     try {
       const newBookData = {
@@ -69,6 +110,7 @@ const BookManagementTable = () => {
         authorIds: bookData.authorIds,
         publisherId: bookData.publisherId,
         categoryId: bookData.categoryId,
+        stock: bookData.stock,
       };
       console.log("Creating book with data:", newBookData);
       const response = await apiClient.post("/books", newBookData);
@@ -91,6 +133,7 @@ const BookManagementTable = () => {
         authorIds: number[];
         publisherId: number;
         categoryId: number;
+        stock: number;
       }
     >
   ) => {
@@ -104,6 +147,7 @@ const BookManagementTable = () => {
       setBooks(books.map((book) => (book.id === id ? updatedBook : book)));
       setUpdateModalOpen(false);
       setSelectedBook(null);
+      await fetchBooks();
     } catch (error) {
       console.error("Failed to update book:", error);
     }

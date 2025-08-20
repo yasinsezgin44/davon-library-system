@@ -10,6 +10,10 @@ import React, {
 } from "react";
 import { useRouter } from "next/navigation";
 
+interface Role {
+  name: string;
+}
+
 interface User {
   username: string;
   roles: string[];
@@ -20,25 +24,57 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAuthReady: boolean;
+  login: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({
-  children,
-  user: initialUser,
-}: {
-  children: ReactNode;
-  user: User | null;
-}) => {
-  const [user, setUser] = useState<User | null>(initialUser);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    setIsAuthReady(true);
+    const fetchUser = async () => {
+      try {
+        const response = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        setUser(null);
+      } finally {
+        setIsAuthReady(true);
+      }
+    };
+
+    fetchUser();
   }, []);
+
+  const login = async () => {
+    try {
+      const response = await fetch("/api/auth/me", { credentials: "include" });
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        if (userData.roles && userData.roles.includes("ADMIN")) {
+          router.push("/dashboard/admin");
+        } else {
+          router.push("/dashboard/member");
+        }
+      } else {
+        throw new Error("Failed to fetch user data after login.");
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
+  };
 
   const logout = async () => {
     try {
@@ -55,6 +91,7 @@ export const AuthProvider = ({
       user,
       isAuthenticated: !!user,
       isAuthReady,
+      login,
       logout,
     }),
     [user, isAuthReady]

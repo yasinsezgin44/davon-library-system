@@ -1,5 +1,7 @@
 package com.davon.library.service;
 
+import com.davon.library.mapper.LoanMapper;
+import com.davon.library.dto.LoanResponseDTO;
 import com.davon.library.model.BookCopy;
 import com.davon.library.model.Fine;
 import com.davon.library.model.Loan;
@@ -17,6 +19,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.InternalServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +27,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class LoanService {
 
     private static final Logger log = LoggerFactory.getLogger(LoanService.class);
     private static final int LOAN_PERIOD_DAYS = 14;
-    private static final int MAX_LOANS_PER_MEMBER = 5;
+    private static final int MAX_LOANS_PER_MEMBER = 3;
     private static final BigDecimal LATE_FEE_PER_DAY = new BigDecimal("0.25");
 
     @Inject
@@ -46,22 +50,47 @@ public class LoanService {
     MemberRepository memberRepository;
 
     @Transactional
-    public Loan checkoutBook(Long bookId, Long memberId) {
-        log.info("Attempting to check out book {} for member {}", bookId, memberId);
+    public LoanResponseDTO borrowBook(Long bookId, String username) {
+        log.info("Member {} attempting to borrow book {}", username, bookId);
 
-        Member member = memberRepository.findByIdOptional(memberId)
-                .orElseThrow(() -> new NotFoundException("Member not found"));
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Member not found with username: " + username));
 
-        if (loanRepository.countActiveLoansByMember(member) >= MAX_LOANS_PER_MEMBER) {
+        return checkoutBook(bookId, member.getId());
+    }
+
+    @Transactional
+    public LoanResponseDTO checkoutBook(Long bookId, Long userId) {
+        log.info("Attempting to check out book {} for user {}", bookId, userId);
+
+        Member member = memberRepository.findByIdOptional(userId)
+                .orElseThrow(() -> new NotFoundException("Member not found for the given user"));
+
+        if (member.getUser() == null) {
+            log.error("Data inconsistency: Member record found for ID {}, but it has no associated User.", userId);
+            throw new InternalServerErrorException("Could not process loan due to a data inconsistency issue.");
+        }
+
+        log.info("Found member: {}", member.getUser().getUsername());
+
+        if (loanRepository.countActiveLoansByMember(member) >= (long) MAX_LOANS_PER_MEMBER) {
+            log.warn("Member {} has reached the maximum number of active loans.", userId);
             throw new BadRequestException("Member has reached the maximum number of active loans.");
         }
 
-        if (member.getFineBalance().compareTo(BigDecimal.ZERO) > 0) {
+        if (loanRepository.existsActiveLoanForMemberAndBook(member, bookId)) {
+            log.warn("Member {} already has an active loan for book {}.", userId, bookId);
+            throw new BadRequestException("Member already has an active loan for this book.");
+        }
+
+        if (member.getFineBalance() != null && member.getFineBalance().compareTo(BigDecimal.ZERO) > 0) {
+            log.warn("Member {} has outstanding fines.", userId);
             throw new BadRequestException("Member has outstanding fines.");
         }
 
         BookCopy bookCopy = bookCopyRepository.findAvailableByBookId(bookId)
                 .orElseThrow(() -> new NotFoundException("No available copies for this book."));
+        log.info("Found available book copy: {}", bookCopy.getId());
 
         bookCopy.setStatus(CopyStatus.CHECKED_OUT);
 
@@ -73,8 +102,28 @@ public class LoanService {
         loan.setStatus(LoanStatus.ACTIVE);
         loanRepository.persist(loan);
 
+        log.info(
+                "{} borrowed '{}'",
+                member.getUser().getFullName(),
+                bookCopy.getBook().getTitle());
         log.info("Book checked out successfully. Loan ID: {}", loan.getId());
-        return loan;
+        return LoanMapper.toResponseDTO(loan);
+    }
+
+    public List<LoanResponseDTO> getCurrentLoansByUsername(String username) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Member not found with username: " + username));
+        return loanRepository.findActiveLoansByMember(member).stream()
+                .map(LoanMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<LoanResponseDTO> getLoanHistoryByUsername(String username) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Member not found with username: " + username));
+        return loanRepository.findReturnedLoansByMember(member).stream()
+                .map(LoanMapper::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional

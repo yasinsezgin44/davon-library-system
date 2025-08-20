@@ -1,20 +1,22 @@
 package com.davon.library.dto;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.LocalDate;
 
-public record BookResponseDTO(
-                Long id,
-                String title,
-                String isbn,
-                String description,
-                Integer publicationYear,
-                Integer pages,
-                String coverImageUrl,
-                PublisherDTO publisher,
-                CategoryDTO category,
-                List<AuthorDTO> authors,
-                List<BookCopyResponseDTO> copies,
-                LocalDateTime createdAt,
-                LocalDateTime updatedAt) {
+public class BookResponseDTO {
+    public Long id;
+    public String title;
+    public String authorName;
+    public String isbn;
+    public int publicationYear;
+    public String description;
+    public boolean isAvailable;
+    public String publisher;
+    public LocalDate publicationDate;
+    public String genre;
+    public String language;
+    public String coverImageUrl;
+
+    public Long id() {
+        return id;
+    }
 }

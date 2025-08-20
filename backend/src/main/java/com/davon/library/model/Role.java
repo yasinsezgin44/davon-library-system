@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "roles")
@@ -30,4 +32,8 @@ public class Role {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToMany(mappedBy = "roles")
+    @JsonIgnore
+    private Set<User> users;
 }

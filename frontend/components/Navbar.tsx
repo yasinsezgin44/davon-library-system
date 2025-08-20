@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -11,6 +11,14 @@ const Navbar = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Clear search box when navigating away from search page
+    if (pathname !== "/search") {
+      setSearchQuery("");
+    }
+  }, [pathname]);
 
   const handleDropdownClick = () => {
     setDropdownOpen(false);
@@ -25,6 +33,9 @@ const Navbar = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?query=${searchQuery}`);
+      // Optionally clear after navigating to search
+      // Comment out if you prefer keeping the query visible on the search page
+      setSearchQuery("");
     }
   };
 
@@ -38,6 +49,15 @@ const Navbar = () => {
           >
             Davon Library
           </Link>
+
+          <div className="hidden md:flex items-center">
+            <Link
+              href="/catalog"
+              className="text-gray-800 hover:text-blue-400 ml-4"
+            >
+              Catalog
+            </Link>
+          </div>
         </div>
 
         <form onSubmit={handleSearchSubmit} className="relative mt-3 md:mt-0">
@@ -62,6 +82,9 @@ const Navbar = () => {
             placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setSearchQuery("");
+            }}
           />
         </form>
 
@@ -72,7 +95,7 @@ const Navbar = () => {
                 onClick={() => setDropdownOpen(!isDropdownOpen)}
                 className="flex items-center text-gray-800"
               >
-                <span className="mr-2">{user?.username}</span>
+                <span className="mr-2">{user?.fullName}</span>
                 <svg
                   className="h-5 w-5"
                   viewBox="0 0 20 20"
@@ -89,9 +112,12 @@ const Navbar = () => {
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
                   <Link
                     href={(() => {
-                      const role = user?.roles?.[0];
-                      if (role === "admin") return "/dashboard/admin";
-                      if (role === "librarian") return "/dashboard/librarian";
+                      if (user?.roles?.includes("ADMIN"))
+                        return "/dashboard/admin";
+                      if (user?.roles?.includes("LIBRARIAN"))
+                        return "/dashboard/librarian";
+                      if (user?.roles?.includes("MEMBER"))
+                        return "/dashboard/member";
                       return "/";
                     })()}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

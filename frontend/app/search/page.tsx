@@ -1,18 +1,19 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import apiClient from "../../lib/apiClient";
+import { Suspense, useEffect, useState } from "react";
+import { publicApiClient } from "../../lib/apiClient";
 import BookCard from "../../components/BookCard";
 
 interface Book {
   id: number;
   title: string;
-  author: string;
+  authorName: string;
   coverImageUrl: string;
+  isAvailable?: boolean;
 }
 
-const SearchPage = () => {
+const SearchPageContent = () => {
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
   const categoryId = searchParams.get("categoryId");
@@ -26,9 +27,9 @@ const SearchPage = () => {
       try {
         let response;
         if (categoryId) {
-          response = await apiClient.get(`/books/genre/${categoryId}`);
+          response = await publicApiClient.get(`/books/genre/${categoryId}`);
         } else if (query) {
-          response = await apiClient.get(
+          response = await publicApiClient.get(
             `/books/search?query=${encodeURIComponent(query)}`
           );
         } else {
@@ -72,8 +73,9 @@ const SearchPage = () => {
               key={book.id}
               id={book.id}
               title={book.title}
-              author={book.author}
+              author={book.authorName}
               imageUrl={book.coverImageUrl}
+              isAvailable={book.isAvailable ?? true}
             />
           ))}
         </div>
@@ -82,4 +84,12 @@ const SearchPage = () => {
   );
 };
 
-export default SearchPage;
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={<div className="container mx-auto py-10">Loading...</div>}
+    >
+      <SearchPageContent />
+    </Suspense>
+  );
+}

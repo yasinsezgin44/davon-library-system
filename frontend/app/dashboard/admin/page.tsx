@@ -3,13 +3,12 @@
 import { useAuth } from "../../../context/AuthContext";
 import BookManagementTable from "../../../components/dashboard/BookManagementTable";
 import UserManagementTable from "../../../components/dashboard/UserManagementTable";
-import ReservationsOverview from "../../../components/dashboard/ReservationsOverview";
 import AuthorManagementTable from "../../../components/dashboard/AuthorManagementTable";
 
 const AdminDashboardPage = () => {
   const { user } = useAuth();
 
-  if (!user || !user.roles.includes("admin")) {
+  if (!user || !user.roles.includes("ADMIN")) {
     return (
       <div className="text-center py-10">
         <p>You must be a logged-in admin to view this page.</p>
@@ -26,7 +25,6 @@ const AdminDashboardPage = () => {
         <BookManagementTable />
         <AuthorManagementTable />
         <UserManagementTable />
-        <ReservationsOverview />
       </div>
     </div>
   );

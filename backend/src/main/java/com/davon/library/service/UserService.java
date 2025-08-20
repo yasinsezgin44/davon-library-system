@@ -8,9 +8,20 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import io.quarkus.elytron.security.common.BcryptUtil;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import com.davon.library.model.Role;
+import com.davon.library.repository.RoleRepository;
+import com.davon.library.dto.UserUpdateDTO;
+import com.davon.library.dto.UserMeDTO;
+import com.davon.library.model.Member;
+import com.davon.library.repository.MemberRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import jakarta.ws.rs.BadRequestException;
 
 @ApplicationScoped
 public class UserService {
@@ -20,28 +31,83 @@ public class UserService {
     @Inject
     UserRepository userRepository;
 
+    @Inject
+    RoleRepository roleRepository;
+
+    @Inject
+    MemberRepository memberRepository;
+
     @Transactional
-    public User createUser(User user) {
+    public User createUser(User user, String password, Set<Long> roleIds) {
         log.debug("Creating user: {}", user.getUsername());
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+            throw new BadRequestException("Username already exists");
         }
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new BadRequestException("Email already exists");
+        }
+        user.setPasswordHash(BcryptUtil.bcryptHash(password));
+        user.setActive(true);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+
+        if (roleIds != null && !roleIds.isEmpty()) {
+            Set<Role> roles = roleIds.stream()
+                    .map(roleId -> roleRepository.findByIdOptional(roleId)
+                            .orElseThrow(() -> new NotFoundException("Role not found with ID: " + roleId)))
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
         }
         userRepository.persist(user);
+
+        Member member = Member.builder()
+                .user(user)
+                .id(user.getId())
+                .membershipStartDate(LocalDate.now())
+                .build();
+        memberRepository.persist(member);
+
         return user;
     }
 
     @Transactional
-    public User updateUser(Long userId, User updatedUser) {
+    public UserMeDTO getUserMe(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found with username: " + username));
+        Set<String> roles = user.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
+        return new UserMeDTO(user.getUsername(), user.getFullName(), roles);
+    }
+
+    @Transactional
+    public User updateUser(Long userId, UserUpdateDTO updatedUser) {
         log.debug("Updating user: {}", userId);
         User existingUser = findById(userId);
 
-        existingUser.setFullName(updatedUser.getFullName());
-        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-        existingUser.setStatus(updatedUser.getStatus());
-        existingUser.setActive(updatedUser.getActive());
+        if (updatedUser.fullName() != null) {
+            existingUser.setFullName(updatedUser.fullName());
+        }
+        if (updatedUser.phoneNumber() != null) {
+            existingUser.setPhoneNumber(updatedUser.phoneNumber());
+        }
+        if (updatedUser.status() != null) {
+            existingUser.setStatus(updatedUser.status());
+        }
+        if (updatedUser.active() != null) {
+            existingUser.setActive(updatedUser.active());
+        }
+        if (updatedUser.email() != null) {
+            existingUser.setEmail(updatedUser.email());
+        }
+
+        if (updatedUser.roleIds() != null && !updatedUser.roleIds().isEmpty()) {
+            Set<Role> roles = updatedUser.roleIds().stream()
+                    .map(roleId -> roleRepository.findByIdOptional(roleId)
+                            .orElseThrow(() -> new NotFoundException("Role not found with ID: " + roleId)))
+                    .collect(Collectors.toSet());
+            existingUser.setRoles(roles);
+        }
 
         return existingUser;
     }
@@ -53,7 +119,7 @@ public class UserService {
         user.setActive(false);
         return true;
     }
-    
+
     @Transactional
     public void deleteUser(Long userId) {
         log.debug("Deleting user: {}", userId);
@@ -103,5 +169,18 @@ public class UserService {
 
     public long countUsers() {
         return userRepository.count();
+    }
+
+    @Transactional
+    public boolean changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId);
+        if (user == null) {
+            return false;
+        }
+        if (!BcryptUtil.matches(currentPassword, user.getPasswordHash())) {
+            return false;
+        }
+        user.setPasswordHash(BcryptUtil.bcryptHash(newPassword));
+        return true;
     }
 }

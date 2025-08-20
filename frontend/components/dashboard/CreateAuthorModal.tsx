@@ -14,57 +14,86 @@ const CreateAuthorModal = ({
   onClose,
   onCreate,
 }: CreateAuthorModalProps) => {
-  const [authorData, setAuthorData] = useState<Partial<Author>>({
-    name: "",
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setAuthorData({ ...authorData, [name]: value });
-  };
+  const [name, setName] = useState("");
+  const [biography, setBiography] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onCreate(authorData);
+    onCreate({ name, biography, dateOfBirth });
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full text-black">
+      <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
         <div className="mt-3 text-center">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
             Add New Author
           </h3>
-          <form className="mt-2" onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                id="name"
-                value={authorData.name}
-                onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
+          <form className="mt-4" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="mb-4">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 text-left"
+                >
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="biography"
+                  className="block text-sm font-medium text-gray-700 text-left"
+                >
+                  Biography
+                </label>
+                <textarea
+                  name="biography"
+                  id="biography"
+                  value={biography}
+                  onChange={(e) => setBiography(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="dateOfBirth"
+                  className="block text-sm font-medium text-gray-700 text-left"
+                >
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  id="dateOfBirth"
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
             </div>
-            <div className="items-center px-4 py-3">
+            <div className="items-center px-4 py-3 sm:flex sm:flex-row-reverse">
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
               >
                 Create Author
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="mt-3 px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
               >
                 Cancel
               </button>

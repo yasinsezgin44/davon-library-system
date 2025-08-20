@@ -54,7 +54,7 @@ class AdminControllerTest {
                 memberRole.setName("MEMBER");
                 user.setRoles(Collections.singleton(memberRole));
 
-                when(adminService.createUserWithRole(any(User.class), anyString())).thenReturn(user);
+                when(adminService.createUserWithRole(any(User.class), anyString(), anyString())).thenReturn(user);
 
                 given()
                                 .contentType("application/json")

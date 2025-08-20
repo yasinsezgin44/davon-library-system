@@ -1,47 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sign } from "jsonwebtoken";
-import { serialize } from "cookie";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-const NODE_ENV = process.env.NODE_ENV || "development";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { username, password } = body;
 
-  console.log("Login attempt with:", { username, password });
-
-  // In a real application, you would validate the username and password against a database.
-  if (username === "admin_user" && password === "password123") {
-    const user = {
-      username: "admin_user",
-      roles: ["admin"],
-    };
-
-    const token = sign(
+  try {
+    const backendResponse = await fetch(
+      "http://localhost:8083/api/auth/login",
       {
-        ...user,
-        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // 30 days
-      },
-      JWT_SECRET
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      }
     );
 
-    const serialized = serialize("token", token, {
+    if (!backendResponse.ok) {
+      const errorData = await backendResponse.json();
+      return NextResponse.json(
+        { message: errorData.message || "Invalid credentials" },
+        { status: backendResponse.status }
+      );
+    }
+
+    const { token } = await backendResponse.json();
+
+    const response = NextResponse.json({ ok: true });
+    response.cookies.set({
+      name: "token",
+      value: token,
       httpOnly: true,
-      secure: NODE_ENV !== "development",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 24 * 30,
+      secure: false,
       path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60, // 1 hour
     });
 
-    return new NextResponse(JSON.stringify({ status: "success", user }), {
-      status: 200,
-      headers: { "Set-Cookie": serialized },
-    });
-  } else {
-    return new NextResponse(
-      JSON.stringify({ status: "error", message: "Invalid credentials" }),
-      { status: 401 }
+    return response;
+  } catch (error) {
+    return NextResponse.json(
+      { message: "An internal server error occurred" },
+      { status: 500 }
     );
   }
 }

@@ -10,6 +10,8 @@ import jakarta.ws.rs.NotAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 @ApplicationScoped
 public class AuthenticationService {
 
@@ -17,6 +19,10 @@ public class AuthenticationService {
 
     @Inject
     UserRepository userRepository;
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
 
     public User authenticate(String username, String password) {
         log.info("Authenticating user: {}", username);

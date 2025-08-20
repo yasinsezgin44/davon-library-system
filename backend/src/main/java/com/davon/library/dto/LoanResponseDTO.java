@@ -6,14 +6,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record LoanResponseDTO(
-        Long id,
-        MemberResponseDTO member,
-        BookCopyResponseDTO bookCopy,
-        LocalDate checkoutDate,
-        LocalDate dueDate,
-        LocalDate returnDate,
-        LoanStatus status,
-        Integer renewalCount,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
-) {}
+                Long id,
+                MemberResponseDTO member,
+                BookResponseDTO book,
+                LocalDate checkoutDate,
+                LocalDate dueDate,
+                LocalDate returnDate,
+                LoanStatus status,
+                Integer renewalCount,
+                LocalDateTime createdAt,
+                LocalDateTime updatedAt) {
+}

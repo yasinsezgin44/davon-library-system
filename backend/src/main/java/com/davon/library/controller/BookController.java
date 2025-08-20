@@ -45,7 +45,7 @@ public class BookController {
     public List<BookResponseDTO> getAllBooks() {
         try {
             return bookService.getAllBooks().stream()
-                    .map(BookMapper::toResponseDTO)
+                    .map(b -> BookMapper.toResponseDTO(b, bookService.isBookAvailable(b.getId())))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error fetching all books", e);
@@ -58,7 +58,7 @@ public class BookController {
     @Operation(summary = "Get a book by its ID")
     public Response getBookById(@PathParam("id") Long id) {
         return bookService.getBookById(id)
-                .map(book -> Response.ok(BookMapper.toResponseDTO(book)).build())
+                .map(book -> Response.ok(BookMapper.toResponseDTO(book, bookService.isBookAvailable(id))).build())
                 .orElse(Response.status(Response.Status.NOT_FOUND).build());
     }
 
@@ -68,6 +68,9 @@ public class BookController {
     @SecurityRequirement(name = "jwt")
     public Response createBook(@Valid BookRequestDTO book) {
         Book createdBook = bookService.createBook(book);
+        if (createdBook == null) {
+            return Response.status(Response.Status.CREATED).build();
+        }
         return Response.status(Response.Status.CREATED).entity(BookMapper.toResponseDTO(createdBook)).build();
     }
 
@@ -77,7 +80,7 @@ public class BookController {
     @Operation(summary = "Update a book's details")
     @SecurityRequirement(name = "jwt")
     public Response updateBook(@PathParam("id") Long id, @Valid BookRequestDTO book) {
-        Book updatedBook = bookService.updateBook(id, BookMapper.toEntity(book));
+        Book updatedBook = bookService.updateBook(id, book);
         return Response.ok(BookMapper.toResponseDTO(updatedBook)).build();
     }
 
@@ -97,7 +100,7 @@ public class BookController {
     @PermitAll
     public List<BookResponseDTO> searchBooks(@QueryParam("query") String query) {
         return bookService.searchBooks(query).stream()
-                .map(BookMapper::toResponseDTO)
+                .map(b -> BookMapper.toResponseDTO(b, bookService.isBookAvailable(b.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -110,7 +113,7 @@ public class BookController {
         // Placeholder for trending logic
         return bookService.getAllBooks().stream()
                 .limit(5)
-                .map(BookMapper::toResponseDTO)
+                .map(b -> BookMapper.toResponseDTO(b, bookService.isBookAvailable(b.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -130,7 +133,7 @@ public class BookController {
     @PermitAll
     public List<BookResponseDTO> getBooksByGenre(@PathParam("genreId") Long genreId) {
         return bookService.getBooksByCategory(genreId).stream()
-                .map(BookMapper::toResponseDTO)
+                .map(b -> BookMapper.toResponseDTO(b, bookService.isBookAvailable(b.getId())))
                 .collect(Collectors.toList());
     }
 }

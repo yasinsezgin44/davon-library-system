@@ -40,7 +40,7 @@ public class AdminController {
         user.setEmail(request.getEmail());
         user.setPasswordHash(request.getPassword()); // Will be hashed in the service
 
-        User createdUser = adminService.createUserWithRole(user, request.getRole());
+        User createdUser = adminService.createUserWithRole(user, request.getPassword(), request.getRole());
         return Response.status(Response.Status.CREATED).entity(new UserDTO(createdUser)).build();
     }
 

@@ -2,6 +2,7 @@ package com.davon.library.controller;
 
 import com.davon.library.dto.UserRequestDTO;
 import com.davon.library.dto.UserResponseDTO;
+import com.davon.library.dto.UserUpdateDTO;
 import com.davon.library.mapper.UserMapper;
 import com.davon.library.model.User;
 import com.davon.library.service.UserService;
@@ -47,7 +48,7 @@ public class UserController {
     @Operation(summary = "Create new user", description = "Add a new user to the system")
     public Response createUser(@Valid UserRequestDTO userData) {
         User newUser = UserMapper.toEntity(userData);
-        User createdUser = userService.createUser(newUser);
+        User createdUser = userService.createUser(newUser, userData.password(), userData.roleIds());
         return Response.status(Response.Status.CREATED).entity(UserMapper.toResponseDTO(createdUser)).build();
     }
 
@@ -55,9 +56,8 @@ public class UserController {
     @Path("/{id}")
     @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Update user", description = "Update an existing user")
-    public Response updateUser(@PathParam("id") Long id, @Valid UserRequestDTO userData) {
-        User userToUpdate = UserMapper.toEntity(userData);
-        User updatedUser = userService.updateUser(id, userToUpdate);
+    public Response updateUser(@PathParam("id") Long id, @Valid UserUpdateDTO userData) {
+        User updatedUser = userService.updateUser(id, userData);
         return Response.ok(UserMapper.toResponseDTO(updatedUser)).build();
     }
 
@@ -66,7 +66,7 @@ public class UserController {
     @RolesAllowed({ "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Deactivate user", description = "Deactivate a user")
     public Response deleteUser(@PathParam("id") Long id) {
-        userService.deactivateUser(id);
+        userService.deleteUser(id);
         return Response.noContent().build();
     }
 

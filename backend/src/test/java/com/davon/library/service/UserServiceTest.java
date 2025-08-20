@@ -1,5 +1,6 @@
 package com.davon.library.service;
 
+import com.davon.library.dto.UserUpdateDTO;
 import com.davon.library.model.User;
 import com.davon.library.repository.UserRepository;
 import io.quarkus.test.junit.QuarkusTest;
@@ -8,6 +9,7 @@ import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 
 @QuarkusTest
 class UserServiceTest {
@@ -27,17 +31,20 @@ class UserServiceTest {
 
     @Test
     void testCreateUser() {
+        QuarkusTransaction.begin();
         User user = new User();
-        user.setUsername("testuser");
-        user.setEmail("test@example.com");
+        user.setUsername("testuser_create");
+        user.setEmail("test_create@example.com");
+        user.setFullName("Test User Create");
 
-        when(userRepository.existsByUsername("testuser")).thenReturn(false);
-        when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
+        when(userRepository.existsByUsername("testuser_create")).thenReturn(false);
+        when(userRepository.existsByEmail("test_create@example.com")).thenReturn(false);
 
-        User created = userService.createUser(user);
+        User created = userService.createUser(user, "password", new HashSet<>());
 
         verify(userRepository).persist(user);
         assertEquals(user, created);
+        QuarkusTransaction.rollback();
     }
 
     @Test
@@ -47,7 +54,8 @@ class UserServiceTest {
 
         when(userRepository.existsByUsername("duplicate")).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(user));
+        assertThrows(jakarta.ws.rs.BadRequestException.class,
+                () -> userService.createUser(user, "password", new HashSet<>()));
     }
 
     @Test
@@ -56,8 +64,7 @@ class UserServiceTest {
         existing.setId(1L);
         existing.setFullName("Old Name");
 
-        User updated = new User();
-        updated.setFullName("New Name");
+        UserUpdateDTO updated = new UserUpdateDTO("New Name", "newemail@example.com", null, null, null, null);
 
         when(userRepository.findByIdOptional(1L)).thenReturn(Optional.of(existing));
 
@@ -70,7 +77,8 @@ class UserServiceTest {
     void testUpdateUserNotFound() {
         when(userRepository.findByIdOptional(99L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userService.updateUser(99L, new User()));
+        assertThrows(NotFoundException.class,
+                () -> userService.updateUser(99L, new UserUpdateDTO(null, null, null, null, null, null)));
     }
 
     @Test

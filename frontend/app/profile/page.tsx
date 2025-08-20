@@ -2,13 +2,37 @@
 
 import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
-import apiClient from "../../lib/apiClient";
+
+interface ProfileRoleString {
+  name: string;
+}
+interface ProfileData {
+  fullName: string;
+  email: string;
+  phoneNumber?: string | null;
+  roles: Array<string | ProfileRoleString>;
+}
 
 const ProfilePage = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [form, setForm] = useState<{ fullName: string; phoneNumber: string }>({
+    fullName: "",
+    phoneNumber: "",
+  });
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -29,17 +53,31 @@ const ProfilePage = () => {
           tokenPreview: token ? token.substring(0, 12) + "..." : null,
         });
 
-        const response = await apiClient.get("/profile");
+        // Use Next.js route to include httpOnly cookie automatically
+        const response = await fetch("/api/profile", {
+          credentials: "include",
+        });
         console.log("[Profile] GET /api/profile response", {
           status: response.status,
         });
-        setProfile(response.data);
-      } catch (err: any) {
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to load profile");
+        }
+        const data = await response.json();
+        setProfile(data);
+        setForm({
+          fullName: data?.fullName ?? "",
+          phoneNumber: data?.phoneNumber ?? "",
+        });
+      } catch (err: unknown) {
         console.error("Failed to fetch profile:", err);
+        const e = err as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
         setError(
-          err?.response?.data?.message ||
-            err?.message ||
-            "Failed to load profile"
+          e?.response?.data?.message || e?.message || "Failed to load profile"
         );
       } finally {
         setLoading(false);
@@ -47,6 +85,112 @@ const ProfilePage = () => {
     };
     fetchProfile();
   }, [user]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const startEditing = () => {
+    setSuccessMessage(null);
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    if (profile) {
+      setForm({
+        fullName: profile.fullName ?? "",
+        phoneNumber: profile.phoneNumber ?? "",
+      });
+    }
+    setIsEditing(false);
+    setSuccessMessage(null);
+  };
+
+  const saveProfile = async () => {
+    setSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+    try {
+      const payload = {
+        fullName: form.fullName,
+        phoneNumber: form.phoneNumber || null,
+      };
+      const resp = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+      if (!resp.ok) {
+        const errorText = await resp.text();
+        throw new Error(errorText || "Failed to update profile");
+      }
+      const updated = await resp.json();
+      setProfile(updated);
+      setIsEditing(false);
+      setSuccessMessage("Profile updated successfully.");
+    } catch (err: unknown) {
+      console.error("Failed to update profile:", err);
+      const e = err as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      setError(
+        e?.response?.data?.message || e?.message || "Failed to update profile"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openPasswordModal = () => {
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setPasswordError(null);
+    setSuccessMessage(null);
+    setShowPasswordModal(true);
+  };
+
+  const closePasswordModal = () => setShowPasswordModal(false);
+
+  const submitPasswordChange = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
+      setPasswordError("Please fill all password fields");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+    setPasswordSaving(true);
+    setPasswordError(null);
+    try {
+      const resp = await fetch("/api/profile/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(text || "Failed to change password");
+      }
+      setShowPasswordModal(false);
+      setSuccessMessage("Password changed successfully.");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setPasswordError(e.message || "Failed to change password");
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
 
   if (loading) return <p>Loading...</p>;
   if (error)
@@ -62,26 +206,208 @@ const ProfilePage = () => {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Profile</h1>
-      <div className="bg-white shadow-md rounded-lg p-6">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">Profile</h1>
+      <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200 text-gray-900">
+        {successMessage && (
+          <div className="mb-4 bg-green-50 text-green-700 border border-green-200 rounded p-3">
+            {successMessage}
+          </div>
+        )}
+
         <div className="mb-4">
-          <strong className="font-semibold">Name:</strong> {profile.fullName}
+          <label
+            htmlFor="fullName"
+            className="block text-sm font-medium text-gray-900 mb-1"
+          >
+            Full name
+          </label>
+          {isEditing ? (
+            <input
+              type="text"
+              name="fullName"
+              id="fullName"
+              value={form.fullName}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              placeholder="Your full name"
+            />
+          ) : (
+            <div>
+              <strong className="font-semibold">Name:</strong>{" "}
+              {profile.fullName}
+            </div>
+          )}
         </div>
+
         <div className="mb-4">
-          <strong className="font-semibold">Email:</strong> {profile.email}
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-900 mb-1"
+          >
+            Email
+          </label>
+          <div className="text-gray-900">{profile.email}</div>
+          <p className="text-xs text-gray-500">Email cannot be changed.</p>
         </div>
-        <div>
+
+        <div className="mb-4">
+          <label
+            htmlFor="phoneNumber"
+            className="block text-sm font-medium text-gray-900 mb-1"
+          >
+            Phone number
+          </label>
+          {isEditing ? (
+            <input
+              type="tel"
+              name="phoneNumber"
+              id="phoneNumber"
+              value={form.phoneNumber}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              placeholder="Optional"
+            />
+          ) : (
+            <div>
+              <strong className="font-semibold">Phone:</strong>{" "}
+              {profile.phoneNumber || "-"}
+            </div>
+          )}
+        </div>
+
+        <div className="mb-6">
           <strong className="font-semibold">Roles:</strong>{" "}
           {Array.isArray(profile.roles)
             ? profile.roles
-                .map((role: any) =>
-                  typeof role === "string" ? role : role?.name
-                )
+                .map((role) => (typeof role === "string" ? role : role?.name))
                 .filter(Boolean)
                 .join(", ")
             : ""}
         </div>
+
+        {!isEditing ? (
+          <button
+            onClick={startEditing}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+          >
+            Edit profile
+          </button>
+        ) : (
+          <div className="flex gap-3">
+            <button
+              onClick={saveProfile}
+              disabled={saving || !form.fullName.trim()}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 focus:outline-none"
+            >
+              {saving ? "Saving..." : "Save changes"}
+            </button>
+            <button
+              onClick={cancelEditing}
+              disabled={saving}
+              className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md shadow-sm bg-white text-gray-700 border-gray-300 hover:bg-gray-50 focus:outline-none"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+        <div className="mt-4">
+          <button
+            onClick={openPasswordModal}
+            className="inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md shadow-sm bg-white text-gray-800 border-gray-300 hover:bg-gray-50 focus:outline-none"
+          >
+            Change password
+          </button>
+        </div>
       </div>
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 text-gray-900">
+            <h2 className="text-xl font-semibold mb-4">Change password</h2>
+            {passwordError && (
+              <div className="mb-3 bg-red-50 text-red-700 border border-red-200 rounded p-3">
+                {passwordError}
+              </div>
+            )}
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="currentPassword"
+                  className="block text-sm font-medium text-gray-900 mb-1"
+                >
+                  Current password
+                </label>
+                <input
+                  id="currentPassword"
+                  type="password"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({
+                      ...p,
+                      currentPassword: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-medium text-gray-900 mb-1"
+                >
+                  New password
+                </label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  value={passwordForm.newPassword}
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({
+                      ...p,
+                      newPassword: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-900 mb-1"
+                >
+                  Confirm new password
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordForm((p) => ({
+                      ...p,
+                      confirmPassword: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closePasswordModal}
+                className="px-4 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitPasswordChange}
+                disabled={passwordSaving}
+                className="px-4 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {passwordSaving ? "Saving..." : "Change password"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

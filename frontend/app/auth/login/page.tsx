@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,12 +17,11 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
+        credentials: "include",
       });
 
       if (res.ok) {
-        const data = await res.json();
-        // Redirect to dashboard or home page
-        window.location.href = "/dashboard/member";
+        await login();
       } else {
         const errorData = await res.json();
         setError(errorData.message || "Login failed");

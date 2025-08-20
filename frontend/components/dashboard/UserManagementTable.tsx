@@ -1,25 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient";
+import { apiClient } from "../../lib/apiClient";
+import CreateUserModal from "./CreateUserModal";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import UpdateUserModal from "./UpdateUserModal";
 
-type Role = {
+export type Role = {
   id: number;
   name: string;
   description: string;
 };
 
-type UserRow = {
+export type UserRow = {
   id: number;
   fullName: string;
   email: string;
+  phoneNumber: string;
+  active: boolean;
+  status: string;
   roles: Role[];
 };
 
 const UserManagementTable = () => {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
-  // Add states for modals: const [isCreateModalOpen, setCreateModalOpen] = useState(false); etc.
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -41,6 +50,10 @@ const UserManagementTable = () => {
     userData: Omit<UserRow, "id" | "roles"> & {
       password: string;
       username: string;
+      phoneNumber: string;
+      active: boolean;
+      status: string;
+      roleIds: number[];
     }
   ) => {
     try {
@@ -51,10 +64,15 @@ const UserManagementTable = () => {
     }
   };
 
-  const handleUpdate = async (id: number, userData: Partial<UserRow>) => {
+  const handleUpdate = async (
+    id: number,
+    userData: Partial<UserRow> & { roleIds?: number[] }
+  ) => {
     try {
       const response = await apiClient.put(`/users/${id}`, userData);
       setUsers(users.map((user) => (user.id === id ? response.data : user)));
+      setUpdateModalOpen(false);
+      setSelectedUser(null);
     } catch (error) {
       console.error("Failed to update user:", error);
     }
@@ -64,9 +82,21 @@ const UserManagementTable = () => {
     try {
       await apiClient.delete(`/users/${id}`);
       setUsers(users.filter((user) => user.id !== id));
+      setDeleteModalOpen(false);
+      setSelectedUser(null);
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
+  };
+
+  const openUpdateModal = (user: UserRow) => {
+    setSelectedUser(user);
+    setUpdateModalOpen(true);
+  };
+
+  const openDeleteModal = (user: UserRow) => {
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
   };
 
   if (loading) {
@@ -81,7 +111,10 @@ const UserManagementTable = () => {
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <div className="flex justify-between items-center mb-4 px-6 py-4">
         <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
-        <button className="px-4 py-2 rounded-md font-semibold text-sm bg-green-500 text-white hover:bg-green-600">
+        <button
+          onClick={() => setCreateModalOpen(true)}
+          className="px-4 py-2 rounded-md font-semibold text-sm bg-green-500 text-white hover:bg-green-600"
+        >
           Add New User
         </button>
       </div>
@@ -117,11 +150,14 @@ const UserManagementTable = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end items-center space-x-2">
-                    <button className="px-4 py-2 rounded-md font-semibold text-sm bg-indigo-500 text-white hover:bg-indigo-600">
+                    <button
+                      onClick={() => openUpdateModal(user)}
+                      className="px-4 py-2 rounded-md font-semibold text-sm bg-indigo-500 text-white hover:bg-indigo-600"
+                    >
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(user.id)}
+                      onClick={() => openDeleteModal(user)}
                       className="px-4 py-2 rounded-md font-semibold text-sm bg-red-500 text-white hover:bg-red-600"
                     >
                       Delete
@@ -133,7 +169,33 @@ const UserManagementTable = () => {
           </tbody>
         </table>
       </div>
-      {/* Add Modals for Create, Update, Delete here */}
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreate={handleCreate}
+      />
+      <UpdateUserModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => {
+          setUpdateModalOpen(false);
+          setSelectedUser(null);
+        }}
+        onUpdate={handleUpdate}
+        user={selectedUser}
+      />
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedUser(null);
+        }}
+        onConfirm={() => {
+          if (selectedUser) {
+            handleDelete(selectedUser.id);
+          }
+        }}
+        itemName={selectedUser ? selectedUser.fullName : ""}
+      />
     </div>
   );
 };

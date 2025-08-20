@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const backendBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8083";
-
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -11,14 +9,6 @@ const nextConfig = {
         pathname: "/images/**",
       },
     ],
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${backendBase}/api/:path*`,
-      },
-    ];
   },
 };
 
