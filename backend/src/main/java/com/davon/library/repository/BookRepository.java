@@ -41,4 +41,12 @@ public class BookRepository implements PanacheRepository<Book> {
                 "LOWER(a.name) LIKE :query",
                 Parameters.with("query", searchPattern)).list();
     }
+
+    public List<String> findAllGenres() {
+        return getEntityManager().createQuery("SELECT DISTINCT b.genre FROM Book b", String.class).getResultList();
+    }
+
+    public List<Book> findByGenre(String genre) {
+        return list("genre", genre);
+    }
 }

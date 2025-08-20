@@ -38,6 +38,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        const token = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("token="))
+          ?.split("=")[1];
+
+        if (!token) {
+          setUser(null);
+          setIsAuthReady(true);
+          return;
+        }
+
         const response = await fetch("/api/auth/me");
         if (response.ok) {
           const userData = await response.json();

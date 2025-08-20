@@ -42,7 +42,7 @@ public class LoanMapper {
         return new LoanResponseDTO(
                 loan.getId(),
                 MemberMapper.toResponseDTO(loan.getMember()),
-                BookMapper.toResponseDTO(loan.getBookCopy().getBook()),
+                BookMapper.toResponseDTO(loan.getBookCopy().getBook(), false),
                 loan.getCheckoutDate(),
                 loan.getDueDate(),
                 loan.getReturnDate(),

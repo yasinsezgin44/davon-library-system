@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import apiClient from "../lib/apiClient";
+import { publicApiClient } from "../lib/apiClient";
 import BookCard from "./BookCard";
 
 type TrendingBook = {
@@ -17,7 +17,7 @@ const TrendingBooks = () => {
   useEffect(() => {
     const fetchTrendingBooks = async () => {
       try {
-        const response = await apiClient.get("/books/trending");
+        const response = await publicApiClient.get("/books/trending");
         setBooks(response.data);
       } catch (err) {
         console.error("Failed to fetch trending books:", err);

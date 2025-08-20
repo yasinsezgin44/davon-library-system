@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import apiClient from "../../lib/apiClient";
+import { publicApiClient } from "../../lib/apiClient";
 import BookCard from "../../components/BookCard";
 
 type Book = {
   id: number;
   title: string;
-  author: string;
+  authorName: string;
   coverImageUrl: string;
   isAvailable: boolean;
 };
@@ -28,7 +28,7 @@ const BookListPage = () => {
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const response = await apiClient.get("/books/genres");
+        const response = await publicApiClient.get("/books/genres");
         setGenres(response.data);
       } catch (err) {
         console.error("Failed to fetch genres:", err);
@@ -58,7 +58,7 @@ const BookListPage = () => {
         } else if (selectedGenre) {
           url = `/books/genre/${selectedGenre}`;
         }
-        const response = await apiClient.get(url);
+        const response = await publicApiClient.get(url);
         setBooks(response.data);
       } catch (err) {
         setError("Failed to fetch books. Please try again later.");
@@ -122,7 +122,7 @@ const BookListPage = () => {
               key={book.id}
               id={book.id}
               title={book.title}
-              author={book.author}
+              author={book.authorName}
               imageUrl={book.coverImageUrl || "/images/default_book_image.jpeg"}
               isAvailable={book.isAvailable}
             />
