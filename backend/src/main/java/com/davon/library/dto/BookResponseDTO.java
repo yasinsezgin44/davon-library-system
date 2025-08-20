@@ -1,6 +1,7 @@
 package com.davon.library.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class BookResponseDTO {
     public Long id;
@@ -15,6 +16,8 @@ public class BookResponseDTO {
     public String genre;
     public String language;
     public String coverImageUrl;
+    public Integer stock;
+    public List<AuthorResponseDTO> authors;
 
     public Long id() {
         return id;

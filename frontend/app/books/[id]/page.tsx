@@ -22,6 +22,7 @@ interface Book {
 
 const BookDetailPage = () => {
   const [book, setBook] = useState<Book | null>(null);
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const params = useParams();
   const { id } = params;
@@ -46,6 +47,15 @@ const BookDetailPage = () => {
 
   const handleBorrowSuccess = () => {
     if (book) setBook({ ...book, isAvailable: false });
+  };
+
+  const handleReserveSuccess = (position?: number) => {
+    if (typeof position === "number") setQueuePosition(position);
+    toast.success(
+      position && position > 0
+        ? `You're in the queue (position ${position}).`
+        : "Reservation placed."
+    );
   };
 
   if (loading) {
@@ -103,7 +113,13 @@ const BookDetailPage = () => {
               bookId={book.id}
               isAvailable={book.isAvailable}
               onBorrowSuccess={handleBorrowSuccess}
+              onReserveSuccess={handleReserveSuccess}
             />
+            {!book.isAvailable && queuePosition !== null && (
+              <p className="mt-2 text-sm text-gray-600">
+                Your queue position: <strong>{queuePosition}</strong>
+              </p>
+            )}
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import com.davon.library.model.Loan;
 import com.davon.library.model.Member;
 import com.davon.library.model.enums.FineStatus;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.time.LocalDate;
@@ -16,6 +17,14 @@ public class FineRepository implements PanacheRepository<Fine> {
 
     public List<Fine> findByMember(Member member) {
         return list("member", member);
+    }
+
+    public List<Fine> findByMemberOrderByIssueDateDesc(Member member) {
+        return find("member", Sort.by("issueDate").descending().and("id", Sort.Direction.Descending), member).list();
+    }
+
+    public List<Fine> listAllOrderByIssueDateDesc() {
+        return listAll(Sort.by("issueDate").descending().and("id", Sort.Direction.Descending));
     }
 
     public Optional<Fine> findByLoan(Loan loan) {

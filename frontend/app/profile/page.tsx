@@ -33,6 +33,26 @@ const ProfilePage = () => {
   });
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  type Fine = {
+    id: number;
+    loan?: { book?: { title?: string } };
+    amount: number | string;
+    reason?: string;
+    status?: string | { name?: string };
+    issueDate?: string;
+  };
+  const [fines, setFines] = useState<Fine[]>([]);
+  const [loadingFines, setLoadingFines] = useState(false);
+  const [payingFineId, setPayingFineId] = useState<number | null>(null);
+  type MyReservation = {
+    id: number;
+    book?: { title?: string };
+    priorityNumber?: number;
+    status?: string;
+  };
+  const [reservations, setReservations] = useState<MyReservation[]>([]);
+  const [loadingReservations, setLoadingReservations] = useState(false);
+  const [actingReservationId, setActingReservationId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -85,6 +105,119 @@ const ProfilePage = () => {
     };
     fetchProfile();
   }, [user]);
+
+  useEffect(() => {
+    const fetchFines = async () => {
+      if (!user) return;
+      setLoadingFines(true);
+      try {
+        const resp = await fetch("/api/fines", {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          setFines(Array.isArray(data) ? data : []);
+        }
+      } finally {
+        setLoadingFines(false);
+      }
+    };
+    fetchFines();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      if (!user) return;
+      setLoadingReservations(true);
+      try {
+        const resp = await fetch("/api/reservations", {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (resp.ok) {
+          setReservations(await resp.json());
+        }
+      } finally {
+        setLoadingReservations(false);
+      }
+    };
+    fetchReservations();
+  }, [user]);
+
+  const refreshReservations = async () => {
+    setLoadingReservations(true);
+    try {
+      const resp = await fetch("/api/reservations", { cache: "no-store", credentials: "include" });
+      if (resp.ok) setReservations(await resp.json());
+    } finally {
+      setLoadingReservations(false);
+    }
+  };
+
+  const cancelReservation = async (id: number) => {
+    try {
+      setActingReservationId(id);
+      const resp = await fetch(`/api/reservations/${id}/cancel`, { method: "POST", credentials: "include" });
+      if (!resp.ok && resp.status !== 204) throw new Error(await resp.text());
+    } catch (e) {
+      console.error("Failed to cancel reservation", e);
+    } finally {
+      setActingReservationId(null);
+      await refreshReservations();
+    }
+  };
+
+  const borrowReservation = async (id: number) => {
+    try {
+      setActingReservationId(id);
+      const resp = await fetch(`/api/reservations/${id}/borrow`, { method: "POST", credentials: "include" });
+      if (!resp.ok) throw new Error(await resp.text());
+    } catch (e) {
+      console.error("Failed to borrow reservation", e);
+    } finally {
+      setActingReservationId(null);
+      await refreshReservations();
+    }
+  };
+
+  const isFinePending = (
+    status: string | { name?: unknown } | null | undefined
+  ): boolean => {
+    let s: string | undefined = undefined;
+    if (typeof status === "string") {
+      s = status;
+    } else if (status && typeof status === "object" && "name" in status) {
+      const name = (status as { name?: unknown }).name;
+      if (typeof name === "string") s = name;
+    }
+    return typeof s === "string" && s.toUpperCase() === "PENDING";
+  };
+
+  const payFine = async (fineId: number) => {
+    try {
+      setPayingFineId(fineId);
+      const resp = await fetch(`/api/fines?id=${fineId}`, {
+        method: "PUT",
+        credentials: "include",
+      });
+      if (!resp.ok && resp.status !== 204) throw new Error(await resp.text());
+    } catch (e) {
+      console.error("Failed to pay fine", e);
+    } finally {
+      setPayingFineId(null);
+      // Always refresh fines to reflect the latest state, even if the PUT errored
+      try {
+        const refreshed = await fetch("/api/fines", {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (refreshed.ok) setFines(await refreshed.json());
+      } catch {
+        // ignore refresh errors; UI will remain as-is
+      }
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -319,6 +452,140 @@ const ProfilePage = () => {
           </button>
         </div>
       </div>
+      <div className="mt-8 bg-white shadow-md rounded-lg p-6 border border-gray-200 text-gray-900">
+        <h2 className="text-2xl font-bold mb-4">My Fines</h2>
+        {loadingFines ? (
+          <div>Loading fines...</div>
+        ) : fines.length === 0 ? (
+          <div>No fines.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Book
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Reason
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Issued
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {fines.map((fine) => (
+                  <tr key={fine.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine?.loan?.book?.title || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine.amount}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine.reason}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span className="mr-3">
+                        {typeof fine.status === "string"
+                          ? fine.status
+                          : fine.status?.name}
+                      </span>
+                      {isFinePending(fine.status) && (
+                        <button
+                          onClick={() => payFine(fine.id)}
+                          disabled={payingFineId === fine.id}
+                          className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {payingFineId === fine.id ? "Paying..." : "Pay"}
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine.issueDate
+                        ? new Date(fine.issueDate).toLocaleDateString()
+                        : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <div className="mt-8 bg-white shadow-md rounded-lg p-6 border border-gray-200 text-gray-900">
+        <h2 className="text-2xl font-bold mb-4">My Reservations</h2>
+        {loadingReservations ? (
+          <div>Loading reservations...</div>
+        ) : reservations.length === 0 ? (
+          <div>No reservations.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Book
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Queue
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {reservations.map((r) => (
+                  <tr key={r.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {r?.book?.title || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {r?.priorityNumber ?? "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {r?.status}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                      <div className="space-x-2">
+                        {typeof r.status === "string" && r.status.toUpperCase() === "READY_FOR_PICKUP" && (
+                          <button
+                            onClick={() => borrowReservation(r.id)}
+                            disabled={actingReservationId === r.id}
+                            className="px-3 py-1 rounded bg-green-600 text-white disabled:opacity-50"
+                          >
+                            {actingReservationId === r.id ? "Processing..." : "Borrow"}
+                          </button>
+                        )}
+                        {typeof r.status === "string" && ["PENDING", "READY_FOR_PICKUP"].includes(r.status.toUpperCase()) && (
+                          <button
+                            onClick={() => cancelReservation(r.id)}
+                            disabled={actingReservationId === r.id}
+                            className="px-3 py-1 rounded bg-yellow-600 text-white disabled:opacity-50"
+                          >
+                            {actingReservationId === r.id ? "Processing..." : "Cancel"}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 text-gray-900">
@@ -393,7 +660,7 @@ const ProfilePage = () => {
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={closePasswordModal}
-                className="px-4 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
+                className="px-4 py-2 text-sm rounded-md border border-gray-300 bg:white text-gray-800 hover:bg-gray-50"
               >
                 Cancel
               </button>

@@ -73,19 +73,53 @@ const UpdateBookModal = ({
   }, [isOpen]);
 
   useEffect(() => {
-    if (book) {
-      setTitle(book.title);
-      setIsbn(book.isbn);
-      setPublicationYear(book.publicationYear);
-      setDescription(book.description);
-      setCoverImage(book.coverImage);
-      setPages(book.pages);
-      setStock(book.quantity);
-      setSelectedAuthors(book.authors.map((author) => author.id));
+    if (!book) return;
+
+    setTitle(book.title);
+    setIsbn(book.isbn);
+    setPublicationYear(book.publicationYear);
+    setDescription(book.description);
+    setCoverImage(book.coverImage);
+    setPages(book.pages);
+    setStock(book.quantity);
+    setSelectedAuthors(book.authors.map((author) => author.id));
+
+    // Resolve publisherId: backend list endpoint returns publisher name only, so local row may have id=0
+    if (
+      book.publisher &&
+      typeof book.publisher.id === "number" &&
+      book.publisher.id > 0
+    ) {
       setPublisherId(book.publisher.id);
-      setCategoryId(book.category.id);
+    } else if (
+      book.publisher &&
+      book.publisher.name &&
+      allPublishers.length > 0
+    ) {
+      const match = allPublishers.find((p) => p.name === book.publisher.name);
+      setPublisherId(match ? match.id : "");
+    } else {
+      setPublisherId("");
     }
-  }, [book]);
+
+    // Resolve categoryId similarly (category may not be present in list response)
+    if (
+      book.category &&
+      typeof book.category.id === "number" &&
+      book.category.id > 0
+    ) {
+      setCategoryId(book.category.id);
+    } else if (
+      book.category &&
+      book.category.name &&
+      allCategories.length > 0
+    ) {
+      const matchCat = allCategories.find((c) => c.name === book.category.name);
+      setCategoryId(matchCat ? matchCat.id : "");
+    } else {
+      setCategoryId("");
+    }
+  }, [book, allPublishers, allCategories]);
 
   const handleAuthorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(e.target.selectedOptions, (option) =>

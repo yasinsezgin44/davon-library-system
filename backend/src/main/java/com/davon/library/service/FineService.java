@@ -45,7 +45,8 @@ public class FineService {
         fine.setStatus(FineStatus.PAID);
 
         Member member = fine.getMember();
-        member.setFineBalance(member.getFineBalance().subtract(fine.getAmount()));
+        BigDecimal currentBalance = member.getFineBalance() == null ? BigDecimal.ZERO : member.getFineBalance();
+        member.setFineBalance(currentBalance.subtract(fine.getAmount()));
 
         return fine;
     }

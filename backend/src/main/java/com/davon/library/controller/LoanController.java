@@ -56,12 +56,29 @@ public class LoanController {
 
     @PUT
     @Path("/{loanId}/return")
-    @RolesAllowed("MEMBER")
+    @RolesAllowed({ "MEMBER", "ADMIN", "LIBRARIAN" })
     @Operation(summary = "Return a book")
     public Response returnBook(@PathParam("loanId") Long loanId) {
         try {
             loanService.returnBook(loanId);
             return Response.ok().build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+    }
+
+    @PUT
+    @Path("/{loanId}")
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
+    @Operation(summary = "Update a loan (e.g., due date)")
+    public Response updateLoan(@PathParam("loanId") Long loanId, com.fasterxml.jackson.databind.node.ObjectNode body) {
+        try {
+            if (body == null || !body.hasNonNull("dueDate")) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Missing dueDate").build();
+            }
+            java.time.LocalDate newDueDate = java.time.LocalDate.parse(body.get("dueDate").asText());
+            LoanResponseDTO dto = loanService.updateLoanDueDate(loanId, newDueDate);
+            return Response.ok(dto).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
         }

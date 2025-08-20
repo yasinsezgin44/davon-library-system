@@ -116,7 +116,8 @@ class BookServiceTest {
 
         bookService.deleteBook(1L);
 
-        verify(bookCopyRepository).delete("book.id", 1L);
+        // We now rely on JPA cascade + orphanRemoval for copies
+        verifyNoInteractions(bookCopyRepository);
         verify(bookRepository).delete(book);
     }
 
