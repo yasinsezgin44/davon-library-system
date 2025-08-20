@@ -38,7 +38,7 @@ const ProfilePage = () => {
     loan?: { book?: { title?: string } };
     amount: number | string;
     reason?: string;
-    status?: string;
+    status?: string | { name?: string };
     issueDate?: string;
   };
   const [fines, setFines] = useState<Fine[]>([]);
@@ -109,24 +109,14 @@ const ProfilePage = () => {
       if (!user) return;
       setLoadingFines(true);
       try {
-        const resp = await fetch("/api/fines", { cache: "no-store" });
+        const resp = await fetch("/api/fines", {
+          cache: "no-store",
+          credentials: "include",
+        });
         if (resp.ok) {
           const data = await resp.json();
           setFines(Array.isArray(data) ? data : []);
         }
-        const payFine = async (fineId: number) => {
-          try {
-            const resp = await fetch(`/api/fines?id=${fineId}`, {
-              method: "PUT",
-            });
-            if (!resp.ok) throw new Error(await resp.text());
-            // Refresh list after payment
-            const refreshed = await fetch("/api/fines", { cache: "no-store" });
-            if (refreshed.ok) setFines(await refreshed.json());
-          } catch (e) {
-            console.error("Failed to pay fine", e);
-          }
-        };
       } finally {
         setLoadingFines(false);
       }
@@ -139,7 +129,10 @@ const ProfilePage = () => {
       if (!user) return;
       setLoadingReservations(true);
       try {
-        const resp = await fetch("/api/reservations", { cache: "no-store" });
+        const resp = await fetch("/api/reservations", {
+          cache: "no-store",
+          credentials: "include",
+        });
         if (resp.ok) {
           setReservations(await resp.json());
         }
@@ -149,6 +142,22 @@ const ProfilePage = () => {
     };
     fetchReservations();
   }, [user]);
+
+  const isFinePending = (status: unknown): boolean => {
+    const s = typeof status === "string" ? status : (status as any)?.name;
+    return typeof s === "string" && s.toUpperCase() === "PENDING";
+  };
+
+  const payFine = async (fineId: number) => {
+    try {
+      const resp = await fetch(`/api/fines?id=${fineId}`, { method: "PUT" });
+      if (!resp.ok) throw new Error(await resp.text());
+      const refreshed = await fetch("/api/fines", { cache: "no-store" });
+      if (refreshed.ok) setFines(await refreshed.json());
+    } catch (e) {
+      console.error("Failed to pay fine", e);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -409,7 +418,6 @@ const ProfilePage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Issued
                   </th>
-                  <th className="px-6 py-3"></th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -425,15 +433,12 @@ const ProfilePage = () => {
                       {fine.reason}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {fine.status}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {fine.issueDate
-                        ? new Date(fine.issueDate).toLocaleDateString()
-                        : "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                      {fine.status !== "PAID" && (
+                      <span className="mr-3">
+                        {typeof fine.status === "string"
+                          ? fine.status
+                          : fine.status?.name}
+                      </span>
+                      {isFinePending(fine.status) && (
                         <button
                           onClick={() => payFine(fine.id)}
                           className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
@@ -441,6 +446,11 @@ const ProfilePage = () => {
                           Pay
                         </button>
                       )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {fine.issueDate
+                        ? new Date(fine.issueDate).toLocaleDateString()
+                        : "-"}
                     </td>
                   </tr>
                 ))}
