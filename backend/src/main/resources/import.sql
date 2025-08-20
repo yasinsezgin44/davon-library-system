@@ -59,6 +59,7 @@ INSERT INTO users (username, password_hash, full_name, email, phone_number, crea
 ('librarian_user', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Bob Librarian', 'bob.librarian@library.com', '555-0102', GETDATE(), GETDATE(), 1),
 ('member_user_1', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Charlie Member', 'charlie.member@email.com', '555-0103', GETDATE(), GETDATE(), 1),
 ('member_user_2', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Diana Member', 'diana.member@email.com', '555-0104', GETDATE(), GETDATE(), 1);
+('member_user_3', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Ethan Member', 'ethan.member@email.com', '555-0105', GETDATE(), GETDATE(), 1);
 
 -- Assign roles to users
 -- Note: user_id and role_id correspond to the IDs from the inserts above
@@ -103,6 +104,7 @@ INSERT INTO loans (member_id, book_copy_id, checkout_date, due_date, status, cre
 INSERT INTO reservations (member_id, book_id, status, reservation_time) VALUES
 (3, 4, 'PENDING', GETDATE()), -- Charlie reserved Dune
 (4, 4, 'PENDING', GETDATE()); -- Diana reserved Dune
+(5, 4, 'PENDING', GETDATE()); -- Ethan reserved Dune
 
 
 -- =================================================================

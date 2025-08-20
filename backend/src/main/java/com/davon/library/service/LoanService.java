@@ -151,43 +151,24 @@ public class LoanService {
             createFineForOverdueLoan(loan);
         }
 
-        // reservation queue processing: try to auto-checkout to the first eligible reservation
+        // reservation queue processing: mark next pending as READY_FOR_PICKUP (no
+        // auto-checkout)
         try {
             Book book = bookCopy.getBook();
             var pending = reservationRepository.findPendingReservationsByBook(book);
             if (!pending.isEmpty()) {
-                // sort by smallest priority number first
+                // sort by priority
                 java.util.List<com.davon.library.model.Reservation> sorted = new java.util.ArrayList<>(pending);
-                sorted.sort(java.util.Comparator.comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
-
-                boolean autoAssigned = false;
-                com.davon.library.model.Reservation completedReservation = null;
-                for (com.davon.library.model.Reservation reservation : sorted) {
-                    try {
-                        // Attempt automatic checkout for this reservation's member
-                        checkoutBook(book.getId(), reservation.getMember().getId());
-                        reservation.setStatus(com.davon.library.model.enums.ReservationStatus.COMPLETED);
-                        completedReservation = reservation;
-                        autoAssigned = true;
-                        break;
-                    } catch (Exception ex) {
-                        // Not eligible; try next in queue
-                        log.info("Auto-assign skipped reservation {}: {}", reservation.getId(), ex.getMessage());
-                    }
-                }
-
-                if (autoAssigned) {
-                    // Re-number remaining pending reservations to fill gaps
-                    int nextPriority = 1;
-                    for (com.davon.library.model.Reservation r : reservationRepository.findPendingReservationsByBook(book)) {
-                        if (!r.equals(completedReservation)) {
-                            r.setPriorityNumber(nextPriority++);
-                        }
-                    }
-                } else {
-                    // No eligible member found; mark the first as READY_FOR_PICKUP
-                    var first = sorted.get(0);
-                    first.setStatus(com.davon.library.model.enums.ReservationStatus.READY_FOR_PICKUP);
+                sorted.sort(java.util.Comparator
+                        .comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
+                // mark first as READY_FOR_PICKUP
+                var first = sorted.get(0);
+                first.setStatus(com.davon.library.model.enums.ReservationStatus.READY_FOR_PICKUP);
+                // renumber remaining pending to fill gaps
+                int nextPriority = 1;
+                for (com.davon.library.model.Reservation r : reservationRepository
+                        .findPendingReservationsByBook(book)) {
+                    r.setPriorityNumber(nextPriority++);
                 }
             }
         } catch (Exception e) {
