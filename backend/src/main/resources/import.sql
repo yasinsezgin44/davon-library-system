@@ -58,7 +58,7 @@ INSERT INTO users (username, password_hash, full_name, email, phone_number, crea
 ('admin_user', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Alice Admin', 'alice.admin@library.com', '555-0101', GETDATE(), GETDATE(), 1),
 ('librarian_user', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Bob Librarian', 'bob.librarian@library.com', '555-0102', GETDATE(), GETDATE(), 1),
 ('member_user_1', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Charlie Member', 'charlie.member@email.com', '555-0103', GETDATE(), GETDATE(), 1),
-('member_user_2', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Diana Member', 'diana.member@email.com', '555-0104', GETDATE(), GETDATE(), 1);
+('member_user_2', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Diana Member', 'diana.member@email.com', '555-0104', GETDATE(), GETDATE(), 1),
 ('member_user_3', '$2a$08$QR.hqzhKInhn75S9KYrUQeWSjoIhgQrD2qZPuEktloJsu/9Yh4Jzq', 'Ethan Member', 'ethan.member@email.com', '555-0105', GETDATE(), GETDATE(), 1);
 
 -- Assign roles to users
@@ -67,14 +67,16 @@ INSERT INTO user_roles (user_id, role_id) VALUES
 (1, 1), -- Alice is an ADMIN
 (2, 2), -- Bob is a LIBRARIAN
 (3, 3), -- Charlie is a MEMBER
-(4, 3); -- Diana is a MEMBER
+(4, 3), -- Diana is a MEMBER
+(5, 3); -- Ethan is a MEMBER
 
 -- Create role-specific table entries
 INSERT INTO admins (user_id, admin_level, department) VALUES (1, 1, 'IT');
 INSERT INTO librarians (user_id, employee_id) VALUES (2, 'L-1023');
 INSERT INTO members (user_id, address, fine_balance) VALUES
 (3, '123 Bookworm Lane, Reading Town', 0),
-(4, '456 Storybook Ave, Novel City', 0);
+(4, '456 Storybook Ave, Novel City', 0),
+(5, '789 Novel Blvd, Story City', 0);
 
 
 -- =================================================================
@@ -102,9 +104,9 @@ INSERT INTO loans (member_id, book_copy_id, checkout_date, due_date, status, cre
    (4, 3, DATEADD(day, -20, GETDATE()), DATEADD(day, -10, GETDATE()), 'ACTIVE', GETDATE(), GETDATE());   
 
 INSERT INTO reservations (priority_number, member_id, book_id, status, reservation_time) VALUES
-(1, 3, 4, 'PENDING', GETDATE()), -- Charlie reserved Dune
-(2, 4, 4, 'PENDING', GETDATE()), -- Diana reserved Dune
-(3, 5, 4, 'PENDING', GETDATE()); -- Ethan reserved Dune
+(1, 3, 3, 'PENDING', GETDATE()), -- Charlie reserved Dune
+(2, 4, 3, 'PENDING', GETDATE()), -- Diana reserved Dune
+(3, 5, 3, 'PENDING', GETDATE()); -- Ethan reserved Dune
 
 
 -- =================================================================
