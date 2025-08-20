@@ -43,6 +43,7 @@ const ProfilePage = () => {
   };
   const [fines, setFines] = useState<Fine[]>([]);
   const [loadingFines, setLoadingFines] = useState(false);
+  const [payingFineId, setPayingFineId] = useState<number | null>(null);
   type MyReservation = {
     id: number;
     book?: { title?: string };
@@ -150,12 +151,21 @@ const ProfilePage = () => {
 
   const payFine = async (fineId: number) => {
     try {
-      const resp = await fetch(`/api/fines?id=${fineId}`, { method: "PUT" });
+      setPayingFineId(fineId);
+      const resp = await fetch(`/api/fines?id=${fineId}`, {
+        method: "PUT",
+        credentials: "include",
+      });
       if (!resp.ok) throw new Error(await resp.text());
-      const refreshed = await fetch("/api/fines", { cache: "no-store" });
+      const refreshed = await fetch("/api/fines", {
+        cache: "no-store",
+        credentials: "include",
+      });
       if (refreshed.ok) setFines(await refreshed.json());
     } catch (e) {
       console.error("Failed to pay fine", e);
+    } finally {
+      setPayingFineId(null);
     }
   };
 
@@ -441,9 +451,10 @@ const ProfilePage = () => {
                       {isFinePending(fine.status) && (
                         <button
                           onClick={() => payFine(fine.id)}
-                          className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                          disabled={payingFineId === fine.id}
+                          className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
                         >
-                          Pay
+                          {payingFineId === fine.id ? "Paying..." : "Pay"}
                         </button>
                       )}
                     </td>
