@@ -51,4 +51,17 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<Fine> fines = new HashSet<>();
+
+    @PrePersist
+    @PreUpdate
+    protected void ensureDefaults() {
+        if (this.fineBalance == null) {
+            this.fineBalance = BigDecimal.ZERO;
+        }
+    }
+
+    @PostLoad
+    protected void applyDefaultsOnLoad() {
+        ensureDefaults();
+    }
 }

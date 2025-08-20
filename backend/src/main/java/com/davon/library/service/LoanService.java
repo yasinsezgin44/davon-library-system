@@ -184,7 +184,8 @@ public class LoanService {
             fineRepository.persist(fine);
 
             Member member = loan.getMember();
-            member.setFineBalance(member.getFineBalance().add(fineAmount));
+            BigDecimal currentBalance = member.getFineBalance() == null ? BigDecimal.ZERO : member.getFineBalance();
+            member.setFineBalance(currentBalance.add(fineAmount));
             log.info("Created a fine of {} for member {}", fineAmount, member.getId());
         }
     }

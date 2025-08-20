@@ -71,9 +71,9 @@ INSERT INTO user_roles (user_id, role_id) VALUES
 -- Create role-specific table entries
 INSERT INTO admins (user_id, admin_level, department) VALUES (1, 1, 'IT');
 INSERT INTO librarians (user_id, employee_id) VALUES (2, 'L-1023');
-INSERT INTO members (user_id, address) VALUES
-(3, '123 Bookworm Lane, Reading Town'),
-(4, '456 Storybook Ave, Novel City');
+INSERT INTO members (user_id, address, fine_balance) VALUES
+(3, '123 Bookworm Lane, Reading Town', 0),
+(4, '456 Storybook Ave, Novel City', 0);
 
 
 -- =================================================================
@@ -97,7 +97,8 @@ INSERT INTO book_copies (book_id, status, location, created_at, updated_at) VALU
 -- Note: member_id and book_copy_id correspond to IDs above
 INSERT INTO loans (member_id, book_copy_id, checkout_date, due_date, status, created_at, updated_at) VALUES
    (3, 2, DATEADD(day, -10, GETDATE()), DATEADD(day, 4, GETDATE()), 'ACTIVE', GETDATE(), GETDATE()),  -- Charlie borrowed a copy of 1984
-   (4, 8, DATEADD(day, -5, GETDATE()), DATEADD(day, 9, GETDATE()), 'ACTIVE', GETDATE(), GETDATE());   -- Diana borrowed a copy of Foundation
+   (4, 8, DATEADD(day, -5, GETDATE()), DATEADD(day, 9, GETDATE()), 'ACTIVE', GETDATE(), GETDATE()), -- Diana borrowed a copy of Foundation
+   (4, 3, DATEADD(day, -20, GETDATE()), DATEADD(day, -10, GETDATE()), 'ACTIVE', GETDATE(), GETDATE());   
 
 INSERT INTO reservations (member_id, book_id, status, reservation_time) VALUES
 (4, 3, 'READY_FOR_PICKUP', GETDATE()); -- Diana reserved Dune
