@@ -10,6 +10,7 @@ import com.davon.library.service.UserService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -39,6 +40,7 @@ public class ReservationController {
     @RolesAllowed("MEMBER")
     @Operation(summary = "Reserve a book")
     @SecurityRequirement(name = "jwt")
+    @Transactional
     public Response reserveBook(@Valid ReservationRequestDTO request, @Context SecurityContext securityContext) {
         String username = securityContext.getUserPrincipal().getName();
         Long memberId = userService.getUserByUsername(username)
