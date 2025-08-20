@@ -64,9 +64,7 @@ const LibrarianDashboardPage = () => {
     };
 
     const cancelReservation = async (id: number) => {
-      const resp = await fetch(`/api/reservations/${id}/cancel`, {
-        method: "POST",
-      });
+      const resp = await fetch(`/api/reservations/${id}`, { method: "DELETE" });
       if (resp.ok || resp.status === 204) await refresh();
     };
     const hardDeleteReservation = async (id: number) => {
