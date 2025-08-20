@@ -22,8 +22,13 @@ const BorrowedBooks = () => {
   const fetchBorrowedBooks = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get("/loans");
-      setBooks(response.data);
+      // Prefer routing via Next API to attach httpOnly cookie properly
+      const response = await fetch("/api/loans", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      const data = await response.json();
+      setBooks(data);
       setError(null);
     } catch (error) {
       console.error("Failed to fetch borrowed books:", error);
@@ -40,6 +45,7 @@ const BorrowedBooks = () => {
 
   const handleReturn = async (loanId: number) => {
     try {
+      // Use direct backend with Bearer via axios since PUT isn't proxied yet
       await apiClient.put(`/loans/${loanId}/return`);
       toast.success("Book returned successfully!");
       fetchBorrowedBooks();

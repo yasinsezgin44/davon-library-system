@@ -23,8 +23,12 @@ const ReadingHistory = () => {
     const fetchReadingHistory = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get("/loans/history");
-        setHistory(response.data);
+        const response = await fetch("/api/loans/history", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        const data = await response.json();
+        setHistory(data);
         setError(null);
       } catch (error) {
         console.error("Failed to fetch reading history:", error);
