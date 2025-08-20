@@ -15,4 +15,8 @@ public class BookResponseDTO {
     public String genre;
     public String language;
     public String coverImageUrl;
+
+    public Long id() {
+        return id;
+    }
 }

@@ -34,7 +34,7 @@ public class LoanService {
 
     private static final Logger log = LoggerFactory.getLogger(LoanService.class);
     private static final int LOAN_PERIOD_DAYS = 14;
-    private static final int MAX_LOANS_PER_MEMBER = 10;
+    private static final int MAX_LOANS_PER_MEMBER = 3;
     private static final BigDecimal LATE_FEE_PER_DAY = new BigDecimal("0.25");
 
     @Inject
@@ -76,6 +76,11 @@ public class LoanService {
         if (loanRepository.countActiveLoansByMember(member) >= (long) MAX_LOANS_PER_MEMBER) {
             log.warn("Member {} has reached the maximum number of active loans.", userId);
             throw new BadRequestException("Member has reached the maximum number of active loans.");
+        }
+
+        if (loanRepository.existsActiveLoanForMemberAndBook(member, bookId)) {
+            log.warn("Member {} already has an active loan for book {}.", userId, bookId);
+            throw new BadRequestException("Member already has an active loan for this book.");
         }
 
         if (member.getFineBalance() != null && member.getFineBalance().compareTo(BigDecimal.ZERO) > 0) {

@@ -6,7 +6,7 @@ import BookCard from "./BookCard";
 type TrendingBook = {
   id: number;
   title: string;
-  author: string;
+  authorName: string;
   coverImageUrl: string;
   isAvailable: boolean;
 };
@@ -35,7 +35,7 @@ const TrendingBooks = () => {
             key={book.id}
             id={book.id}
             title={book.title}
-            author={book.author}
+            author={book.authorName}
             imageUrl={book.coverImageUrl || "/images/default_book_image.jpeg"}
             isAvailable={book.isAvailable}
           />

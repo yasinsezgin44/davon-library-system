@@ -28,6 +28,10 @@ public class LoanRepository implements PanacheRepository<Loan> {
         return count("member = ?1 and status = ?2", member, LoanStatus.ACTIVE);
     }
 
+    public boolean existsActiveLoanForMemberAndBook(Member member, Long bookId) {
+        return count("member = ?1 and bookCopy.book.id = ?2 and status = ?3", member, bookId, LoanStatus.ACTIVE) > 0;
+    }
+
     public List<Loan> findOverdueLoans() {
         return list("dueDate < ?1 and status = ?2", LocalDate.now(), LoanStatus.ACTIVE);
     }

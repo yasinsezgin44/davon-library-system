@@ -14,14 +14,14 @@ public class BookMapper {
         BookResponseDTO dto = new BookResponseDTO();
         dto.id = book.getId();
         dto.title = book.getTitle();
-        dto.authorName = book.getAuthors().stream()
+        dto.authorName = book.getAuthors() == null ? "" : book.getAuthors().stream()
                 .map(author -> author.getName())
                 .collect(Collectors.joining(", "));
         dto.isbn = book.getIsbn();
-        dto.publicationYear = book.getPublicationYear();
+        dto.publicationYear = book.getPublicationYear() == null ? 0 : book.getPublicationYear();
         dto.description = book.getDescription();
         dto.isAvailable = isAvailable;
-        dto.publisher = book.getPublisher().getName();
+        dto.publisher = (book.getPublisher() == null) ? null : book.getPublisher().getName();
         dto.publicationDate = book.getPublicationDate();
         dto.genre = book.getGenre();
         dto.language = book.getLanguage();

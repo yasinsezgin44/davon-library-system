@@ -19,6 +19,10 @@ import static org.mockito.Mockito.*;
 import jakarta.inject.Inject;
 import com.davon.library.dto.BookRequestDTO;
 import com.davon.library.model.Category;
+import com.davon.library.model.Publisher;
+import com.davon.library.model.Author;
+import com.davon.library.repository.PublisherRepository;
+import com.davon.library.repository.AuthorRepository;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -37,11 +41,25 @@ class BookServiceTest {
     @Inject
     BookService bookService;
 
+    @InjectMock
+    PublisherRepository publisherRepository;
+
+    @InjectMock
+    AuthorRepository authorRepository;
+
     @BeforeEach
     void setUp() {
         Category category = new Category();
         category.setId(1L);
         when(categoryRepository.findByIdOptional(1L)).thenReturn(Optional.of(category));
+
+        Publisher publisher = new Publisher();
+        publisher.setId(1L);
+        when(publisherRepository.findByIdOptional(1L)).thenReturn(Optional.of(publisher));
+
+        Author author = new Author();
+        author.setId(1L);
+        when(authorRepository.findByIdOptional(1L)).thenReturn(Optional.of(author));
     }
 
     @Test
