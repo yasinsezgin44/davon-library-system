@@ -11,6 +11,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,14 @@ public class ReservationService {
 
         Book book = bookRepository.findByIdOptional(bookId)
                 .orElseThrow(() -> new NotFoundException("Book not found"));
+
+        // Enforce limits
+        if (reservationRepository.existsActiveReservationForMemberAndBook(member, bookId)) {
+            throw new BadRequestException("You already have an active reservation for this book.");
+        }
+        if (reservationRepository.countActiveReservationsByMember(member) >= 3) {
+            throw new BadRequestException("You have reached the maximum number of active reservations (3).");
+        }
 
         Reservation reservation = new Reservation();
         reservation.setMember(member);

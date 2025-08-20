@@ -19,4 +19,14 @@ public class ReservationRepository implements PanacheRepository<Reservation> {
     public List<Reservation> findPendingReservationsByBook(Book book) {
         return list("book = ?1 and status = ?2", book, ReservationStatus.PENDING);
     }
+
+    public long countActiveReservationsByMember(Member member) {
+        return count("member = ?1 and status in (?2, ?3)", member, ReservationStatus.PENDING,
+                ReservationStatus.READY_FOR_PICKUP);
+    }
+
+    public boolean existsActiveReservationForMemberAndBook(Member member, Long bookId) {
+        return count("member = ?1 and book.id = ?2 and status in (?3, ?4)", member, bookId,
+                ReservationStatus.PENDING, ReservationStatus.READY_FOR_PICKUP) > 0;
+    }
 }
