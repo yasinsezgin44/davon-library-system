@@ -39,6 +39,31 @@ const AdminDashboardPage = () => {
     fetchFines();
   }, [user]);
 
+  const refreshFines = async () => {
+    if (!user || !user.roles.includes("ADMIN")) return;
+    setLoadingFines(true);
+    try {
+      const resp = await fetch("/api/fines?scope=admin", { cache: "no-store" });
+      if (resp.ok) {
+        const data: Fine[] = await resp.json();
+        setFines(Array.isArray(data) ? data : []);
+      }
+    } finally {
+      setLoadingFines(false);
+    }
+  };
+
+  const markFinePaid = async (fineId: number) => {
+    try {
+      const resp = await fetch(`/api/fines?id=${fineId}`, { method: "PUT" });
+      if (resp.ok || resp.status === 204) {
+        await refreshFines();
+      }
+    } catch (e) {
+      // ignore; minimal admin action handler
+    }
+  };
+
   if (!user || !user.roles.includes("ADMIN")) {
     return (
       <div className="text-center py-10">
@@ -80,7 +105,9 @@ const AdminDashboardPage = () => {
     const refresh = async () => {
       setLoading(true);
       try {
-        const resp = await fetch("/api/loans?scope=admin-active", { cache: "no-store" });
+        const resp = await fetch("/api/loans?scope=admin-active", {
+          cache: "no-store",
+        });
         if (resp.ok) setLoans(await resp.json());
       } finally {
         setLoading(false);
@@ -107,7 +134,9 @@ const AdminDashboardPage = () => {
       setDueDateInput("");
     };
     const returnLoan = async (loanId: number) => {
-      const resp = await fetch(`/api/loans/${loanId}/return`, { method: "PUT" });
+      const resp = await fetch(`/api/loans/${loanId}/return`, {
+        method: "PUT",
+      });
       if (resp.ok) await refresh();
     };
     if (loading) return <div className="p-4">Loading loans...</div>;
@@ -128,7 +157,9 @@ const AdminDashboardPage = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Due
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -160,13 +191,33 @@ const AdminDashboardPage = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
                   {editingId === loan.id ? (
                     <div className="space-x-2">
-                      <button onClick={() => saveEdit(loan.id)} className="px-3 py-1 rounded bg-green-600 text-white">Save</button>
-                      <button onClick={cancelEdit} className="px-3 py-1 rounded bg-gray-300 text-gray-800">Cancel</button>
+                      <button
+                        onClick={() => saveEdit(loan.id)}
+                        className="px-3 py-1 rounded bg-green-600 text-white"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="px-3 py-1 rounded bg-gray-300 text-gray-800"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   ) : (
                     <div className="space-x-2">
-                      <button onClick={() => startEdit(loan)} className="px-3 py-1 rounded bg-indigo-600 text-white">Edit</button>
-                      <button onClick={() => returnLoan(loan.id)} className="px-3 py-1 rounded bg-red-600 text-white">Mark Returned</button>
+                      <button
+                        onClick={() => startEdit(loan)}
+                        className="px-3 py-1 rounded bg-indigo-600 text-white"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => returnLoan(loan.id)}
+                        className="px-3 py-1 rounded bg-red-600 text-white"
+                      >
+                        Mark Returned
+                      </button>
                     </div>
                   )}
                 </td>
@@ -207,7 +258,9 @@ const AdminDashboardPage = () => {
     const refresh = async () => {
       setLoading(true);
       try {
-        const resp = await fetch("/api/reservations?scope=admin", { cache: "no-store" });
+        const resp = await fetch("/api/reservations?scope=admin", {
+          cache: "no-store",
+        });
         if (resp.ok) setReservations(await resp.json());
       } finally {
         setLoading(false);
@@ -243,7 +296,9 @@ const AdminDashboardPage = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -263,8 +318,18 @@ const AdminDashboardPage = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
                   <div className="space-x-2">
-                    <button onClick={() => promoteReservation(r.id)} className="px-3 py-1 rounded bg-indigo-600 text-white">Mark Ready</button>
-                    <button onClick={() => deleteReservation(r.id)} className="px-3 py-1 rounded bg-red-600 text-white">Delete</button>
+                    <button
+                      onClick={() => promoteReservation(r.id)}
+                      className="px-3 py-1 rounded bg-indigo-600 text-white"
+                    >
+                      Mark Ready
+                    </button>
+                    <button
+                      onClick={() => deleteReservation(r.id)}
+                      className="px-3 py-1 rounded bg-red-600 text-white"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -325,6 +390,9 @@ const AdminDashboardPage = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -346,6 +414,17 @@ const AdminDashboardPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {fine.status}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                        {typeof fine.status === "string" &&
+                        fine.status.toUpperCase() === "PENDING" ? (
+                          <button
+                            onClick={() => markFinePaid(fine.id)}
+                            className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                          >
+                            Mark Paid
+                          </button>
+                        ) : null}
                       </td>
                     </tr>
                   ))}
