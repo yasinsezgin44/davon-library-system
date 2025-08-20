@@ -88,11 +88,15 @@ public class ReservationController {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({ "ADMIN", "LIBRARIAN" })
-    @Operation(summary = "Delete/cancel a reservation")
+    @Operation(summary = "Cancel (soft delete) or hard delete a reservation (admin/librarian)")
     @SecurityRequirement(name = "jwt")
     @Transactional
-    public Response deleteReservation(@PathParam("id") Long id) {
-        reservationService.cancelReservation(id);
+    public Response deleteReservation(@PathParam("id") Long id, @QueryParam("hard") @DefaultValue("false") boolean hard) {
+        if (hard) {
+            reservationService.hardDeleteReservation(id);
+        } else {
+            reservationService.cancelReservation(id);
+        }
         return Response.noContent().build();
     }
 
@@ -112,5 +116,54 @@ public class ReservationController {
         return reservationService.getReservationsByMember(memberId).stream()
                 .map(ReservationMapper::toResponseDTO)
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    @POST
+    @Path("/{id}/cancel")
+    @RolesAllowed({ "MEMBER", "LIBRARIAN", "ADMIN" })
+    @Operation(summary = "Cancel own reservation (member) or by staff")
+    @SecurityRequirement(name = "jwt")
+    @Transactional
+    public Response cancelReservationByMember(@PathParam("id") Long id, @Context SecurityContext securityContext) {
+        String username = securityContext.getUserPrincipal().getName();
+        // Members can cancel their own; staff can also call this for convenience
+        try {
+            reservationService.cancelReservationByMember(id, username);
+        } catch (jakarta.ws.rs.BadRequestException ex) {
+            // If staff is cancelling someone else's via this endpoint, fallback to admin cancel
+            if (securityContext.isUserInRole("ADMIN") || securityContext.isUserInRole("LIBRARIAN")) {
+                reservationService.cancelReservation(id);
+            } else {
+                throw ex;
+            }
+        }
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/{id}/borrow")
+    @RolesAllowed({ "MEMBER" })
+    @Operation(summary = "Borrow a READY_FOR_PICKUP reservation for the current member")
+    @SecurityRequirement(name = "jwt")
+    @Transactional
+    public Response borrowReadyReservation(@PathParam("id") Long id, @Context SecurityContext securityContext) {
+        String username = securityContext.getUserPrincipal().getName();
+        var dto = reservationService.borrowReadyReservation(id, username);
+        return Response.ok(dto).build();
+    }
+
+    @PUT
+    @Path("/{id}/priority")
+    @RolesAllowed({ "ADMIN", "LIBRARIAN" })
+    @Operation(summary = "Update reservation queue position (pending only)")
+    @SecurityRequirement(name = "jwt")
+    @Transactional
+    public Response updatePriority(@PathParam("id") Long id, com.fasterxml.jackson.databind.node.ObjectNode body) {
+        if (body == null || body.get("priority") == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing priority").build();
+        }
+        int newPriority = body.get("priority").asInt();
+        reservationService.updateReservationPriority(id, newPriority);
+        return Response.noContent().build();
     }
 }

@@ -1,6 +1,7 @@
 package com.davon.library.service;
 
 import com.davon.library.model.Book;
+import com.davon.library.dto.LoanResponseDTO;
 import com.davon.library.model.Member;
 import com.davon.library.model.Reservation;
 import com.davon.library.model.enums.ReservationStatus;
@@ -31,6 +32,9 @@ public class ReservationService {
 
     @Inject
     BookRepository bookRepository;
+
+    @Inject
+    LoanService loanService;
 
     @Transactional
     public Reservation createReservation(Long memberId, Long bookId) {
@@ -66,11 +70,20 @@ public class ReservationService {
 
     @Transactional
     public void cancelReservation(Long reservationId) {
-        log.info("Cancelling reservation {}", reservationId);
+        log.info("Cancelling reservation {} (admin/librarian)", reservationId);
         Reservation reservation = reservationRepository.findByIdOptional(reservationId)
                 .orElseThrow(() -> new NotFoundException("Reservation not found"));
 
+        Book book = reservation.getBook();
+        boolean wasReady = reservation.getStatus() == ReservationStatus.READY_FOR_PICKUP;
         reservation.setStatus(ReservationStatus.CANCELLED);
+
+        // If the cancelled reservation was READY_FOR_PICKUP, promote the next pending one (if any)
+        if (wasReady) {
+            promoteNextPendingToReady(book);
+        }
+        // Always renumber pending queue to fill gaps
+        renumberPendingQueue(book);
     }
 
     public List<Reservation> getReservationsByMember(Long memberId) {
@@ -88,5 +101,113 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findByIdOptional(reservationId)
                 .orElseThrow(() -> new NotFoundException("Reservation not found"));
         reservation.setStatus(status);
+    }
+
+    @Transactional
+    public void cancelReservationByMember(Long reservationId, String username) {
+        log.info("Member {} cancelling reservation {}", username, reservationId);
+        Reservation reservation = reservationRepository.findByIdOptional(reservationId)
+                .orElseThrow(() -> new NotFoundException("Reservation not found"));
+
+        if (reservation.getMember() == null || reservation.getMember().getUser() == null
+                || reservation.getMember().getUser().getUsername() == null
+                || !reservation.getMember().getUser().getUsername().equals(username)) {
+            throw new BadRequestException("You can only cancel your own reservations.");
+        }
+
+        Book book = reservation.getBook();
+        boolean wasReady = reservation.getStatus() == ReservationStatus.READY_FOR_PICKUP;
+        reservation.setStatus(ReservationStatus.CANCELLED);
+
+        if (wasReady) {
+            promoteNextPendingToReady(book);
+        }
+        renumberPendingQueue(book);
+    }
+
+    @Transactional
+    public void hardDeleteReservation(Long reservationId) {
+        log.info("Hard deleting reservation {}", reservationId);
+        Reservation reservation = reservationRepository.findByIdOptional(reservationId)
+                .orElseThrow(() -> new NotFoundException("Reservation not found"));
+
+        Book book = reservation.getBook();
+        boolean wasReady = reservation.getStatus() == ReservationStatus.READY_FOR_PICKUP;
+
+        reservationRepository.delete(reservation);
+
+        if (wasReady) {
+            promoteNextPendingToReady(book);
+        }
+        renumberPendingQueue(book);
+    }
+
+    @Transactional
+    public void updateReservationPriority(Long reservationId, int newPriority) {
+        Reservation target = reservationRepository.findByIdOptional(reservationId)
+                .orElseThrow(() -> new NotFoundException("Reservation not found"));
+
+        if (target.getStatus() != ReservationStatus.PENDING) {
+            throw new BadRequestException("Only PENDING reservations can be reprioritized.");
+        }
+
+        Book book = target.getBook();
+        java.util.List<Reservation> pending = new java.util.ArrayList<>(reservationRepository.findPendingReservationsByBook(book));
+        // Sort by existing priority number (nulls last)
+        pending.sort(java.util.Comparator.comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
+
+        // Remove the target from the list if present
+        pending.removeIf(r -> r.getId().equals(target.getId()));
+
+        int clamped = Math.max(1, Math.min(newPriority, pending.size() + 1));
+        // Insert target at the desired position (1-indexed)
+        pending.add(clamped - 1, target);
+
+        // Renumber sequentially starting at 1
+        int idx = 1;
+        for (Reservation r : pending) {
+            r.setPriorityNumber(idx++);
+        }
+    }
+
+    @Transactional
+    public LoanResponseDTO borrowReadyReservation(Long reservationId, String username) {
+        Reservation reservation = reservationRepository.findByIdOptional(reservationId)
+                .orElseThrow(() -> new NotFoundException("Reservation not found"));
+
+        if (reservation.getStatus() != ReservationStatus.READY_FOR_PICKUP) {
+            throw new BadRequestException("Reservation is not ready for pickup.");
+        }
+        if (reservation.getMember() == null || reservation.getMember().getUser() == null
+                || reservation.getMember().getUser().getUsername() == null
+                || !reservation.getMember().getUser().getUsername().equals(username)) {
+            throw new BadRequestException("You can only borrow your own ready reservations.");
+        }
+
+        // Perform checkout for this reservation's book and member
+        LoanResponseDTO loan = loanService.checkoutBook(reservation.getBook().getId(), reservation.getMember().getId());
+
+        // Mark reservation as completed and renumber pending queue
+        reservation.setStatus(ReservationStatus.COMPLETED);
+        renumberPendingQueue(reservation.getBook());
+
+        return loan;
+    }
+
+    private void promoteNextPendingToReady(Book book) {
+        java.util.List<Reservation> pending = new java.util.ArrayList<>(reservationRepository.findPendingReservationsByBook(book));
+        if (pending.isEmpty()) return;
+        pending.sort(java.util.Comparator.comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
+        Reservation next = pending.get(0);
+        next.setStatus(ReservationStatus.READY_FOR_PICKUP);
+    }
+
+    private void renumberPendingQueue(Book book) {
+        java.util.List<Reservation> pending = new java.util.ArrayList<>(reservationRepository.findPendingReservationsByBook(book));
+        pending.sort(java.util.Comparator.comparingInt(r -> r.getPriorityNumber() == null ? Integer.MAX_VALUE : r.getPriorityNumber()));
+        int i = 1;
+        for (Reservation r : pending) {
+            r.setPriorityNumber(i++);
+        }
     }
 }

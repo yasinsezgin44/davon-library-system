@@ -52,6 +52,7 @@ const ProfilePage = () => {
   };
   const [reservations, setReservations] = useState<MyReservation[]>([]);
   const [loadingReservations, setLoadingReservations] = useState(false);
+  const [actingReservationId, setActingReservationId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -143,6 +144,42 @@ const ProfilePage = () => {
     };
     fetchReservations();
   }, [user]);
+
+  const refreshReservations = async () => {
+    setLoadingReservations(true);
+    try {
+      const resp = await fetch("/api/reservations", { cache: "no-store", credentials: "include" });
+      if (resp.ok) setReservations(await resp.json());
+    } finally {
+      setLoadingReservations(false);
+    }
+  };
+
+  const cancelReservation = async (id: number) => {
+    try {
+      setActingReservationId(id);
+      const resp = await fetch(`/api/reservations/${id}/cancel`, { method: "POST", credentials: "include" });
+      if (!resp.ok && resp.status !== 204) throw new Error(await resp.text());
+    } catch (e) {
+      console.error("Failed to cancel reservation", e);
+    } finally {
+      setActingReservationId(null);
+      await refreshReservations();
+    }
+  };
+
+  const borrowReservation = async (id: number) => {
+    try {
+      setActingReservationId(id);
+      const resp = await fetch(`/api/reservations/${id}/borrow`, { method: "POST", credentials: "include" });
+      if (!resp.ok) throw new Error(await resp.text());
+    } catch (e) {
+      console.error("Failed to borrow reservation", e);
+    } finally {
+      setActingReservationId(null);
+      await refreshReservations();
+    }
+  };
 
   const isFinePending = (
     status: string | { name?: unknown } | null | undefined
@@ -503,6 +540,9 @@ const ProfilePage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -516,6 +556,28 @@ const ProfilePage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {r?.status}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                      <div className="space-x-2">
+                        {typeof r.status === "string" && r.status.toUpperCase() === "READY_FOR_PICKUP" && (
+                          <button
+                            onClick={() => borrowReservation(r.id)}
+                            disabled={actingReservationId === r.id}
+                            className="px-3 py-1 rounded bg-green-600 text-white disabled:opacity-50"
+                          >
+                            {actingReservationId === r.id ? "Processing..." : "Borrow"}
+                          </button>
+                        )}
+                        {typeof r.status === "string" && ["PENDING", "READY_FOR_PICKUP"].includes(r.status.toUpperCase()) && (
+                          <button
+                            onClick={() => cancelReservation(r.id)}
+                            disabled={actingReservationId === r.id}
+                            className="px-3 py-1 rounded bg-yellow-600 text-white disabled:opacity-50"
+                          >
+                            {actingReservationId === r.id ? "Processing..." : "Cancel"}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

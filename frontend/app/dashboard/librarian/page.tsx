@@ -58,8 +58,12 @@ const LibrarianDashboardPage = () => {
       }
     };
 
-    const deleteReservation = async (id: number) => {
-      const resp = await fetch(`/api/reservations/${id}`, { method: "DELETE" });
+    const cancelReservation = async (id: number) => {
+      const resp = await fetch(`/api/reservations/${id}/cancel`, { method: "POST" });
+      if (resp.ok || resp.status === 204) await refresh();
+    };
+    const hardDeleteReservation = async (id: number) => {
+      const resp = await fetch(`/api/reservations/${id}?hard=true`, { method: "DELETE" });
       if (resp.ok || resp.status === 204) await refresh();
     };
 
@@ -106,7 +110,25 @@ const LibrarianDashboardPage = () => {
                   {r?.member?.fullName || r?.member?.user?.fullName || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {r?.priorityNumber ?? "-"}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      defaultValue={r?.priorityNumber ?? 0}
+                      min={1}
+                      className="w-16 border rounded px-2 py-1"
+                      onBlur={async (e) => {
+                        const val = parseInt(e.target.value, 10);
+                        if (!Number.isNaN(val) && val > 0) {
+                          await fetch(`/api/reservations/${r.id}/priority`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ priority: val }),
+                          });
+                          await refresh();
+                        }
+                      }}
+                    />
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {r?.status}
@@ -120,7 +142,13 @@ const LibrarianDashboardPage = () => {
                       Mark Ready
                     </button>
                     <button
-                      onClick={() => deleteReservation(r.id)}
+                      onClick={() => cancelReservation(r.id)}
+                      className="px-3 py-1 rounded bg-yellow-600 text-white"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => hardDeleteReservation(r.id)}
                       className="px-3 py-1 rounded bg-red-600 text-white"
                     >
                       Delete
