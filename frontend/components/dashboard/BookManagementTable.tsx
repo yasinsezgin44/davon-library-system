@@ -46,9 +46,8 @@ const BookManagementTable = () => {
   const fetchBooks = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/books", { cache: "no-store" });
-      if (!response.ok) throw new Error(await response.text());
-      const data = await response.json();
+      const response = await apiClient.get("/books");
+      const data = response.data;
       type ApiBook = {
         id: number;
         title: string;
@@ -121,17 +120,16 @@ const BookManagementTable = () => {
         stock: bookData.stock,
       };
       console.log("Creating book with data:", newBookData);
-      const response = await fetch("/api/books", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newBookData),
-      });
-      if (!response.ok) throw new Error(await response.text());
-      const created = await response.json();
+      const { data: created } = await apiClient.post("/books", newBookData);
       const newBook = {
         ...created,
         authors: created.authors || [],
-        quantity: created.copies?.length || 0,
+        quantity:
+          typeof created.stock === "number"
+            ? created.stock
+            : Array.isArray(created.copies)
+            ? created.copies.length
+            : 0,
       };
       setBooks([...books, newBook]);
       setCreateModalOpen(false);
@@ -152,17 +150,19 @@ const BookManagementTable = () => {
     >
   ) => {
     try {
-      const response = await fetch(`/api/books/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookData),
-      });
-      if (!response.ok) throw new Error(await response.text());
-      const updatedData = await response.json();
+      const { data: updatedData } = await apiClient.put(
+        `/books/${id}`,
+        bookData
+      );
       const updatedBook = {
         ...updatedData,
         authors: updatedData.authors || [],
-        quantity: updatedData.copies?.length || 0,
+        quantity:
+          typeof updatedData.stock === "number"
+            ? updatedData.stock
+            : Array.isArray(updatedData.copies)
+            ? updatedData.copies.length
+            : 0,
       };
       setBooks(books.map((book) => (book.id === id ? updatedBook : book)));
       setUpdateModalOpen(false);
@@ -175,8 +175,7 @@ const BookManagementTable = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const resp = await fetch(`/api/books/${id}`, { method: "DELETE" });
-      if (!resp.ok) throw new Error(await resp.text());
+      await apiClient.delete(`/books/${id}`);
       setBooks(books.filter((book) => book.id !== id));
       setDeleteModalOpen(false);
       setSelectedBook(null);

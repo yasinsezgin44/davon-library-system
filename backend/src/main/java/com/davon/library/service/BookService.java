@@ -144,7 +144,8 @@ public class BookService {
         Book book = bookRepository.findByIdOptional(bookId)
                 .orElseThrow(() -> new NotFoundException("Book not found with ID: " + bookId));
 
-        bookCopyRepository.delete("book.id", bookId);
+        // Rely on JPA cascade + orphanRemoval defined on Book.copies to remove children
+        // Avoid deleting copies directly to prevent stale state/optimistic lock issues
         bookRepository.delete(book);
     }
 
