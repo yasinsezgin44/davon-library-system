@@ -150,8 +150,8 @@ const ProfilePage = () => {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Profile</h1>
-      <div className="bg-white shadow-md rounded-lg p-6">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900">Profile</h1>
+      <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200 text-gray-900">
         {successMessage && (
           <div className="mb-4 bg-green-50 text-green-700 border border-green-200 rounded p-3">
             {successMessage}
@@ -161,7 +161,7 @@ const ProfilePage = () => {
         <div className="mb-4">
           <label
             htmlFor="fullName"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-gray-900 mb-1"
           >
             Full name
           </label>
@@ -186,7 +186,7 @@ const ProfilePage = () => {
         <div className="mb-4">
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-gray-900 mb-1"
           >
             Email
           </label>
@@ -197,7 +197,7 @@ const ProfilePage = () => {
         <div className="mb-4">
           <label
             htmlFor="phoneNumber"
-            className="block text-sm font-medium text-gray-700 mb-1"
+            className="block text-sm font-medium text-gray-900 mb-1"
           >
             Phone number
           </label>
