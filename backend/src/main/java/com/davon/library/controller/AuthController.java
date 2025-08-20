@@ -52,7 +52,7 @@ public class AuthController {
 
     @GET
     @Path("/me")
-    @RolesAllowed({ "ADMIN", "MEMBER" })
+    @RolesAllowed({ "ADMIN", "MEMBER", "LIBRARIAN" })
     public Response getMe() {
         if (jwt == null || jwt.getName() == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();

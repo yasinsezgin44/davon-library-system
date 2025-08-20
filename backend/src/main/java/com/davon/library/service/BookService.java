@@ -9,6 +9,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +81,10 @@ public class BookService {
             bookCopy.setBook(book);
             bookCopy.setStatus(CopyStatus.AVAILABLE);
             bookCopyRepository.persist(bookCopy);
+            // Keep owning side collection in sync so DTO 'stock' reflects immediately
+            if (book.getCopies() != null) {
+                book.getCopies().add(bookCopy);
+            }
         }
 
         log.info("Successfully created book with ID: {}", book.getId());
@@ -125,13 +130,35 @@ public class BookService {
                 bookCopy.setBook(existingBook);
                 bookCopy.setStatus(CopyStatus.AVAILABLE);
                 bookCopyRepository.persist(bookCopy);
+                if (existingBook.getCopies() != null) {
+                    existingBook.getCopies().add(bookCopy);
+                }
             }
         } else if (newStock < currentStock) {
-            List<BookCopy> copiesToRemove = existingBook.getCopies().stream()
-                    .limit(currentStock - newStock)
+            int toRemove = currentStock - newStock;
+            // Remove only AVAILABLE copies, preferring the most recently created ones
+            List<BookCopy> removable = existingBook.getCopies().stream()
+                    .filter(c -> c.getStatus() == CopyStatus.AVAILABLE)
+                    .sorted((a, b) -> {
+                        if (a.getCreatedAt() == null && b.getCreatedAt() == null)
+                            return 0;
+                        if (a.getCreatedAt() == null)
+                            return 1;
+                        if (b.getCreatedAt() == null)
+                            return -1;
+                        return b.getCreatedAt().compareTo(a.getCreatedAt());
+                    })
+                    .limit(toRemove)
                     .collect(Collectors.toList());
-            for (BookCopy copy : copiesToRemove) {
-                bookCopyRepository.delete(copy);
+
+            if (removable.size() < toRemove) {
+                throw new BadRequestException("Cannot reduce stock by " + toRemove
+                        + ". Only " + removable.size() + " available copies can be removed.");
+            }
+
+            // Use orphanRemoval by removing from the collection
+            for (BookCopy copy : removable) {
+                existingBook.getCopies().remove(copy);
             }
         }
 
@@ -144,7 +171,8 @@ public class BookService {
         Book book = bookRepository.findByIdOptional(bookId)
                 .orElseThrow(() -> new NotFoundException("Book not found with ID: " + bookId));
 
-        bookCopyRepository.delete("book.id", bookId);
+        // Rely on JPA cascade + orphanRemoval defined on Book.copies to remove children
+        // Avoid deleting copies directly to prevent stale state/optimistic lock issues
         bookRepository.delete(book);
     }
 

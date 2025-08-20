@@ -65,6 +65,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(userData);
         if (userData.roles && userData.roles.includes("ADMIN")) {
           router.push("/dashboard/admin");
+        } else if (userData.roles && userData.roles.includes("LIBRARIAN")) {
+          router.push("/dashboard/librarian");
         } else {
           router.push("/dashboard/member");
         }

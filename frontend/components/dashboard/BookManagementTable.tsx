@@ -42,11 +42,15 @@ const BookManagementTable = () => {
   const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   const fetchBooks = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get("/books");
+      const response = await fetch("/api/books", { cache: "no-store" });
+      if (!response.ok) throw new Error(await response.text());
+      const data = await response.json();
       type ApiBook = {
         id: number;
         title: string;
@@ -59,8 +63,9 @@ const BookManagementTable = () => {
         pages?: number;
         publisher?: { id: number; name: string } | string;
         category?: { id: number; name: string };
+        stock?: number;
       };
-      const adaptedBooks = (response.data as ApiBook[]).map((book) => {
+      const adaptedBooks = (data as ApiBook[]).map((book) => {
         const publisherObj =
           typeof book.publisher === "string"
             ? { id: 0, name: book.publisher || "Unknown" }
@@ -69,11 +74,16 @@ const BookManagementTable = () => {
         return {
           id: book.id,
           title: book.title,
-          authors: book.authors || [],
+          authors: Array.isArray(book.authors) ? book.authors : [],
           publisher: publisherObj,
           category: categoryObj,
           isbn: book.isbn,
-          quantity: Array.isArray(book.copies) ? book.copies.length : 0,
+          quantity:
+            typeof book.stock === "number"
+              ? book.stock
+              : Array.isArray(book.copies)
+              ? book.copies.length
+              : 0,
           publicationYear: book.publicationYear,
           description: book.description,
           coverImage: book.coverImage,
@@ -91,6 +101,12 @@ const BookManagementTable = () => {
   useEffect(() => {
     fetchBooks();
   }, []);
+
+  // Ensure current page stays within bounds when data changes
+  useEffect(() => {
+    const newTotalPages = Math.max(1, Math.ceil(books.length / PAGE_SIZE));
+    setCurrentPage((prev) => Math.min(prev, newTotalPages));
+  }, [books]);
 
   const handleCreate = async (bookData: {
     title: string;
@@ -113,16 +129,29 @@ const BookManagementTable = () => {
         stock: bookData.stock,
       };
       console.log("Creating book with data:", newBookData);
-      const response = await apiClient.post("/books", newBookData);
+      const resp = await fetch("/api/books", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newBookData),
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      const created = await resp.json();
       const newBook = {
-        ...response.data,
-        authors: response.data.authors || [],
-        quantity: response.data.copies?.length || 0,
+        ...created,
+        authors: created.authors || [],
+        quantity:
+          typeof created.stock === "number"
+            ? created.stock
+            : Array.isArray(created.copies)
+            ? created.copies.length
+            : 0,
       };
       setBooks([...books, newBook]);
       setCreateModalOpen(false);
     } catch (error) {
-      console.error("Failed to create book:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Failed to create book:", message);
+      alert(message);
     }
   };
 
@@ -138,29 +167,45 @@ const BookManagementTable = () => {
     >
   ) => {
     try {
-      const response = await apiClient.put(`/books/${id}`, bookData);
+      const resp = await fetch(`/api/books/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookData),
+      });
+      if (!resp.ok) throw new Error(await resp.text());
+      const updatedData = await resp.json();
       const updatedBook = {
-        ...response.data,
-        authors: response.data.authors || [],
-        quantity: response.data.copies?.length || 0,
+        ...updatedData,
+        authors: updatedData.authors || [],
+        quantity:
+          typeof updatedData.stock === "number"
+            ? updatedData.stock
+            : Array.isArray(updatedData.copies)
+            ? updatedData.copies.length
+            : 0,
       };
       setBooks(books.map((book) => (book.id === id ? updatedBook : book)));
       setUpdateModalOpen(false);
       setSelectedBook(null);
       await fetchBooks();
     } catch (error) {
-      console.error("Failed to update book:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Failed to update book:", message);
+      alert(message);
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/books/${id}`);
+      const resp = await fetch(`/api/books/${id}`, { method: "DELETE" });
+      if (!resp.ok) throw new Error(await resp.text());
       setBooks(books.filter((book) => book.id !== id));
       setDeleteModalOpen(false);
       setSelectedBook(null);
     } catch (error) {
-      console.error("Failed to delete book:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Failed to delete book:", message);
+      alert(message);
     }
   };
 
@@ -215,40 +260,81 @@ const BookManagementTable = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {books.map((book) => (
-              <tr key={book.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {book.title}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {book.authors.map((author) => author.name).join(", ")}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {book.isbn}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {book.quantity}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end items-center space-x-2">
-                    <button
-                      onClick={() => openUpdateModal(book)}
-                      className="px-4 py-2 rounded-md font-semibold text-sm bg-indigo-500 text-white hover:bg-indigo-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => openDeleteModal(book)}
-                      className="px-4 py-2 rounded-md font-semibold text-sm bg-red-500 text-white hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {books
+              .slice(
+                (currentPage - 1) * PAGE_SIZE,
+                (currentPage - 1) * PAGE_SIZE + PAGE_SIZE
+              )
+              .map((book) => (
+                <tr key={book.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {book.title}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {Array.isArray(book.authors) && book.authors.length > 0
+                      ? book.authors.map((author) => author.name).join(", ")
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {book.isbn}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {book.quantity}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end items-center space-x-2">
+                      <button
+                        onClick={() => openUpdateModal(book)}
+                        className="px-4 py-2 rounded-md font-semibold text-sm bg-indigo-500 text-white hover:bg-indigo-600"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(book)}
+                        className="px-4 py-2 rounded-md font-semibold text-sm bg-red-500 text-white hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex items-center justify-between px-6 py-3 border-t">
+        <button
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+          className={`px-3 py-1 rounded border ${
+            currentPage === 1
+              ? "text-gray-400 border-gray-200 cursor-not-allowed"
+              : "text-gray-700 hover:bg-gray-50"
+          }`}
+        >
+          Previous
+        </button>
+        <span className="text-sm text-gray-600">
+          Page {currentPage} of{" "}
+          {Math.max(1, Math.ceil(books.length / PAGE_SIZE))}
+        </span>
+        <button
+          onClick={() =>
+            setCurrentPage((p) =>
+              Math.min(Math.max(1, Math.ceil(books.length / PAGE_SIZE)), p + 1)
+            )
+          }
+          disabled={
+            currentPage >= Math.max(1, Math.ceil(books.length / PAGE_SIZE))
+          }
+          className={`px-3 py-1 rounded border ${
+            currentPage >= Math.max(1, Math.ceil(books.length / PAGE_SIZE))
+              ? "text-gray-400 border-gray-200 cursor-not-allowed"
+              : "text-gray-700 hover:bg-gray-50"
+          }`}
+        >
+          Next
+        </button>
       </div>
       <NewCreateBookModal
         isOpen={isCreateModalOpen}
