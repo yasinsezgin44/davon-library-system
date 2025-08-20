@@ -37,13 +37,19 @@ const BorrowButton = ({
         return;
       }
       try {
-        const resp = await fetch(`/api/loans`, { method: "GET", cache: "no-store" });
+        const resp = await fetch(`/api/loans`, {
+          method: "GET",
+          cache: "no-store",
+        });
         if (!resp.ok) {
           return; // silently ignore
         }
         const loans = await resp.json();
-        const hasLoan = Array.isArray(loans)
-          && loans.some((loan: { book?: { id?: number } }) => loan?.book?.id === bookId);
+        const hasLoan =
+          Array.isArray(loans) &&
+          loans.some(
+            (loan: { book?: { id?: number } }) => loan?.book?.id === bookId
+          );
         setAlreadyBorrowed(hasLoan);
       } catch (_) {
         // ignore
@@ -71,7 +77,7 @@ const BorrowButton = ({
           const resp = await fetch(`/api/reservations`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ memberId: user.id, bookId }),
+            body: JSON.stringify({ bookId }),
           });
           if (!resp.ok) {
             const text = await resp.text();
@@ -115,7 +121,11 @@ const BorrowButton = ({
   const label = alreadyBorrowed
     ? "Already Borrowed"
     : !available
-    ? (isMember ? (isSubmitting ? "Reserving..." : "Reserve") : "Unavailable")
+    ? isMember
+      ? isSubmitting
+        ? "Reserving..."
+        : "Reserve"
+      : "Unavailable"
     : !user
     ? "Sign in to borrow"
     : !isMember
