@@ -13,8 +13,16 @@ export default function HeroSection() {
       <div className="relative mx-auto max-w-5xl px-6 py-24 text-center text-white md:py-32">
         <div className="mx-auto max-w-3xl">
           <div className="mb-6 flex items-center justify-center gap-3">
-            <Image src="/logo.png" alt="Davon Library" width={64} height={64} priority />
-            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Davon Library System</h1>
+            <Image
+              src="/logo.png"
+              alt="Davon Library"
+              width={64}
+              height={64}
+              priority
+            />
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Davon Library System
+            </h1>
           </div>
           <p className="mx-auto max-w-2xl text-base/7 opacity-90 sm:text-lg">
             {isExpanded
@@ -42,5 +50,3 @@ export default function HeroSection() {
     </section>
   );
 }
-
-

@@ -45,7 +45,9 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
             <img src="/logo.png" alt="Davon Library" className="h-10 w-auto" />
-            <span className="text-xl font-bold text-gray-800 md:text-2xl hover:text-blue-400">Davon Library</span>
+            <span className="text-xl font-bold text-gray-800 md:text-2xl hover:text-blue-400">
+              Davon Library
+            </span>
           </Link>
 
           <div className="hidden md:flex items-center">
