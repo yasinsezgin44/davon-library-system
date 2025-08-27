@@ -10,6 +10,14 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/landing-page",
+        destination: "/landing-page/index.html",
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

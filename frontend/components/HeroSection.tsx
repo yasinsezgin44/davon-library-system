@@ -14,7 +14,7 @@ export default function HeroSection() {
         <div className="mx-auto max-w-3xl">
           <div className="mb-6 flex items-center justify-center gap-3">
             <Image
-              src="/logo.png"
+              src="logo.png"
               alt="Davon Library"
               width={64}
               height={64}
