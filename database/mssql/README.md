@@ -4,11 +4,15 @@ This directory contains the Microsoft SQL Server (MSSQL) version of the Library 
 
 ## Files Overview
 
-1. **01_schema_creation.sql** - Creates all tables, indexes, and triggers
-2. **02_sample_data.sql** - Inserts sample data for testing
-3. **03_common_queries.sql** - Common operations as stored procedures
-4. **04_reports_analytics.sql** - Advanced reporting and analytics procedures
-5. **test_setup.sql** - Test script to verify the setup
+1. **01_schema_creation.sql** - Creates all tables and baseline indexes
+2. **01b_index_optimizations.sql** - Additional covering/filtered indexes for performance
+3. **02_sample_data.sql** - Inserts sample data for testing
+4. **03_common_queries_new.sql** - Common operations as stored procedures
+5. **04_reports_analytics.sql** - Advanced reporting and analytics procedures
+6. **90_performance_harness.sql** - Synthetic workload generator and metrics snapshot
+7. **91_performance_seed_volume.sql** - Bulk dataset seeding for stress tests
+8. **MSSQL_FEATURES.md** - Documentation of MSSQL-specific features implemented
+9. **RESULTS_PERFORMANCE_TEMPLATE.md** - Template to capture performance results
 
 ## Setup Instructions
 
@@ -37,10 +41,13 @@ This directory contains the Microsoft SQL Server (MSSQL) version of the Library 
    -- 2. Insert sample data
    :r 02_sample_data.sql
 
-   -- 3. Create common procedures
-   :r 03_common_queries.sql
+   -- 3. Additional indexes (optional but recommended before perf tests)
+   :r 01b_index_optimizations.sql
 
-   -- 4. Create reporting procedures
+   -- 4. Create common procedures
+   :r 03_common_queries_new.sql
+
+   -- 5. Create reporting procedures
    :r 04_reports_analytics.sql
    ```
 
@@ -76,20 +83,25 @@ EXEC GetBookUsageReport '2023-01-01', '2023-12-31';
 EXEC GetOverdueLoansReport;
 ```
 
-### Testing
+### Performance Testing
 
-Run the `test_setup.sql` file to verify that all components work correctly:
+Optional steps for load and measurement:
 
 ```sql
-:r test_setup.sql
+-- Seed larger dataset
+:r 91_performance_seed_volume.sql
+
+-- Run workload and capture DMV snapshots
+:r 90_performance_harness.sql
 ```
+
+Record results using `RESULTS_PERFORMANCE_TEMPLATE.md`.
 
 ### Notes
 
-- All triggers are properly separated with GO statements to avoid batch compilation errors
 - Stored procedures include proper error handling and transaction management
 - The schema maintains referential integrity with foreign key constraints
-- Indexes are created for optimal query performance
+- Baseline and additional indexes are provided for optimal query performance
 
 ### Troubleshooting
 
