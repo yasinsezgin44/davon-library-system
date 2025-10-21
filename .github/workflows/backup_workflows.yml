@@ -1,4 +1,6 @@
 # .github/workflow-backups/backup_workflows.yml
+# FIXED: Updated API endpoints from /api/v1/ to /rest/
+# FIXED: Added URL normalization to handle trailing slashes
 
 name: "n8n Workflows Backup"
 
@@ -35,6 +37,9 @@ jobs:
           WORKFLOWS_INPUT: ${{ inputs.workflows }}
           WORKFLOWS_VARS: ${{ vars.N8N_WORKFLOWS }}
         run: |
+          # Normalize N8N_URL (remove trailing slash if present)
+          N8N_URL="${N8N_URL%/}"
+
           # Combine/normalize desired workflows
           # Priority: manual input > repo variable (vars.N8N_WORKFLOWS)
           WORKFLOWS="${WORKFLOWS_INPUT:-$WORKFLOWS_VARS}"
