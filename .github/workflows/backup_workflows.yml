@@ -1,0 +1,136 @@
+# .github/workflow-backups/backup_workflows.yml
+
+name: 'n8n Workflows Backup'
+
+# Controls when the action will run.
+on:
+  # Runs daily at 00:00 Turkey time (UTC+3) -> 21:00 UTC
+  schedule:
+    - cron: '0 21 * * *'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      workflows:
+        description: 'Comma-separated workflow IDs or names to back up (optional)'
+        required: false
+        default: ''
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checks out your repository so the workflow can access it
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Create directories to store backups and downloaded workflows
+      - name: Create workflow-backups and workflows directories
+        run: mkdir -p ./workflow-backups ./workflows
+
+      # 3. Download all workflows from n8n API
+      - name: Download n8n workflows
+        env:
+          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
+          N8N_URL: ${{ secrets.N8N_URL }}
+          WORKFLOWS_INPUT: ${{ inputs.workflows }}
+          WORKFLOWS_VARS: ${{ vars.N8N_WORKFLOWS }}
+        run: |
+          # Combine/normalize desired workflows
+          # Priority: manual input > repo variable (vars.N8N_WORKFLOWS)
+          WORKFLOWS="${WORKFLOWS_INPUT:-$WORKFLOWS_VARS}"
+          normalize() {
+            # Split by comma, trim spaces, drop empty lines
+            echo "$1" | tr ',' '\n' | sed 's/^ *//;s/ *$//' | awk 'NF'
+          }
+          desired_list=""
+          if [ -n "$WORKFLOWS" ]; then
+            desired_list="$(normalize "$WORKFLOWS")"
+            echo "Filtering to specific workflows:"
+            printf '%s\n' "$desired_list"
+          else
+            echo "No workflow filter provided; backing up all workflows."
+          fi
+
+          # Fetch all workflows and save their IDs and names
+          echo "Fetching workflows from: $N8N_URL/api/v1/workflows"
+          response=$(curl -s --request GET \
+            --url "$N8N_URL/api/v1/workflows" \
+            --header "X-N8N-API-KEY: $N8N_API_KEY" \
+            --header 'Content-Type: application/json')
+
+          # Check if response is empty
+          if [ -z "$response" ]; then
+            echo "Error: Empty response from n8n API. Please check your N8N_URL and N8N_API_KEY."
+            exit 1
+          fi
+
+          # Check if response starts with HTML (indicates error page)
+          if echo "$response" | head -1 | grep -q "<!"; then
+            echo "Error: Received HTML response instead of JSON. This usually means:"
+            echo "  - N8N_URL is incorrect"
+            echo "  - N8N_API_KEY is invalid"
+            echo "  - n8n server is not accessible"
+            echo ""
+            echo "First few lines of response:"
+            echo "$response" | head -5
+            exit 1
+          fi
+
+          # Try to parse JSON and check for error
+          if ! echo "$response" | jq -e '.data' > /dev/null 2>&1; then
+            echo "Error: Invalid JSON response or missing 'data' field:"
+            echo "Response: $response"
+            exit 1
+          fi
+
+          echo "$response" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
+
+          # Loop through each workflow and download its JSON data
+          while IFS= read -r line; do
+            id=$(echo "$line" | jq -r '.id')
+            name=$(echo "$line" | jq -r '.name' | sed 's/[/:<>:"\\|?*]/_/g') # Sanitize filename
+            original_name=$(echo "$line" | jq -r '.name')
+
+            # If desired list is provided, skip items not in the list (by id or exact name)
+            if [ -n "$desired_list" ]; then
+              if ! (printf '%s\n' "$desired_list" | grep -Fxq "$id" || \
+                    printf '%s\n' "$desired_list" | grep -Fxq "$original_name"); then
+                continue
+              fi
+            fi
+            echo "Downloading workflow: $name (ID: $id)"
+            workflow_response=$(curl -s --request GET \
+              --url "$N8N_URL/api/v1/workflows/$id" \
+              --header "X-N8N-API-KEY: $N8N_API_KEY")
+
+            # Check if workflow download succeeded
+            if [ -z "$workflow_response" ]; then
+              echo "Warning: Empty response when downloading workflow $id. Skipping."
+              continue
+            fi
+
+            # Check if response is HTML error page
+            if echo "$workflow_response" | head -1 | grep -q "<!"; then
+              echo "Warning: Received HTML error when downloading workflow $id. Skipping."
+              continue
+            fi
+
+            # Try to validate it's valid JSON
+            if ! echo "$workflow_response" | jq -e '.' > /dev/null 2>&1; then
+              echo "Warning: Invalid JSON response for workflow $id. Skipping."
+              continue
+            fi
+
+            echo "$workflow_response" > "./workflows/${name} (${id}).json"
+          done < workflows.tmp
+          rm workflows.tmp
+
+      # 4. Commit and push changes to the repository
+      - name: Commit and push if there are changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Automated n8n workflow backup'
+          file_pattern: 'workflows/*.json'
+          commit_user_name: 'GitHub Actions'
+          commit_user_email: 'actions@github.com'
+          commit_author: 'GitHub Actions <actions@github.com>'
