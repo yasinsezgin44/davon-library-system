@@ -34,11 +34,31 @@ jobs:
         env:
           N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
           N8N_URL: ${{ secrets.N8N_URL }}
+          N8N_BEARER_TOKEN: ${{ secrets.N8N_BEARER_TOKEN }}
           WORKFLOWS_INPUT: ${{ inputs.workflows }}
           WORKFLOWS_VARS: ${{ vars.N8N_WORKFLOWS }}
         run: |
           # Normalize N8N_URL (remove trailing slash if present)
           N8N_URL="${N8N_URL%/}"
+
+          # Determine API mode
+          API_MODE=""
+          if [ -n "$N8N_BEARER_TOKEN" ]; then
+            API_MODE="public" # Public API (/api/v1, Authorization: Bearer <token>)
+          elif [ -n "$N8N_API_KEY" ]; then
+            API_MODE="rest"   # REST API (/rest, X-N8N-API-KEY: <key>)
+          else
+            echo "Error: Missing credentials. Provide either N8N_BEARER_TOKEN (Public API) or N8N_API_KEY (REST API)."
+            exit 1
+          fi
+
+          if [ "$API_MODE" = "public" ]; then
+            LIST_URL="$N8N_URL/api/v1/workflows"
+            AUTH_HEADER="Authorization: Bearer $N8N_BEARER_TOKEN"
+          else
+            LIST_URL="$N8N_URL/rest/workflows"
+            AUTH_HEADER="X-N8N-API-KEY: $N8N_API_KEY"
+          fi
 
           # Combine/normalize desired workflows
           # Priority: manual input > repo variable (vars.N8N_WORKFLOWS)
@@ -57,13 +77,17 @@ jobs:
           fi
 
           # Fetch all workflows and save their IDs and names
-          echo "Fetching workflows from: $N8N_URL/rest/workflows"
-          echo "Full URL: $N8N_URL/rest/workflows"
-          echo "API Key (first 10 chars): ${N8N_API_KEY:0:10}..."
+          echo "API mode: $API_MODE"
+          echo "Fetching workflows from: $LIST_URL"
+          if [ "$API_MODE" = "public" ]; then
+            echo "Bearer (first 10 chars): ${N8N_BEARER_TOKEN:0:10}..."
+          else
+            echo "API Key (first 10 chars): ${N8N_API_KEY:0:10}..."
+          fi
 
           response=$(curl -s --request GET \
-            --url "$N8N_URL/rest/workflows" \
-            --header "X-N8N-API-KEY: $N8N_API_KEY" \
+            --url "$LIST_URL" \
+            --header "$AUTH_HEADER" \
             --header 'Content-Type: application/json')
 
           # Check if response is empty
@@ -90,14 +114,16 @@ jobs:
             exit 1
           fi
 
-          # Try to parse JSON and check for error
-          if ! echo "$response" | jq -e '.data' > /dev/null 2>&1; then
-            echo "Error: Invalid JSON response or missing 'data' field:"
-            echo "Response: $response"
+          # Parse JSON robustly (supports Public API and REST API formats)
+          if echo "$response" | jq -e '.data | type=="array"' > /dev/null 2>&1; then
+            echo "$response" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
+          elif echo "$response" | jq -e 'type=="array"' > /dev/null 2>&1; then
+            echo "$response" | jq -c '.[] | {id: .id, name: .name}' > workflows.tmp
+          else
+            echo "Error: Unexpected JSON structure:"
+            echo "$response"
             exit 1
           fi
-
-          echo "$response" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
 
           # Loop through each workflow and download its JSON data
           while IFS= read -r line; do
@@ -113,9 +139,14 @@ jobs:
               fi
             fi
             echo "Downloading workflow: $name (ID: $id)"
+            if [ "$API_MODE" = "public" ]; then
+              ITEM_URL="$N8N_URL/api/v1/workflows/$id"
+            else
+              ITEM_URL="$N8N_URL/rest/workflows/$id"
+            fi
             workflow_response=$(curl -s --request GET \
-              --url "$N8N_URL/rest/workflows/$id" \
-              --header "X-N8N-API-KEY: $N8N_API_KEY")
+              --url "$ITEM_URL" \
+              --header "$AUTH_HEADER")
 
             # Check if workflow download succeeded
             if [ -z "$workflow_response" ]; then
