@@ -35,6 +35,8 @@ jobs:
           N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
           N8N_URL: ${{ secrets.N8N_URL }}
           N8N_BEARER_TOKEN: ${{ secrets.N8N_BEARER_TOKEN }}
+          N8N_BASIC_USER: ${{ secrets.N8N_BASIC_USER }}
+          N8N_BASIC_PASS: ${{ secrets.N8N_BASIC_PASS }}
           WORKFLOWS_INPUT: ${{ inputs.workflows }}
           WORKFLOWS_VARS: ${{ vars.N8N_WORKFLOWS }}
         run: |
@@ -58,6 +60,13 @@ jobs:
           else
             LIST_URL="$N8N_URL/rest/workflows"
             AUTH_HEADER="X-N8N-API-KEY: $N8N_API_KEY"
+          fi
+
+          # If Basic Auth is provided, add it
+          BASIC_ARGS=()
+          if [ -n "$N8N_BASIC_USER" ] && [ -n "$N8N_BASIC_PASS" ]; then
+            BASIC_ARGS=( -u "$N8N_BASIC_USER:$N8N_BASIC_PASS" )
+            echo "Using Basic Auth as well."
           fi
 
           # Combine/normalize desired workflows
@@ -88,7 +97,8 @@ jobs:
           response=$(curl -s --request GET \
             --url "$LIST_URL" \
             --header "$AUTH_HEADER" \
-            --header 'Content-Type: application/json')
+            --header 'Content-Type: application/json' \
+            "${BASIC_ARGS[@]}")
 
           # Check if response is empty
           if [ -z "$response" ]; then
@@ -120,9 +130,29 @@ jobs:
           elif echo "$response" | jq -e 'type=="array"' > /dev/null 2>&1; then
             echo "$response" | jq -c '.[] | {id: .id, name: .name}' > workflows.tmp
           else
-            echo "Error: Unexpected JSON structure:"
-            echo "$response"
-            exit 1
+            # If Public API complained that X-N8N-API-KEY is required, fallback to REST
+            if echo "$response" | grep -q "'X-N8N-API-KEY' header required"; then
+              echo "Server requires REST API key. Falling back to /rest with X-N8N-API-KEY..."
+              LIST_URL="$N8N_URL/rest/workflows"
+              AUTH_HEADER="X-N8N-API-KEY: $N8N_API_KEY"
+              response=$(curl -s --request GET \
+                --url "$LIST_URL" \
+                --header "$AUTH_HEADER" \
+                --header 'Content-Type: application/json' \
+                "${BASIC_ARGS[@]}")
+
+              if echo "$response" | jq -e '.data | type=="array"' > /dev/null 2>&1; then
+                echo "$response" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
+              else
+                echo "Error: Unexpected JSON after REST fallback:"
+                echo "$response"
+                exit 1
+              fi
+            else
+              echo "Error: Unexpected JSON structure:"
+              echo "$response"
+              exit 1
+            fi
           fi
 
           # Loop through each workflow and download its JSON data
@@ -146,7 +176,8 @@ jobs:
             fi
             workflow_response=$(curl -s --request GET \
               --url "$ITEM_URL" \
-              --header "$AUTH_HEADER")
+              --header "$AUTH_HEADER" \
+              "${BASIC_ARGS[@]}")
 
             # Check if workflow download succeeded
             if [ -z "$workflow_response" ]; then
