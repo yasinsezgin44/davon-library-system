@@ -1,19 +1,19 @@
 # .github/workflow-backups/backup_workflows.yml
 
-name: 'n8n Workflows Backup'
+name: "n8n Workflows Backup"
 
 # Controls when the action will run.
 on:
   # Runs daily at 00:00 Turkey time (UTC+3) -> 21:00 UTC
   schedule:
-    - cron: '0 21 * * *'
+    - cron: "0 21 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       workflows:
-        description: 'Comma-separated workflow IDs or names to back up (optional)'
+        description: "Comma-separated workflow IDs or names to back up (optional)"
         required: false
-        default: ''
+        default: ""
 
 jobs:
   backup:
@@ -52,9 +52,12 @@ jobs:
           fi
 
           # Fetch all workflows and save their IDs and names
-          echo "Fetching workflows from: $N8N_URL/api/v1/workflows"
+          echo "Fetching workflows from: $N8N_URL/rest/workflows"
+          echo "Full URL: $N8N_URL/rest/workflows"
+          echo "API Key (first 10 chars): ${N8N_API_KEY:0:10}..."
+
           response=$(curl -s --request GET \
-            --url "$N8N_URL/api/v1/workflows" \
+            --url "$N8N_URL/rest/workflows" \
             --header "X-N8N-API-KEY: $N8N_API_KEY" \
             --header 'Content-Type: application/json')
 
@@ -67,9 +70,15 @@ jobs:
           # Check if response starts with HTML (indicates error page)
           if echo "$response" | head -1 | grep -q "<!"; then
             echo "Error: Received HTML response instead of JSON. This usually means:"
-            echo "  - N8N_URL is incorrect"
-            echo "  - N8N_API_KEY is invalid"
+            echo "  - N8N_URL is incorrect (should be API base URL, not web UI)"
+            echo "  - N8N_API_KEY is invalid or missing"
             echo "  - n8n server is not accessible"
+            echo ""
+            echo "Common N8N_URL formats:"
+            echo "  ✅ https://your-instance.com"
+            echo "  ❌ https://your-instance.com/webhook"
+            echo "  ❌ https://your-instance.com/admin"
+            echo "  ❌ your-instance.com (missing https://)"
             echo ""
             echo "First few lines of response:"
             echo "$response" | head -5
@@ -100,7 +109,7 @@ jobs:
             fi
             echo "Downloading workflow: $name (ID: $id)"
             workflow_response=$(curl -s --request GET \
-              --url "$N8N_URL/api/v1/workflows/$id" \
+              --url "$N8N_URL/rest/workflows/$id" \
               --header "X-N8N-API-KEY: $N8N_API_KEY")
 
             # Check if workflow download succeeded
@@ -129,8 +138,8 @@ jobs:
       - name: Commit and push if there are changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'Automated n8n workflow backup'
-          file_pattern: 'workflows/*.json'
-          commit_user_name: 'GitHub Actions'
-          commit_user_email: 'actions@github.com'
-          commit_author: 'GitHub Actions <actions@github.com>'
+          commit_message: "Automated n8n workflow backup"
+          file_pattern: "workflows/*.json"
+          commit_user_name: "GitHub Actions"
+          commit_user_email: "actions@github.com"
+          commit_author: "GitHub Actions <actions@github.com>"
