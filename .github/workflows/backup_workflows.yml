@@ -111,10 +111,19 @@ jobs:
       # 3. Commit and push changes to the backup branch
       - name: Commit and push workflow backups
         run: |
+          # Debug: Check what files exist
+          echo "=== DEBUG: Checking workflow-backups directory ==="
+          ls -la workflow-backups/ || echo "workflow-backups directory not found"
+          echo "=== DEBUG: Checking for JSON files ==="
+          find . -name "workflow-backups/*.json" -type f || echo "No JSON files found"
+          echo "=== DEBUG: Git status ==="
+          git status --porcelain
+
           # Check if there are any changes to commit
           if git diff --quiet workflow-backups/*.json 2>/dev/null; then
             echo "No changes to commit - workflows are up to date"
           else
+            echo "Changes detected, committing..."
             # Add and commit the workflow files
             git add workflow-backups/*.json
             git config user.name "GitHub Actions"
