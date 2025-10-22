@@ -113,11 +113,11 @@ jobs:
           git checkout -b n8n-workflows-backup 2>/dev/null || git checkout n8n-workflows-backup
 
           # Check if there are any changes to commit
-          if git diff --quiet workflows/*.json 2>/dev/null; then
+          if git diff --quiet workflow-backups/*.json 2>/dev/null; then
             echo "No changes to commit - workflows are up to date"
           else
             # Add and commit the workflow files
-            git add workflows/*.json
+            git add workflow-backups/*.json
             git config user.name "GitHub Actions"
             git config user.email "actions@github.com"
             git commit -m "Automated n8n workflow backup - $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
