@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: "0 21 * * *" # Runs daily at 00:00 Turkey time (UTC+3)
   workflow_dispatch:
-    inputs:
-      workflows:
-        description: "Comma-separated workflow IDs or names to back up (optional)"
-        required: false
-        default: ""
 
 jobs:
   backup:
@@ -18,21 +13,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Create directories to store backups and downloaded workflows
-      - name: Create workflow-backups and workflows directories
-        run: mkdir -p ./workflow-backups ./workflows
+      # 2. Create directories to store backups
+      - name: Create workflows directory
+        run: mkdir -p ./workflows
 
-      # 3. Download all workflows from n8n Public API
+      # 3. Download all workflows from n8n REST API using JWT token authentication
       - name: Download n8n workflows
         env:
-          N8N_BEARER_TOKEN: ${{ secrets.N8N_BEARER_TOKEN }}
+          N8N_JWT_TOKEN: ${{ secrets.N8N_JWT_TOKEN }}
           N8N_URL: ${{ secrets.N8N_URL }}
           N8N_BASIC_USER: ${{ secrets.N8N_BASIC_USER }}
           N8N_BASIC_PASS: ${{ secrets.N8N_BASIC_PASS }}
         run: |
           # Check for required credentials
-          if [ -z "$N8N_BEARER_TOKEN" ]; then
-            echo "::error::The N8N_BEARER_TOKEN secret is missing."
+          if [ -z "$N8N_JWT_TOKEN" ]; then
+            echo "::error::The N8N_JWT_TOKEN secret is missing."
             exit 1
           fi
 
@@ -47,27 +42,27 @@ jobs:
           fi
 
           LIST_URL="$N8N_URL/api/v1/workflows"
-          AUTH_HEADER="Authorization: Bearer $N8N_BEARER_TOKEN"
+          AUTH_HEADER="Authorization: Bearer $N8N_JWT_TOKEN"
 
           echo "Fetching workflows from: $LIST_URL"
 
           # Use curl to get both the HTTP status code and the response body
-          # This provides much better error messages
-          HTTP_RESPONSE=$(curl -s -w "%{http_code}" --request GET \
+          HTTP_BODY=$(curl -s --request GET \
             --url "$LIST_URL" \
             --header "$AUTH_HEADER" \
             --header 'Content-Type: application/json' \
+            --write-out "%{http_code}" \
             "${BASIC_ARGS[@]}")
-            
-          # Extract the status code and body
-          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
-          HTTP_BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
+
+          # Extract the status code (last 3 characters) and body
+          HTTP_STATUS="${HTTP_BODY: -3}"
+          HTTP_BODY="${HTTP_BODY%???}"
 
           # Check if the HTTP status code is a success code (2xx)
           if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
             echo "::error::Failed to fetch workflows. Server responded with HTTP status $HTTP_STATUS."
             echo "::error::Server Response Body: $HTTP_BODY"
-            echo "Please check your N8N_URL and N8N_BEARER_TOKEN secrets."
+            echo "Please check your N8N_URL and N8N_API_KEY secrets."
             exit 1
           fi
 
@@ -76,10 +71,9 @@ jobs:
           # Parse the list of workflows from the .data array
           echo "$HTTP_BODY" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
 
-          # (The rest of the script continues as before)
           while IFS= read -r line; do
             id=$(echo "$line" | jq -r '.id')
-            name=$(echo "$line" | jq -r '.name' | sed 's/[/:<>:"\\|?*]/_/g')
+            name=$(echo "$line" | jq -r '.name' | sed 's/[/:<>:"\\|?*]/_/g') # Sanitize filename
             
             echo "Downloading workflow: $name (ID: $id)"
             ITEM_URL="$N8N_URL/api/v1/workflows/$id"
