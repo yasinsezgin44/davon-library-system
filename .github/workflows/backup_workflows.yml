@@ -2,7 +2,7 @@ name: "n8n Workflows Backup"
 
 on:
   schedule:
-    - cron: "0 21 * * *" # Runs daily at 00:00 Turkey time (UTC+3)
+    - cron: "0 21 * * *" # Runs daily at 00:00 Turkey time (21:00 UTC)
   workflow_dispatch:
 
 # To filter workflows, set WORKFLOW_FILTER variable in repository settings
