@@ -9,7 +9,7 @@ on:
 # Examples: "New SQL Generator", "Agentic_RAG_production" (exact name match, case insensitive)
 
 permissions:
-  contents: write  # Allow pushing to repository
+  contents: write # Allow pushing to repository
 
 jobs:
   backup:
