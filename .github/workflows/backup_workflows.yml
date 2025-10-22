@@ -131,10 +131,11 @@ jobs:
             echo "$response" | jq -c '.[] | {id: .id, name: .name}' > workflows.tmp
           else
             # If Public API complained that X-N8N-API-KEY is required, fallback to REST
-            if echo "$response" | grep -q "'X-N8N-API-KEY' header required"; then
+            if echo "$response" | grep -qiE "(X-N8N-API-KEY|API[- ]?KEY).*(required|missing)|unauthorized"; then
               echo "Server requires REST API key. Falling back to /rest with X-N8N-API-KEY..."
               LIST_URL="$N8N_URL/rest/workflows"
               AUTH_HEADER="X-N8N-API-KEY: $N8N_API_KEY"
+              API_MODE="rest"
               response=$(curl -s --request GET \
                 --url "$LIST_URL" \
                 --header "$AUTH_HEADER" \
