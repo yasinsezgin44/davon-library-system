@@ -41,12 +41,16 @@ jobs:
             echo "Using Basic Auth."
           fi
 
+          # Try different API endpoints and authentication methods
+          echo "Attempting to connect to n8n API..."
+
+          # Method 1: Try JWT Bearer token with /api/v1/workflows
+          echo "Method 1: JWT Bearer token with /api/v1/workflows"
           LIST_URL="$N8N_URL/api/v1/workflows"
           AUTH_HEADER="Authorization: Bearer $N8N_JWT_TOKEN"
 
-          echo "Fetching workflows from: $LIST_URL"
+          echo "Using JWT Bearer authentication with token: ${N8N_JWT_TOKEN:0:20}..."
 
-          # Use curl to get both the HTTP status code and the response body
           HTTP_BODY=$(curl -s --request GET \
             --url "$LIST_URL" \
             --header "$AUTH_HEADER" \
@@ -54,19 +58,67 @@ jobs:
             --write-out "%{http_code}" \
             "${BASIC_ARGS[@]}")
 
-          # Extract the status code (last 3 characters) and body
           HTTP_STATUS="${HTTP_BODY: -3}"
           HTTP_BODY="${HTTP_BODY%???}"
 
-          # Check if the HTTP status code is a success code (2xx)
-          if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
-            echo "::error::Failed to fetch workflows. Server responded with HTTP status $HTTP_STATUS."
-            echo "::error::Server Response Body: $HTTP_BODY"
-            echo "Please check your N8N_URL and N8N_JWT_TOKEN secrets."
-            exit 1
+          if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+            echo "✅ Success with JWT Bearer token on /api/v1/workflows"
+          else
+            echo "❌ Failed with JWT Bearer token. Error: $HTTP_BODY"
+
+            # Method 2: Try API key with /rest/workflows (legacy API)
+            echo "Method 2: API key with /rest/workflows (legacy)"
+            LIST_URL="$N8N_URL/rest/workflows"
+            AUTH_HEADER="X-N8N-API-KEY: $N8N_JWT_TOKEN"
+
+            HTTP_BODY=$(curl -s --request GET \
+              --url "$LIST_URL" \
+              --header "$AUTH_HEADER" \
+              --header 'Content-Type: application/json' \
+              --write-out "%{http_code}" \
+              "${BASIC_ARGS[@]}")
+
+            HTTP_STATUS="${HTTP_BODY: -3}"
+            HTTP_BODY="${HTTP_BODY%???}"
+
+            if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+              echo "✅ Success with API key on /rest/workflows"
+            else
+              echo "❌ Failed with API key. Error: $HTTP_BODY"
+
+              # Method 3: Try API key with /api/v1/workflows
+              echo "Method 3: API key with /api/v1/workflows"
+              LIST_URL="$N8N_URL/api/v1/workflows"
+              AUTH_HEADER="X-N8N-API-KEY: $N8N_JWT_TOKEN"
+
+              HTTP_BODY=$(curl -s --request GET \
+                --url "$LIST_URL" \
+                --header "$AUTH_HEADER" \
+                --header 'Content-Type: application/json' \
+                --write-out "%{http_code}" \
+                "${BASIC_ARGS[@]}")
+
+              HTTP_STATUS="${HTTP_BODY: -3}"
+              HTTP_BODY="${HTTP_BODY%???}"
+
+              if [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 300 ]]; then
+                echo "✅ Success with API key on /api/v1/workflows"
+              else
+                echo "❌ All authentication methods failed. Last error: $HTTP_BODY"
+                echo "::error::Failed to authenticate with n8n API. Please check:"
+                echo "::error::1. Your N8N_JWT_TOKEN secret contains a valid JWT token"
+                echo "::error::2. Your N8N_URL points to the correct n8n instance"
+                echo "::error::3. Your n8n version supports the API endpoints we're trying"
+                exit 1
+              fi
+            fi
           fi
 
           echo "Successfully fetched workflow list (HTTP $HTTP_STATUS)."
+
+          # Store the working authentication method for individual workflow downloads
+          WORKING_AUTH_HEADER="$AUTH_HEADER"
+          WORKING_LIST_URL_BASE="${LIST_URL%/workflows}"
 
           # Parse the list of workflows from the .data array
           echo "$HTTP_BODY" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
@@ -76,11 +128,11 @@ jobs:
             name=$(echo "$line" | jq -r '.name' | sed 's/[/:<>:"\\|?*]/_/g') # Sanitize filename
             
             echo "Downloading workflow: $name (ID: $id)"
-            ITEM_URL="$N8N_URL/api/v1/workflows/$id"
+            ITEM_URL="$WORKING_LIST_URL_BASE/workflows/$id"
 
             workflow_response=$(curl -s --request GET \
               --url "$ITEM_URL" \
-              --header "$AUTH_HEADER" \
+              --header "$WORKING_AUTH_HEADER" \
               "${BASIC_ARGS[@]}")
 
             if echo "$workflow_response" | jq -e '.' > /dev/null 2>&1; then
