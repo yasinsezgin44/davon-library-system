@@ -4,7 +4,7 @@ This directory contains automated backups of your n8n workflows.
 
 ## How It Works
 
-- **Automated Backup**: GitHub Actions runs daily at 21:00 Turkey time (UTC+3) to backup your n8n workflows
+- **Automated Backup**: GitHub Actions runs daily at 00:00 Turkey time (21:00 UTC) to backup your n8n workflows
 - **Storage**: Workflows are committed to the `n8n-workflows-backup` branch of this repository
 - **Format**: Each workflow is saved as a JSON file with the format: `WorkflowName (ID).json`
 

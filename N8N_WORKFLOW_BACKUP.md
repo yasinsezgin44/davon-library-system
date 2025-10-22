@@ -35,7 +35,7 @@ Add the following secrets:
 
 ### 3. Run the Backup
 
-**Automatic**: Runs daily at 21:00 Turkey time
+**Automatic**: Runs daily at 00:00 Turkey time (21:00 UTC)
 
 **Manual**: Go to **Actions** → **"n8n Workflows Backup"** → **"Run workflow"**
 
