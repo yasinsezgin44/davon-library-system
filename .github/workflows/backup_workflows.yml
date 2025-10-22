@@ -29,12 +29,10 @@ jobs:
           N8N_URL: ${{ secrets.N8N_URL }}
           N8N_BASIC_USER: ${{ secrets.N8N_BASIC_USER }}
           N8N_BASIC_PASS: ${{ secrets.N8N_BASIC_PASS }}
-          WORKFLOWS_INPUT: ${{ inputs.workflows }}
-          WORKFLOWS_VARS: ${{ vars.N8N_WORKFLOWS }}
         run: |
           # Check for required credentials
           if [ -z "$N8N_BEARER_TOKEN" ]; then
-            echo "Error: The N8N_BEARER_TOKEN secret is missing."
+            echo "::error::The N8N_BEARER_TOKEN secret is missing."
             exit 1
           fi
 
@@ -52,37 +50,35 @@ jobs:
           AUTH_HEADER="Authorization: Bearer $N8N_BEARER_TOKEN"
 
           echo "Fetching workflows from: $LIST_URL"
-          echo "Bearer Token (first 10 chars): ${N8N_BEARER_TOKEN:0:10}..."
 
-          # Use --fail to exit with an error on HTTP failure codes (like 401 Unauthorized)
-          response=$(curl -s --fail --request GET \
+          # Use curl to get both the HTTP status code and the response body
+          # This provides much better error messages
+          HTTP_RESPONSE=$(curl -s -w "%{http_code}" --request GET \
             --url "$LIST_URL" \
             --header "$AUTH_HEADER" \
             --header 'Content-Type: application/json' \
             "${BASIC_ARGS[@]}")
+            
+          # Extract the status code and body
+          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
+          HTTP_BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
 
-          # Check if curl command failed
-          if [ $? -ne 0 ]; then
-            echo "Error: Failed to fetch workflows. Check your N8N_URL and N8N_BEARER_TOKEN."
-            # If a response body was returned (like a JSON error), print it.
-            if [ -n "$response" ]; then
-              echo "Server response: $response"
-            fi
+          # Check if the HTTP status code is a success code (2xx)
+          if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+            echo "::error::Failed to fetch workflows. Server responded with HTTP status $HTTP_STATUS."
+            echo "::error::Server Response Body: $HTTP_BODY"
+            echo "Please check your N8N_URL and N8N_BEARER_TOKEN secrets."
             exit 1
           fi
+
+          echo "Successfully fetched workflow list (HTTP $HTTP_STATUS)."
 
           # Parse the list of workflows from the .data array
-          if ! echo "$response" | jq -e '.data' > /dev/null 2>&1; then
-            echo "Error: Unexpected JSON structure. Expected a '.data' array."
-            echo "Response: $response"
-            exit 1
-          fi
-          echo "$response" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
+          echo "$HTTP_BODY" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
 
-          # Loop through each workflow and download its JSON data
+          # (The rest of the script continues as before)
           while IFS= read -r line; do
             id=$(echo "$line" | jq -r '.id')
-            # Sanitize filename to remove illegal characters
             name=$(echo "$line" | jq -r '.name' | sed 's/[/:<>:"\\|?*]/_/g')
             
             echo "Downloading workflow: $name (ID: $id)"
@@ -93,7 +89,6 @@ jobs:
               --header "$AUTH_HEADER" \
               "${BASIC_ARGS[@]}")
 
-            # Validate that the response is valid JSON before saving
             if echo "$workflow_response" | jq -e '.' > /dev/null 2>&1; then
               echo "$workflow_response" > "./workflows/${name} (${id}).json"
             else
