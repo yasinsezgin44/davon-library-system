@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 # To filter workflows, set WORKFLOW_FILTER variable in repository settings
-# Examples: "Agentic_RAG", "SQL", "production" (case-insensitive regex)
+# Examples: "New SQL Generator", "Agentic_RAG_production" (exact name match, case insensitive)
 
 jobs:
   backup:
@@ -75,8 +75,8 @@ jobs:
 
           # Parse and filter the list of workflows from the .data array
           if [ -n "$WORKFLOW_FILTER" ]; then
-            echo "Applying workflow filter: '$WORKFLOW_FILTER'"
-            echo "$HTTP_BODY" | jq -c --arg filter "$WORKFLOW_FILTER" '.data[] | select(.name | test($filter; "i")) | {id: .id, name: .name}' > workflows.tmp
+            echo "Applying workflow filter: '$WORKFLOW_FILTER' (exact name match, case insensitive)"
+            echo "$HTTP_BODY" | jq -c --arg filter "$WORKFLOW_FILTER" '.data[] | select((.name | ascii_downcase) == ($filter | ascii_downcase)) | {id: .id, name: .name}' > workflows.tmp
             WORKFLOW_COUNT=$(wc -l < workflows.tmp)
             echo "Found $WORKFLOW_COUNT workflows matching filter '$WORKFLOW_FILTER'"
           else
