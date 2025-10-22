@@ -1,15 +1,8 @@
-# .github/workflow-backups/backup_workflows.yml
-# FIXED: Updated API endpoints from /api/v1/ to /rest/
-# FIXED: Added URL normalization to handle trailing slashes
-
 name: "n8n Workflows Backup"
 
-# Controls when the action will run.
 on:
-  # Runs daily at 00:00 Turkey time (UTC+3) -> 21:00 UTC
   schedule:
-    - cron: "0 21 * * *"
-  # Allows you to run this workflow manually from the Actions tab
+    - cron: "0 21 * * *" # Runs daily at 00:00 Turkey time (UTC+3)
   workflow_dispatch:
     inputs:
       workflows:
@@ -29,176 +22,83 @@ jobs:
       - name: Create workflow-backups and workflows directories
         run: mkdir -p ./workflow-backups ./workflows
 
-      # 3. Download all workflows from n8n API
+      # 3. Download all workflows from n8n Public API
       - name: Download n8n workflows
         env:
-          N8N_API_KEY: ${{ secrets.N8N_API_KEY }}
-          N8N_URL: ${{ secrets.N8N_URL }}
           N8N_BEARER_TOKEN: ${{ secrets.N8N_BEARER_TOKEN }}
+          N8N_URL: ${{ secrets.N8N_URL }}
           N8N_BASIC_USER: ${{ secrets.N8N_BASIC_USER }}
           N8N_BASIC_PASS: ${{ secrets.N8N_BASIC_PASS }}
           WORKFLOWS_INPUT: ${{ inputs.workflows }}
           WORKFLOWS_VARS: ${{ vars.N8N_WORKFLOWS }}
         run: |
-          # Normalize N8N_URL (remove trailing slash if present)
-          N8N_URL="${N8N_URL%/}"
-
-          # Determine API mode
-          API_MODE=""
-          if [ -n "$N8N_BEARER_TOKEN" ]; then
-            API_MODE="public" # Public API (/api/v1, Authorization: Bearer <token>)
-          elif [ -n "$N8N_API_KEY" ]; then
-            API_MODE="rest"   # REST API (/rest, X-N8N-API-KEY: <key>)
-          else
-            echo "Error: Missing credentials. Provide either N8N_BEARER_TOKEN (Public API) or N8N_API_KEY (REST API)."
+          # Check for required credentials
+          if [ -z "$N8N_BEARER_TOKEN" ]; then
+            echo "Error: The N8N_BEARER_TOKEN secret is missing."
             exit 1
           fi
 
-          if [ "$API_MODE" = "public" ]; then
-            LIST_URL="$N8N_URL/api/v1/workflows"
-            AUTH_HEADER="Authorization: Bearer $N8N_BEARER_TOKEN"
-          else
-            LIST_URL="$N8N_URL/rest/workflows"
-            AUTH_HEADER="X-N8N-API-KEY: $N8N_API_KEY"
-          fi
+          # Normalize N8N_URL (remove trailing slash if present)
+          N8N_URL="${N8N_URL%/}"
 
           # If Basic Auth is provided, add it
           BASIC_ARGS=()
           if [ -n "$N8N_BASIC_USER" ] && [ -n "$N8N_BASIC_PASS" ]; then
             BASIC_ARGS=( -u "$N8N_BASIC_USER:$N8N_BASIC_PASS" )
-            echo "Using Basic Auth as well."
+            echo "Using Basic Auth."
           fi
 
-          # Combine/normalize desired workflows
-          # Priority: manual input > repo variable (vars.N8N_WORKFLOWS)
-          WORKFLOWS="${WORKFLOWS_INPUT:-$WORKFLOWS_VARS}"
-          normalize() {
-            # Split by comma, trim spaces, drop empty lines
-            echo "$1" | tr ',' '\n' | sed 's/^ *//;s/ *$//' | awk 'NF'
-          }
-          desired_list=""
-          if [ -n "$WORKFLOWS" ]; then
-            desired_list="$(normalize "$WORKFLOWS")"
-            echo "Filtering to specific workflows:"
-            printf '%s\n' "$desired_list"
-          else
-            echo "No workflow filter provided; backing up all workflows."
-          fi
+          LIST_URL="$N8N_URL/api/v1/workflows"
+          AUTH_HEADER="Authorization: Bearer $N8N_BEARER_TOKEN"
 
-          # Fetch all workflows and save their IDs and names
-          echo "API mode: $API_MODE"
           echo "Fetching workflows from: $LIST_URL"
-          if [ "$API_MODE" = "public" ]; then
-            echo "Bearer (first 10 chars): ${N8N_BEARER_TOKEN:0:10}..."
-          else
-            echo "API Key (first 10 chars): ${N8N_API_KEY:0:10}..."
-          fi
+          echo "Bearer Token (first 10 chars): ${N8N_BEARER_TOKEN:0:10}..."
 
-          response=$(curl -s --request GET \
+          # Use --fail to exit with an error on HTTP failure codes (like 401 Unauthorized)
+          response=$(curl -s --fail --request GET \
             --url "$LIST_URL" \
             --header "$AUTH_HEADER" \
             --header 'Content-Type: application/json' \
             "${BASIC_ARGS[@]}")
 
-          # Check if response is empty
-          if [ -z "$response" ]; then
-            echo "Error: Empty response from n8n API. Please check your N8N_URL and N8N_API_KEY."
-            exit 1
-          fi
-
-          # Check if response starts with HTML (indicates error page)
-          if echo "$response" | head -1 | grep -q "<!"; then
-            echo "Error: Received HTML response instead of JSON. This usually means:"
-            echo "  - N8N_URL is incorrect (should be API base URL, not web UI)"
-            echo "  - N8N_API_KEY is invalid or missing"
-            echo "  - n8n server is not accessible"
-            echo ""
-            echo "Common N8N_URL formats:"
-            echo "  ✅ https://your-instance.com"
-            echo "  ❌ https://your-instance.com/webhook"
-            echo "  ❌ https://your-instance.com/admin"
-            echo "  ❌ your-instance.com (missing https://)"
-            echo ""
-            echo "First few lines of response:"
-            echo "$response" | head -5
-            exit 1
-          fi
-
-          # Parse JSON robustly (supports Public API and REST API formats)
-          if echo "$response" | jq -e '.data | type=="array"' > /dev/null 2>&1; then
-            echo "$response" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
-          elif echo "$response" | jq -e 'type=="array"' > /dev/null 2>&1; then
-            echo "$response" | jq -c '.[] | {id: .id, name: .name}' > workflows.tmp
-          else
-            # If Public API complained that X-N8N-API-KEY is required, fallback to REST
-            if echo "$response" | grep -qiE "(X-N8N-API-KEY|API[- ]?KEY).*(required|missing)|unauthorized"; then
-              echo "Server requires REST API key. Falling back to /rest with X-N8N-API-KEY..."
-              LIST_URL="$N8N_URL/rest/workflows"
-              AUTH_HEADER="X-N8N-API-KEY: $N8N_API_KEY"
-              API_MODE="rest"
-              response=$(curl -s --request GET \
-                --url "$LIST_URL" \
-                --header "$AUTH_HEADER" \
-                --header 'Content-Type: application/json' \
-                "${BASIC_ARGS[@]}")
-
-              if echo "$response" | jq -e '.data | type=="array"' > /dev/null 2>&1; then
-                echo "$response" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
-              else
-                echo "Error: Unexpected JSON after REST fallback:"
-                echo "$response"
-                exit 1
-              fi
-            else
-              echo "Error: Unexpected JSON structure:"
-              echo "$response"
-              exit 1
+          # Check if curl command failed
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to fetch workflows. Check your N8N_URL and N8N_BEARER_TOKEN."
+            # If a response body was returned (like a JSON error), print it.
+            if [ -n "$response" ]; then
+              echo "Server response: $response"
             fi
+            exit 1
           fi
+
+          # Parse the list of workflows from the .data array
+          if ! echo "$response" | jq -e '.data' > /dev/null 2>&1; then
+            echo "Error: Unexpected JSON structure. Expected a '.data' array."
+            echo "Response: $response"
+            exit 1
+          fi
+          echo "$response" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
 
           # Loop through each workflow and download its JSON data
           while IFS= read -r line; do
             id=$(echo "$line" | jq -r '.id')
-            name=$(echo "$line" | jq -r '.name' | sed 's/[/:<>:"\\|?*]/_/g') # Sanitize filename
-            original_name=$(echo "$line" | jq -r '.name')
-
-            # If desired list is provided, skip items not in the list (by id or exact name)
-            if [ -n "$desired_list" ]; then
-              if ! (printf '%s\n' "$desired_list" | grep -Fxq "$id" || \
-                    printf '%s\n' "$desired_list" | grep -Fxq "$original_name"); then
-                continue
-              fi
-            fi
+            # Sanitize filename to remove illegal characters
+            name=$(echo "$line" | jq -r '.name' | sed 's/[/:<>:"\\|?*]/_/g')
+            
             echo "Downloading workflow: $name (ID: $id)"
-            if [ "$API_MODE" = "public" ]; then
-              ITEM_URL="$N8N_URL/api/v1/workflows/$id"
-            else
-              ITEM_URL="$N8N_URL/rest/workflows/$id"
-            fi
+            ITEM_URL="$N8N_URL/api/v1/workflows/$id"
+
             workflow_response=$(curl -s --request GET \
               --url "$ITEM_URL" \
               --header "$AUTH_HEADER" \
               "${BASIC_ARGS[@]}")
 
-            # Check if workflow download succeeded
-            if [ -z "$workflow_response" ]; then
-              echo "Warning: Empty response when downloading workflow $id. Skipping."
-              continue
-            fi
-
-            # Check if response is HTML error page
-            if echo "$workflow_response" | head -1 | grep -q "<!"; then
-              echo "Warning: Received HTML error when downloading workflow $id. Skipping."
-              continue
-            fi
-
-            # Try to validate it's valid JSON
-            if ! echo "$workflow_response" | jq -e '.' > /dev/null 2>&1; then
+            # Validate that the response is valid JSON before saving
+            if echo "$workflow_response" | jq -e '.' > /dev/null 2>&1; then
+              echo "$workflow_response" > "./workflows/${name} (${id}).json"
+            else
               echo "Warning: Invalid JSON response for workflow $id. Skipping."
-              continue
             fi
-
-            echo "$workflow_response" > "./workflows/${name} (${id}).json"
           done < workflows.tmp
           rm workflows.tmp
 
