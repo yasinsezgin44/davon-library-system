@@ -33,7 +33,7 @@ workflow-backups/
 
 ## Workflow Configuration
 
-- **Schedule**: Daily at 21:00 Turkey time
+- **Schedule**: Daily at 00:00 Turkey time (21:00 UTC)
 - **Manual Trigger**: Available in GitHub Actions tab
 - **Authentication**: Uses API key authentication with `/api/v1/workflows` endpoint
 - **Filtering**: Optional exact name matching via `WORKFLOW_FILTER` repository variable
