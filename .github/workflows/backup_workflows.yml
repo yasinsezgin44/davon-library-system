@@ -17,8 +17,8 @@ jobs:
         uses: actions/checkout@v4
 
       # 2. Create directories to store backups
-      - name: Create workflows directory
-        run: mkdir -p ./workflows
+      - name: Create workflow-backups directory
+        run: mkdir -p ./workflow-backups
 
       # 3. Download all workflows from n8n REST API using JWT token authentication
       - name: Download n8n workflows
@@ -76,20 +76,20 @@ jobs:
           # Parse and filter the list of workflows from the .data array
           if [ -n "$WORKFLOW_FILTER" ]; then
             echo "Applying workflow filter: '$WORKFLOW_FILTER' (exact name match, case insensitive)"
-            echo "$HTTP_BODY" | jq -c --arg filter "$WORKFLOW_FILTER" '.data[] | select((.name | ascii_downcase) == ($filter | ascii_downcase)) | {id: .id, name: .name}' > workflows.tmp
-            WORKFLOW_COUNT=$(wc -l < workflows.tmp)
+            echo "$HTTP_BODY" | jq -c --arg filter "$WORKFLOW_FILTER" '.data[] | select((.name | ascii_downcase) == ($filter | ascii_downcase)) | {id: .id, name: .name}' > workflow-backups.tmp
+            WORKFLOW_COUNT=$(wc -l < workflow-backups.tmp)
             echo "Found $WORKFLOW_COUNT workflows matching filter '$WORKFLOW_FILTER'"
           else
             echo "No filter applied - downloading all workflows"
-            echo "$HTTP_BODY" | jq -c '.data[] | {id: .id, name: .name}' > workflows.tmp
-            WORKFLOW_COUNT=$(wc -l < workflows.tmp)
+            echo "$HTTP_BODY" | jq -c '.data[] | {id: .id, name: .name}' > workflow-backups.tmp
+            WORKFLOW_COUNT=$(wc -l < workflow-backups.tmp)
             echo "Found $WORKFLOW_COUNT total workflows"
           fi
 
           while IFS= read -r line; do
             id=$(echo "$line" | jq -r '.id')
             name=$(echo "$line" | jq -r '.name' | sed 's/[/:<>:"\\|?*]/_/g') # Sanitize filename
-            
+
             echo "Downloading workflow: $name (ID: $id)"
             ITEM_URL="$WORKING_LIST_URL_BASE/workflows/$id"
 
@@ -99,12 +99,12 @@ jobs:
               "${BASIC_ARGS[@]}")
 
             if echo "$workflow_response" | jq -e '.' > /dev/null 2>&1; then
-              echo "$workflow_response" > "./workflows/${name} (${id}).json"
+              echo "$workflow_response" > "./workflow-backups/${name} (${id}).json"
             else
               echo "Warning: Invalid JSON response for workflow $id. Skipping."
             fi
-          done < workflows.tmp
-          rm workflows.tmp
+          done < workflow-backups.tmp
+          rm workflow-backups.tmp
 
       # 4. Commit and push changes to a backup branch
       - name: Create backup branch and commit workflows
