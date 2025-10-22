@@ -62,7 +62,7 @@ jobs:
           if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
             echo "::error::Failed to fetch workflows. Server responded with HTTP status $HTTP_STATUS."
             echo "::error::Server Response Body: $HTTP_BODY"
-            echo "Please check your N8N_URL and N8N_API_KEY secrets."
+            echo "Please check your N8N_URL and N8N_JWT_TOKEN secrets."
             exit 1
           fi
 
