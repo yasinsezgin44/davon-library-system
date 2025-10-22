@@ -16,19 +16,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Create directories to store backups
-      - name: Create workflow-backups directory
-        run: mkdir -p ./workflow-backups
-
-      # 3. Download all workflows from n8n REST API using JWT token authentication
-      - name: Download n8n workflows
-        env:
-          N8N_JWT_TOKEN: ${{ secrets.N8N_JWT_TOKEN }}
-          N8N_URL: ${{ secrets.N8N_URL }}
-          N8N_BASIC_USER: ${{ secrets.N8N_BASIC_USER }}
-          N8N_BASIC_PASS: ${{ secrets.N8N_BASIC_PASS }}
-          WORKFLOW_FILTER: ${{ vars.WORKFLOW_FILTER || '' }}
+      # 2. Create backup branch and download workflows
+      - name: Create backup branch and download workflows
         run: |
+          # Create and switch to backup branch first
+          git checkout -b n8n-workflows-backup 2>/dev/null || git checkout n8n-workflows-backup
+
+          # Now create directories and download workflows while on the backup branch
+          mkdir -p ./workflow-backups
+
           # Check for required credentials
           if [ -z "$N8N_JWT_TOKEN" ]; then
             echo "::error::The N8N_JWT_TOKEN secret is missing."
@@ -105,13 +101,16 @@ jobs:
             fi
           done < workflow-backups.tmp
           rm workflow-backups.tmp
+        env:
+          N8N_JWT_TOKEN: ${{ secrets.N8N_JWT_TOKEN }}
+          N8N_URL: ${{ secrets.N8N_URL }}
+          N8N_BASIC_USER: ${{ secrets.N8N_BASIC_USER }}
+          N8N_BASIC_PASS: ${{ secrets.N8N_BASIC_PASS }}
+          WORKFLOW_FILTER: ${{ vars.WORKFLOW_FILTER || '' }}
 
-      # 4. Commit and push changes to a backup branch
-      - name: Create backup branch and commit workflows
+      # 3. Commit and push changes to the backup branch
+      - name: Commit and push workflow backups
         run: |
-          # Create and switch to backup branch
-          git checkout -b n8n-workflows-backup 2>/dev/null || git checkout n8n-workflows-backup
-
           # Check if there are any changes to commit
           if git diff --quiet workflow-backups/*.json 2>/dev/null; then
             echo "No changes to commit - workflows are up to date"
