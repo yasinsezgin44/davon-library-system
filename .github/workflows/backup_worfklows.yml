@@ -1,0 +1,134 @@
+name: "n8n Workflows Backup"
+
+on:
+    schedule:
+        - cron: "0 21 * * *" # Runs daily at 00:00 Turkey time (21:00 UTC)
+    workflow_dispatch:
+
+# To filter workflows, set WORKFLOW_FILTER variable in repository settings
+# Examples: "New SQL Generator", "Agentic_RAG_production" (exact name match, case insensitive)
+
+permissions:
+    contents: write # Allow pushing to repository
+
+jobs:
+    backup:
+        runs-on: ubuntu-latest
+        steps:
+            # 1. Checks out your repository so the workflow can access it
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: main
+                  fetch-depth: 0
+
+            # 2. Download workflows
+            - name: Download workflows
+              run: |
+                  # Create directories and download workflows while on main branch
+                  mkdir -p ./workflow-backups
+
+                  # Check for required credentials
+                  if [ -z "$N8N_JWT_TOKEN" ]; then
+                    echo "::error::The N8N_JWT_TOKEN secret is missing."
+                    exit 1
+                  fi
+
+                  # Normalize N8N_URL (remove trailing slash if present)
+                  N8N_URL="${N8N_URL%/}"
+
+                  # If Basic Auth is provided, add it
+                  BASIC_ARGS=()
+                  if [ -n "$N8N_BASIC_USER" ] && [ -n "$N8N_BASIC_PASS" ]; then
+                    BASIC_ARGS=( -u "$N8N_BASIC_USER:$N8N_BASIC_PASS" )
+                    echo "Using Basic Auth."
+                  fi
+
+                  # Use the working authentication method (API key with /api/v1/workflows)
+                  echo "Connecting to n8n API using API key authentication..."
+                  LIST_URL="$N8N_URL/api/v1/workflows"
+                  AUTH_HEADER="X-N8N-API-KEY: $N8N_JWT_TOKEN"
+
+                  HTTP_BODY=$(curl -s --request GET \
+                    --url "$LIST_URL" \
+                    --header "$AUTH_HEADER" \
+                    --header 'Content-Type: application/json' \
+                    --write-out "%{http_code}" \
+                    "${BASIC_ARGS[@]}")
+
+                  HTTP_STATUS="${HTTP_BODY: -3}"
+                  HTTP_BODY="${HTTP_BODY%???}"
+
+                  if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+                    echo "::error::Failed to fetch workflows. Server responded with HTTP status $HTTP_STATUS."
+                    echo "::error::Server Response Body: $HTTP_BODY"
+                    echo "Please check your N8N_URL and N8N_JWT_TOKEN secrets."
+                    exit 1
+                  fi
+
+                  echo "Successfully fetched workflow list (HTTP $HTTP_STATUS)."
+
+                  # Store the working authentication method for individual workflow downloads
+                  WORKING_AUTH_HEADER="$AUTH_HEADER"
+                  WORKING_LIST_URL_BASE="${LIST_URL%/workflows}"
+
+                  # Parse and filter the list of workflows from the .data array
+                  if [ -n "$WORKFLOW_FILTER" ]; then
+                    echo "Applying workflow filter: '$WORKFLOW_FILTER' (exact name match, case insensitive)"
+                    echo "$HTTP_BODY" | jq -c --arg filter "$WORKFLOW_FILTER" '.data[] | select((.name | ascii_downcase) == ($filter | ascii_downcase)) | {id: .id, name: .name}' > workflow-backups.tmp
+                    WORKFLOW_COUNT=$(wc -l < workflow-backups.tmp)
+                    echo "Found $WORKFLOW_COUNT workflows matching filter '$WORKFLOW_FILTER'"
+                  else
+                    echo "No filter applied - downloading all workflows"
+                    echo "$HTTP_BODY" | jq -c '.data[] | {id: .id, name: .name}' > workflow-backups.tmp
+                    WORKFLOW_COUNT=$(wc -l < workflow-backups.tmp)
+                    echo "Found $WORKFLOW_COUNT total workflows"
+                  fi
+
+                  while IFS= read -r line; do
+                    id=$(echo "$line" | jq -r '.id')
+                    name=$(echo "$line" | jq -r '.name' | sed 's/[/:<>:"\\|?*]/_/g') # Sanitize filename
+
+                    echo "Downloading workflow: $name (ID: $id)"
+                    ITEM_URL="$WORKING_LIST_URL_BASE/workflows/$id"
+
+                    workflow_response=$(curl -s --request GET \
+                      --url "$ITEM_URL" \
+                      --header "$WORKING_AUTH_HEADER" \
+                      "${BASIC_ARGS[@]}")
+
+                    if echo "$workflow_response" | jq -e '.' > /dev/null 2>&1; then
+                      echo "$workflow_response" > "./workflow-backups/${name} (${id}).json"
+                    else
+                      echo "Warning: Invalid JSON response for workflow $id. Skipping."
+                    fi
+                  done < workflow-backups.tmp
+                  rm workflow-backups.tmp
+              env:
+                  N8N_JWT_TOKEN: ${{ secrets.N8N_JWT_TOKEN }}
+                  N8N_URL: ${{ secrets.N8N_URL }}
+                  N8N_BASIC_USER: ${{ secrets.N8N_BASIC_USER }}
+                  N8N_BASIC_PASS: ${{ secrets.N8N_BASIC_PASS }}
+                  WORKFLOW_FILTER: ${{ vars.WORKFLOW_FILTER || '' }}
+
+            # 3. Commit and push changes to the main branch
+            - name: Commit and push workflow backups
+              run: |
+                  # Check if there are any workflow JSON files to commit
+                  if [ "$(find workflow-backups -name "*.json" -type f | wc -l)" -eq 0 ]; then
+                    echo "No workflow files found to commit"
+                  else
+                    echo "Changes detected, committing..."
+                    # Add and commit the workflow files
+                    git add workflow-backups/*.json
+                    git config user.name "GitHub Actions"
+                    git config user.email "actions@github.com"
+                    if git diff --staged --quiet; then
+                      echo "No changes to commit"
+                    else
+                      git commit -m "Automated n8n workflow backup - $(date '+%Y-%m-%d %H:%M:%S')"
+                      # Push to main branch
+                      git push origin HEAD:main
+                      echo "✅ Workflows committed to main branch"
+                    fi
+                  fi
